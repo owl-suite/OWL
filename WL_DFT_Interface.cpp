@@ -10,7 +10,7 @@
 //
 // Main C++ program to call the appropriate subroutines from
 // Quantum Espresso codes for performing PWscf calculations and
-// pass the energy and position arrays to Wang-Landau algorithm.
+// passing the energy and position arrays to Wang-Landau algorithm.
 //
 # include <iostream>
 

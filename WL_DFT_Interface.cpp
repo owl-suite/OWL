@@ -4,17 +4,17 @@
 // in the root directory of the present distribution,
 // or http://www.gnu.org/copyleft/gpl.txt.
 //
-//--------------------------------------------------------------
-// WL+DFT Interface Program
-//--------------------------------------------------------------
+//-----------------------------------------------------------------
+//   WL+DFT Interface Program
+//-----------------------------------------------------------------
 //
-// Main C++ program to call the appropriate subroutines from
-// Quantum Espresso codes for performing PWscf calculations and
-// pass the energy and position arrays to Wang-Landau algorithm.
+// Main C++ program calling the Quantum Espresso subroutines for
+// performing PWscf calculations and passing the energy, position,  
+// and cell vector arrays to the Wang-Landau algorithm.
 //
 # include <iostream>
 # include <fstream>
-# include "Matrix.hpp"  // Matrix class header
+# include "Matrix.hpp"   // Matrix class header
 
 using namespace std;
 

@@ -76,9 +76,8 @@ SUBROUTINE get_pos_array (pos_array)
   ! ... Extract the position array from the Quantum Espresso modules
   !
   USE constants,     ONLY : bohr_radius_angs
-  USE cell_base,     ONLY : alat, at
-  USE ions_base,     ONLY : tau
-  USE ions_base,     ONLY : nat
+  USE cell_base,     ONLY : alat
+  USE ions_base,     ONLY : tau, nat
   !
   IMPLICIT NONE
   REAL(KIND=8) :: pos_array(3,nat)

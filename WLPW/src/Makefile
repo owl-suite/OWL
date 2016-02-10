@@ -1,4 +1,4 @@
-# Makefile for NEB
+# Makefile for WLPW
 
 include ../../make.sys
 

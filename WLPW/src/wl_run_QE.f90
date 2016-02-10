@@ -1,12 +1,11 @@
 !
-! Copyright (C) 2001-2009 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
 ! GNU General Public License. See the file `License'
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_qe_startup ( )
+SUBROUTINE wl_qe_startup (my_comm)
   !----------------------------------------------------------------------------
   !
   ! ... Set up the PWscf calculation for Quantum Espresso
@@ -17,8 +16,9 @@ SUBROUTINE wl_qe_startup ( )
   USE command_line_options, ONLY: input_file_
   !
   IMPLICIT NONE
+  INTEGER :: my_comm
   !
-  CALL mp_startup ( )
+  CALL mp_startup (my_comm)
   CALL environment_start ('PWSCF')
   !
   CALL read_input_file ('PW', input_file_ )
@@ -56,9 +56,9 @@ SUBROUTINE wl_stop_run( exit_status )
   INTEGER, INTENT(IN) :: exit_status
   LOGICAL             :: exst, opnd, lflag
   !
-  lflag = ( exit_status == 0 ) 
+  lflag = ( exit_status == 0 )
   IF ( lflag ) THEN
-     ! 
+     !
      ! ... remove files needed only to restart
      !
      CALL seqopn( iuntmp, 'restart', 'UNFORMATTED', exst )

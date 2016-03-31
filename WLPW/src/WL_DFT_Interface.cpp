@@ -16,6 +16,7 @@
 # include <iostream>
 # include <fstream>
 # include "Matrix.hpp"   // Matrix class header
+# include "MCMoves.hpp"
 
 using namespace std;
 
@@ -40,6 +41,21 @@ int main (int argc, char **argv) {
   int exit_status;  // Environmental parameter
   int comm_help;    // Communicator
 
+  //YingWai's check
+  initializeRandomNumberGenerator();
+  Matrix<double> pos_array_trial;   // Set up the position array (in angstrom)
+  pos_array_trial.resize(5,10);
+  Matrix<double> cell_array_trial;  // Set up the cell vector array (in angstrom)
+  cell_array_trial.resize(3,3);
+  for(size_t i=0; i<50; i++)
+    pos_array_trial[i] = i;
+  for(size_t i=0; i<9; i++)
+    cell_array_trial[i] = i;
+  proposeMCmoves(pos_array_trial, cell_array_trial);
+  //for(size_t i=0; i<50; i++)
+  //  cout << "main: " << i << "  " << pos_array_trial[i] << endl;
+  return 1;
+
   MPI_Init(&argc, &argv);            // Set up the communicator
   comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
 
@@ -59,6 +75,8 @@ int main (int argc, char **argv) {
   cell_array.resize(3,3);
 
   get_array_(&pos_array(0,0), &cell_array(0,0));
+
+  proposeMCmoves(pos_array, cell_array);
 
   wl_stop_run_(&exit_status);  // Clean up the PWscf run
   wl_pass_array_(&pos_array(0,0));  // Pass the position array to QE

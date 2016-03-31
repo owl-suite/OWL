@@ -19,7 +19,8 @@ WL_DFT_Interface.o
 WLPWLIBS = \
 wl_getInfo_pwscf.o \
 wl_do_pwscf.o \
-wl_run_QE.o 
+wl_run_QE.o \
+MCMoves.o 
 
 QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a
 PWOBJS= ../../PW/src/libpw.a

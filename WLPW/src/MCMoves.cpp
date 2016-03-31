@@ -58,41 +58,43 @@ void displaceAnAtom(Matrix<double> &atom_positions)
 void stretchCrystalCell(Matrix<double> &cell_vectors)
 {
 
+  // YingWai's note (data layout of cell_vectors[i][j]):
+  //    j -->
+  //  i    a_x a_y a_z
+  //  |    b_x b_y b_z
+  //  v    c_x c_y c_z
+
   // Define maximum stretching magnitude in Angstrom  (should be moved to .h later)
   double dL_max = 0.1;
 
   // Choose a vector randomly to stretch
-  int ranLatticeVector = rand() % cell_vectors.n_col() ;
+  int ranLatticeVector = rand() % cell_vectors.n_row() ;
 
   // Lengths of lattice vector
   double L = 0.0;
-  for (int i=0; i<cell_vectors.n_row(); i++)
-    L += cell_vectors(i,ranLatticeVector) * cell_vectors(i,ranLatticeVector);
+  for (int j=0; j<cell_vectors.n_col(); j++)
+    L += cell_vectors(ranLatticeVector,j) * cell_vectors(ranLatticeVector,j);
   L = sqrt(L);
 
   // Angles of the lattice vectors with the Cartesian coordinate system (x,y,z)
   // x = L * sin(theta) * cos(phi)
   // y = L * sin(theta) * sin(phi)
   // z = L * cos(theta)
-  double cos_theta = cell_vectors(2,ranLatticeVector) / L;
+  double cos_theta = cell_vectors(ranLatticeVector,2) / L;
   double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
-  double cos_phi   = cell_vectors(0,ranLatticeVector) / (L * sin_theta);
-  double sin_phi   = cell_vectors(1,ranLatticeVector) / (L * sin_theta);
+  double cos_phi   = cell_vectors(ranLatticeVector,0) / (L * sin_theta);
+  double sin_phi   = cell_vectors(ranLatticeVector,1) / (L * sin_theta);
 
   // Randomly choose a stretching magnitude
   double dL = 2.0 * (rand()/RAND_MAX - 0.5) * dL_max;
   L += dL;
 
-  // Recalculate cell vector's components
-  cell_vectors(0,ranLatticeVector) = L * sin_theta * cos_phi;
-  cell_vectors(1,ranLatticeVector) = L * sin_theta * sin_phi;
-  cell_vectors(2,ranLatticeVector) = L * cos_theta;
-
-
-  // Next, displace atoms to fit the new crystal cell
+  // Recalculate cell vector's components with new length
+  cell_vectors(ranLatticeVector,0) = L * sin_theta * cos_phi;
+  cell_vectors(ranLatticeVector,1) = L * sin_theta * sin_phi;
+  cell_vectors(ranLatticeVector,2) = L * cos_theta;
 
 }
-
 
 
 

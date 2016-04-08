@@ -19,8 +19,11 @@ WL_DFT_Interface.o
 WLPWLIBS = \
 wl_getInfo_pwscf.o \
 wl_do_pwscf.o \
-wl_run_QE.o \
-MCMoves.o 
+wl_run_QE.o
+
+MCLIBS = \
+MCAlgorithms.o \
+MCMoves.o
 
 QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a
 PWOBJS= ../../PW/src/libpw.a
@@ -29,14 +32,17 @@ TLDEPS=bindir mods libs liblapack libblas pw
 
 all : tldeps wlpw.x
 
-wlpw.x : $(WLPWOBJS) libwlpw.a $(LIBOBJS) $(PWOBJS) $(QEMODS)
+wlpw.x : $(WLPWOBJS) libwlpw.a libmc.a $(LIBOBJS) $(PWOBJS) $(QEMODS)
 	$(LD) $(LDFLAGS) -o $@ -nofor_main -cxxlib \
-	$(WLPWOBJS) libwlpw.a $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	$(WLPWOBJS) libwlpw.a libmc.a $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd ../../bin; ln -fs ../WLPW/src/$@ . )
 
 libwlpw.a : $(WLPWLIBS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
+
+libmc.a : $(MCLIBS)
+	$(AR) $(ARFLAGS) $@ $?
 
 tldeps :
 	if test -n "$(TLDEPS)" ; then \

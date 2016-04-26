@@ -16,8 +16,7 @@
 # include <iostream>
 # include <fstream>
 # include "MCAlgorithms.hpp"
-# include "WL_DFT_Interface.hpp"
-
+# include "InputOutput.hpp"
 using namespace std;
 
 
@@ -31,15 +30,16 @@ int main (int argc, char **argv) {
   MPI_Init(&argc, &argv);
   comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
 
+  //YingWai's check   (Apr 7: can be removed when things work fine)
+  YingWaisCheck(comm_help, exit_status);
+
+/*
   wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
   run_pwscf_(&exit_status);          // Execute the PWscf calculation
   get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
 
-  //YingWai's check   (Apr 7: can be removed when things work fine)
-  YingWaisCheck();
-
-  // Write out the energy
-  writeEnergyFile("energy.txt", f_etot);
+   Write out the energy
+  writeEnergyFile("energyFromInterface.txt", f_etot);
 
   Matrix<double> pos_array;  // Set up the position array (in angstrom)
   pos_array.resize(3,natom);
@@ -73,4 +73,6 @@ int main (int argc, char **argv) {
   get_cell_array_(&cell_array(0,0));  
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
+*/
+
 }

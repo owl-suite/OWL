@@ -21,9 +21,12 @@ wl_getInfo_pwscf.o \
 wl_do_pwscf.o \
 wl_run_QE.o
 
-MCLIBS = \
+MCOBJS = \
 MCAlgorithms.o \
 MCMoves.o
+
+IOOBJS = \
+InputOutput.o
 
 QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a
 PWOBJS= ../../PW/src/libpw.a
@@ -32,17 +35,20 @@ TLDEPS=bindir mods libs liblapack libblas pw
 
 all : tldeps wlpw.x
 
-wlpw.x : $(WLPWOBJS) libwlpw.a libmc.a $(LIBOBJS) $(PWOBJS) $(QEMODS)
+wlpw.x : $(WLPWOBJS) $(MCOBJS) libwlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
 	$(LD) $(LDFLAGS) -o $@ -nofor_main -cxxlib \
-	$(WLPWOBJS) libwlpw.a libmc.a $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	$(WLPWOBJS) $(MCOBJS) libwlpw.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd ../../bin; ln -fs ../WLPW/src/$@ . )
 
 libwlpw.a : $(WLPWLIBS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
 
-libmc.a : $(MCLIBS)
-	$(AR) $(ARFLAGS) $@ $?
+#libmc.a : $(MCLIBS) 
+#	$(AR) $(ARFLAGS) $@ $?
+
+#libio.a : $(IOLIBS)
+#	$(AR) $(ARFLAGS) $@ $?
 
 tldeps :
 	if test -n "$(TLDEPS)" ; then \

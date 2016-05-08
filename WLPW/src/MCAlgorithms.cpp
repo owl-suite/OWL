@@ -50,7 +50,29 @@ void YingWaisCheck(int comm_help, int exit_status)
 
 
 
-void WangLandauSampling()
+void WangLandauSampling(int comm_help, int exit_status)
 {
+
+  // These should become class members 
+  // System information
+  int natom;        // Total number of atoms in system
+  double f_etot;    // Total energy of system (in Ry)
+
+  // WL sampling parameters
+  double p = 0.6;              // flatness criterion
+  double logf = 1.0;           // natural log of modification factor
+  double Emin = -400.0;        // energy range for WL sampling
+  double Emax = -300.0;
+
+
+  Histogram h;
+  h.getNumberOfBins();           // check; can be removed later
+  h.setEnergyRange(Emin, Emax);  
+
+  initializeRandomNumberGenerator();
+ 
+  
+
+
 
 }

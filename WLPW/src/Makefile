@@ -22,6 +22,7 @@ wl_do_pwscf.o \
 wl_run_QE.o
 
 MCOBJS = \
+Histogram.o \
 MCAlgorithms.o \
 MCMoves.o
 

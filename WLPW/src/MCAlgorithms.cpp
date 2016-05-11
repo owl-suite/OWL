@@ -53,26 +53,36 @@ void YingWaisCheck(int comm_help, int exit_status)
 void WangLandauSampling(int comm_help, int exit_status)
 {
 
-  // These should become class members 
+  // These should become Model class members 
   // System information
   int natom;        // Total number of atoms in system
   double f_etot;    // Total energy of system (in Ry)
 
-  // WL sampling parameters
-  double p = 0.6;              // flatness criterion
-  double logf = 1.0;           // natural log of modification factor
-  double Emin = -400.0;        // energy range for WL sampling
-  double Emax = -300.0;
 
-
+// Initialize the simulation
   Histogram h;
-  h.getNumberOfBins();           // check; can be removed later
-  h.setEnergyRange(Emin, Emax);  
+  h.getNumberOfBins();    // check, can be removed later
 
   initializeRandomNumberGenerator();
  
-  
+  wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
+  run_pwscf_(&exit_status);          // Execute the PWscf calculation
+  get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
+ 
+  // Write out the energy
+  writeEnergyFile("energyFromMCAlgorithms.txt", f_etot);
 
+  Matrix<double> pos_array;  // Set up the position array (in angstrom)
+  pos_array.resize(3,natom); 
+ 
+  Matrix<double> cell_array;  // Set up the cell vector array (in angstrom)
+  cell_array.resize(3,3);
+ 
+  get_pos_array_(&pos_array(0,0));    // Extract the position array from QE
+  get_cell_array_(&cell_array(0,0));  // Extract the cell array from QE
+
+  
+// WL procedure starts here
 
 
 }

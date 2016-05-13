@@ -14,7 +14,6 @@ private:
   unsigned long int *hist;       // an array to store the histogram
   double *dos;                   // an array to store the density of states
   int *visited;                  // an array to mark if a bin is visited
-
   int idx;                       // index of a bin in the histogram and DOS
 
 
@@ -23,17 +22,19 @@ private:
 
 public:
 
-  double p;                      // flatness criterion  
-  double logf;                   // natural log of modification factor
-  double logf_final;             // predefined log(f) to terminate simulation
-  int numMCSteps;                // number of MC steps between every histogram flatness check
+  // These should be moved to the WL-MC class (when they are implemented...)
+  double flatnessCriterion;      // flatness criterion  
+  double modFactor;              // natural log of modification factor, f
+  double modFactorFinal;         // predefined log(f) to terminate simulation
+  double modFactorReducer;       // a factor to reduce log(f)
+  int histogramCheckInterval;    // number of MC steps between every histogram flatness check
 
   // WL sampling statistics:
   unsigned long int totalMCsteps;
   unsigned long int acceptedMoves;
   unsigned long int rejectedMoves;
   int iterations;
-  bool histogramFlat; 
+  bool histogramFlat;
 
  
   // Constructor

@@ -6,19 +6,22 @@
 // Constructor
 Histogram::Histogram()
 {
+  // Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
+
   //Emax = std::numeric_limits<double>::max();
   //Emin = -std::numeric_limits<double>::infinity();
   //Emin = std::numeric_limits<double>::lowest();    // C++11
-  dim        = 1;
-  p          = 0.6;
-  logf       = 1.0;
-  logf_final = 0.125;
-  Emin       = -340.0;
-  Emax       = -330.0;
-  binSize    = 0.5;
-  numBins    = ceil((Emax - Emin) / binSize);
-  numMCSteps = 5;
-  //numMCSteps = numBins * 10;
+  dim                    = 1;
+  flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
+  modFactor              = 1.0;         
+  modFactorFinal         = 0.125;       // should be ~ 10E-6
+  modFactorReducer       = 2.0;         // don't change
+  histogramCheckInterval = 5;
+  //histogramCheckInterval = numBins * 10;
+  Emin                   = -340.0;      // need to change
+  Emax                   = -330.0;      // need to change
+  binSize                = 0.5;         // need to change
+  numBins                = ceil((Emax - Emin) / binSize);
 
   hist    = new unsigned long int[numBins];
   dos     = new double[numBins];
@@ -109,7 +112,7 @@ void Histogram::resetDOS()
 void Histogram::updateHistogramDOS(double energy)
 {
   idx = getIndex(energy);
-  dos[idx] += logf;
+  dos[idx] += modFactor;
   hist[idx]++;
   visited[idx] = 1;
 }
@@ -124,7 +127,7 @@ void Histogram::updateHistogram(double energy)
 void Histogram::updateDOS(double energy)
 {
   idx = getIndex(energy);
-  dos[idx] += logf;
+  dos[idx] += modFactor;
   visited[idx] = 1;
 }
 
@@ -140,14 +143,15 @@ bool Histogram::checkHistogramFlatness()
       numVisitedBins++;
     }
   }
-  double flatnessCriterion = p * double(sumEntries) / double(numVisitedBins);
+  double flatnessReference = flatnessCriterion * double(sumEntries) / double(numVisitedBins);
 
   for (int i=0; i<numBins; i++) {
-    if (visited[i] == 1)
-      if (hist[i] < flatnessCriterion) {
+    if (visited[i] == 1) {
+      if (hist[i] < flatnessReference) {
         allEntriesPassTest = false;
         break;
       }
+    }
   }
   
   return allEntriesPassTest;

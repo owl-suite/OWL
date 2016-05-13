@@ -1,3 +1,5 @@
+// Markus: Prefer Modified BSD license. CHECK!!  (May 13, 16)
+//         Dual license? 
 //
 // This file is distributed under the terms of the
 // GNU General Public License. See the file `License'

@@ -3,7 +3,7 @@
 #include "MCAlgorithms.hpp"
 
 
-void YingWaisCheck(int comm_help, int exit_status)
+void YingWaisCheck(int comm_help, int &exit_status)
 {
 
   int natom;        // Total number of atoms in system
@@ -52,7 +52,7 @@ void YingWaisCheck(int comm_help, int exit_status)
 
 
 
-void WangLandauSampling(int comm_help, int exit_status)
+void WangLandauSampling(int comm_help, int &exit_status)
 {
 
   printf("WangLandauSampling is called.\n");
@@ -101,13 +101,13 @@ void WangLandauSampling(int comm_help, int exit_status)
 //-------------- End initialization --------------//
 
 // WL procedure starts here
-  while (h.logf > h.logf_final) {
+  while (h.modFactor > h.modFactorFinal) {
     printf("Number of iterations performed = %d\n", h.iterations);
     h.iterations++;
     h.histogramFlat = false;
 
     while (!(h.histogramFlat)) {
-      for (int MCSteps=0; MCSteps<h.numMCSteps; MCSteps++)
+      for (int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
       {
 
         proposeMCmoves(trialPos, trialLatticeVec);
@@ -129,9 +129,11 @@ void WangLandauSampling(int comm_help, int exit_status)
            h.acceptedMoves++;        
  
            // Store trialPos, trialLatticeVec, trialEnergy
+           // TO DO: write out the atom coordinates, cell vectors, species, energies
            oldPos = trialPos;
            oldLatticeVec = trialLatticeVec;
            oldEnergy = trialEnergy;
+
         }
         else {
            // Restore trialPos and trialLatticeVec
@@ -149,12 +151,14 @@ void WangLandauSampling(int comm_help, int exit_status)
 
       // Check histogram flatness
       h.histogramFlat = h.checkHistogramFlatness();
+      //TO DO: h.writeHistogramFile();
     }
 
     // Go to next iteration
-    h.logf /= 2.0;
+    h.modFactor /= h.modFactorReducer;
     h.resetHistogram();
     
+    //h.writeHistogramFile();
     
 
   }

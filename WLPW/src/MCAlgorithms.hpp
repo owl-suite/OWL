@@ -4,6 +4,6 @@
 #include "InputOutput.hpp"
 #include "Histogram.hpp"
 
-void YingWaisCheck(int, int);
+void YingWaisCheck(int, int&);
 
-void WangLandauSampling(int, int);
+void WangLandauSampling(int, int&);

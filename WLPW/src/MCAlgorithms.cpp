@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cmath>
 #include "MCAlgorithms.hpp"
 
 
@@ -53,36 +55,111 @@ void YingWaisCheck(int comm_help, int exit_status)
 void WangLandauSampling(int comm_help, int exit_status)
 {
 
+  printf("WangLandauSampling is called.\n");
+
   // These should become Model class members 
   // System information
-  int natom;        // Total number of atoms in system
-  double f_etot;    // Total energy of system (in Ry)
-
+  int natom;                       // Total number of atoms in system
+  double trialEnergy;              // Trial total energy of system (in Ry)
+  double oldEnergy;                // Old total energy of the system (in Ry)
+  Matrix<double> trialPos;         // Trial atom position    (in angstrom)
+  Matrix<double> oldPos;           // Old atom position for restoration after a rejected MC move  (in angstrom)
+  Matrix<double> trialLatticeVec;  // Trial cell vector   (in angstrom)
+  Matrix<double> oldLatticeVec;    // Old cell vector for restoration after a rejected MC move (in angstrom)
+  bool accepted = true;            // store the decision of WL acceptance for each move
 
 // Initialize the simulation
   Histogram h;
-  h.getNumberOfBins();    // check, can be removed later
+  h.getNumberOfBins();                     // check, can be removed later
 
   initializeRandomNumberGenerator();
  
-  wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
-  run_pwscf_(&exit_status);          // Execute the PWscf calculation
-  get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
+  wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
+  run_pwscf_(&exit_status);                // Execute the PWscf calculation
+  get_natom_ener_(&natom, &oldEnergy);     // Extract the number of atoms and energy
  
+  trialPos.resize(3,natom);                // Resize position and cell vector arrays
+  oldPos.resize(3,natom);
+  trialLatticeVec.resize(3,3);
+  oldLatticeVec.resize(3,3);
+ 
+  get_pos_array_(&oldPos(0,0));            // Extract the position array from QE
+  get_cell_array_(&oldLatticeVec(0,0));    // Extract the cell array from QE
+  trialPos = oldPos;
+  trialLatticeVec = oldLatticeVec;
+
   // Write out the energy
-  writeEnergyFile("energyFromMCAlgorithms.txt", f_etot);
-
-  Matrix<double> pos_array;  // Set up the position array (in angstrom)
-  pos_array.resize(3,natom); 
- 
-  Matrix<double> cell_array;  // Set up the cell vector array (in angstrom)
-  cell_array.resize(3,3);
- 
-  get_pos_array_(&pos_array(0,0));    // Extract the position array from QE
-  get_cell_array_(&cell_array(0,0));  // Extract the cell array from QE
-
+  writeEnergyFile("energyFromMCAlgorithms.txt", oldEnergy);
   
-// WL procedure starts here
+  // Always accept the first energy
+  h.updateHistogramDOS(oldEnergy);
+  h.acceptedMoves++;
 
+  //YingWai: what is the purpose of this?
+  wl_stop_run_(&exit_status);              // Clean up the PWscf run
+
+//-------------- End initialization --------------//
+
+// WL procedure starts here
+  while (h.logf > h.logf_final) {
+    printf("Number of iterations performed = %d\n", h.iterations);
+    h.iterations++;
+    h.histogramFlat = false;
+
+    while (!(h.histogramFlat)) {
+      for (int MCSteps=0; MCSteps<h.numMCSteps; MCSteps++)
+      {
+
+        proposeMCmoves(trialPos, trialLatticeVec);
+        pass_pos_array_(&trialPos(0,0));          // Update the atomic positions
+        pass_cell_array_(&trialLatticeVec(0,0));  // Update the lattice cell vector
+
+        wl_do_pwscf_(&exit_status);               // Run the subsequent PWscf calculation 
+        get_natom_ener_(&natom, &trialEnergy);
+
+        // determine WL acceptance
+        if ( exp(h.getDOS(oldEnergy) - h.getDOS(trialEnergy)) > getRandomNumber() )
+          accepted = true;
+        else
+          accepted = false;
+
+        if (accepted) {
+           // Update histogram and DOS with trialEnergy
+           h.updateHistogramDOS(trialEnergy);
+           h.acceptedMoves++;        
+ 
+           // Store trialPos, trialLatticeVec, trialEnergy
+           oldPos = trialPos;
+           oldLatticeVec = trialLatticeVec;
+           oldEnergy = trialEnergy;
+        }
+        else {
+           // Restore trialPos and trialLatticeVec
+           trialPos = oldPos;
+           trialLatticeVec = oldLatticeVec;
+
+           // Update histogram and DOS with oldEnergy
+           h.updateHistogramDOS(oldEnergy);
+           h.rejectedMoves++;
+        }
+        h.totalMCsteps++;
+      
+        wl_stop_run_(&exit_status);              // Clean up the PWscf run
+      }
+
+      // Check histogram flatness
+      h.histogramFlat = h.checkHistogramFlatness();
+    }
+
+    // Go to next iteration
+    h.logf /= 2.0;
+    h.resetHistogram();
+    
+    
+
+  }
+
+
+  wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 
 }

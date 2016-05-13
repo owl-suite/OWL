@@ -26,11 +26,16 @@ int main (int argc, char **argv) {
   int comm_help;          // Communicator
   MPI_Init(&argc, &argv);
   comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
+  //wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
 
   //YingWai's check   (Apr 7: can be removed when things work fine)
-  YingWaisCheck(comm_help, exit_status);
+  //YingWaisCheck(comm_help, exit_status);
 
   WangLandauSampling(comm_help, exit_status);
 
+
+
+
+  //wl_qe_stop_(&exit_status);               // Finish the PWscf calculation
   return 0;
 }

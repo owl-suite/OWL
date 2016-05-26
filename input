@@ -15,6 +15,7 @@
     nat= 5
     ntyp= 3 
     ecutwfc = 50
+    nosym = .true.
 !    nspin = 2     ! 1 = non-polarized 2 = spin-polarized
 !    occupations = 'smearing'
 !    smearing = 'methfessel-paxton'

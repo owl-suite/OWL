@@ -70,8 +70,6 @@ void WangLandauSampling(int comm_help, int &exit_status)
 
 // Initialize the simulation
   Histogram h;
-  h.getNumberOfBins();                     // check, can be removed later
-
   initializeRandomNumberGenerator();
  
   wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
@@ -89,11 +87,10 @@ void WangLandauSampling(int comm_help, int &exit_status)
   trialLatticeVec = oldLatticeVec;
 
   // Write out the energy
-  writeEnergyFile("energyFromMCAlgorithms.txt", oldEnergy);
+  writeEnergyFile("energyFromWLsampling.txt", oldEnergy);
   
   // Always accept the first energy
   h.updateHistogramDOS(oldEnergy);
-  h.acceptedMoves++;
 
   //YingWai: what is the purpose of this?
   wl_stop_run_(&exit_status);              // Clean up the PWscf run
@@ -151,18 +148,17 @@ void WangLandauSampling(int comm_help, int &exit_status)
 
       // Check histogram flatness
       h.histogramFlat = h.checkHistogramFlatness();
-      //TO DO: h.writeHistogramFile();
+      h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+      writeQErestartFile("OWL_QE_restart_input", trialPos);
     }
 
     // Go to next iteration
     h.modFactor /= h.modFactorReducer;
     h.resetHistogram();
     
-    //h.writeHistogramFile();
-    
+    // Also write restart file here 
 
   }
-
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 

@@ -36,15 +36,16 @@ public:
   int iterations;
   bool histogramFlat;
 
- 
-  // Constructor
-  Histogram();
+  // Constructors
+  Histogram();                   // for fresh run
+  Histogram(char[]);             // for restarted run
+
   // Destructor
   ~Histogram();
   
   // Public member functions:
   double getBinSize();
-  int getNumberOfBins();
+  int    getNumberOfBins();
   double getDOS(double);
 
   void setEnergyRange (double, double);
@@ -55,6 +56,9 @@ public:
   void updateHistogramDOS(double);
   void updateHistogram(double);
   void updateDOS(double);
+
+  void writeHistogramDOSFile(char[]);
+  void readHistogramDOSFile(char[]);
 
   bool checkHistogramFlatness();
   bool checkIntegrity();          // check if histogram or DOS have correct bin size,

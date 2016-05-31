@@ -52,10 +52,12 @@ void YingWaisCheck(int comm_help, int &exit_status)
 
 
 
-void WangLandauSampling(int comm_help, int &exit_status)
+void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
 {
 
   printf("WangLandauSampling is called.\n");
+  double startTime, currentTime, lastBackUpTime;
+  startTime = lastBackUpTime = MPI_Wtime();
 
   // These should become Model class members 
   // System information
@@ -67,9 +69,22 @@ void WangLandauSampling(int comm_help, int &exit_status)
   Matrix<double> trialLatticeVec;  // Trial cell vector   (in angstrom)
   Matrix<double> oldLatticeVec;    // Old cell vector for restoration after a rejected MC move (in angstrom)
   bool accepted = true;            // store the decision of WL acceptance for each move
+  char fileName[51];
 
 // Initialize the simulation
-  Histogram h;
+  // initialize histogram class
+  Histogram *h;
+  switch (restartFlag) {
+    case 0 :
+      h = new Histogram;
+      break;
+    case 1 :
+      h = new Histogram("hist_dos_checkpoint.dat");
+      break;
+    default :
+      h = new Histogram;
+  }
+
   initializeRandomNumberGenerator();
  
   wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
@@ -90,7 +105,7 @@ void WangLandauSampling(int comm_help, int &exit_status)
   writeEnergyFile("energyFromWLsampling.txt", oldEnergy);
   
   // Always accept the first energy
-  h.updateHistogramDOS(oldEnergy);
+  h -> updateHistogramDOS(oldEnergy);
 
   //YingWai: what is the purpose of this?
   wl_stop_run_(&exit_status);              // Clean up the PWscf run
@@ -98,13 +113,11 @@ void WangLandauSampling(int comm_help, int &exit_status)
 //-------------- End initialization --------------//
 
 // WL procedure starts here
-  while (h.modFactor > h.modFactorFinal) {
-    printf("Number of iterations performed = %d\n", h.iterations);
-    h.iterations++;
-    h.histogramFlat = false;
+  while (h -> modFactor > h -> modFactorFinal) {
+    h -> histogramFlat = false;
 
-    while (!(h.histogramFlat)) {
-      for (int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
+    while (!(h -> histogramFlat)) {
+      for (int MCSteps=0; MCSteps<h -> histogramCheckInterval; MCSteps++)
       {
 
         proposeMCmoves(trialPos, trialLatticeVec);
@@ -115,15 +128,15 @@ void WangLandauSampling(int comm_help, int &exit_status)
         get_natom_ener_(&natom, &trialEnergy);
 
         // determine WL acceptance
-        if ( exp(h.getDOS(oldEnergy) - h.getDOS(trialEnergy)) > getRandomNumber() )
+        if ( exp(h -> getDOS(oldEnergy) - h -> getDOS(trialEnergy)) > getRandomNumber() )
           accepted = true;
         else
           accepted = false;
 
         if (accepted) {
            // Update histogram and DOS with trialEnergy
-           h.updateHistogramDOS(trialEnergy);
-           h.acceptedMoves++;        
+           h -> updateHistogramDOS(trialEnergy);
+           h -> acceptedMoves++;        
  
            // Store trialPos, trialLatticeVec, trialEnergy
            // TO DO: write out the atom coordinates, cell vectors, species, energies
@@ -138,28 +151,39 @@ void WangLandauSampling(int comm_help, int &exit_status)
            trialLatticeVec = oldLatticeVec;
 
            // Update histogram and DOS with oldEnergy
-           h.updateHistogramDOS(oldEnergy);
-           h.rejectedMoves++;
+           h -> updateHistogramDOS(oldEnergy);
+           h -> rejectedMoves++;
         }
-        h.totalMCsteps++;
+        h -> totalMCsteps++;
       
         wl_stop_run_(&exit_status);              // Clean up the PWscf run
       }
 
       // Check histogram flatness
-      h.histogramFlat = h.checkHistogramFlatness();
-      h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-      writeQErestartFile("OWL_QE_restart_input", trialPos);
+      h -> histogramFlat = h -> checkHistogramFlatness();
+      currentTime = MPI_Wtime();
+      if (currentTime - lastBackUpTime > 1650) {
+        h -> writeHistogramDOSFile("hist_dos_checkpoint.dat");
+        writeQErestartFile("OWL_QE_restart_input", trialPos);
+        lastBackUpTime = currentTime;
+      }
     }
 
     // Go to next iteration
-    h.modFactor /= h.modFactorReducer;
-    h.resetHistogram();
+    h -> modFactor /= h -> modFactorReducer;
+    h -> resetHistogram();
+    h -> iterations++;
+    printf("Number of iterations performed = %d\n", h -> iterations);
     
     // Also write restart file here 
+    sprintf(fileName, "hist_dos_iteration%00d.dat", h -> iterations);
+    h -> writeHistogramDOSFile(fileName);
+    writeQErestartFile("OWL_QE_restart_input", trialPos);
 
   }
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
+
+  delete h;
 
 }

@@ -1,6 +1,7 @@
 //#include <cstdlib>
 //#include <limits>
 #include <cmath>
+#include <iostream>
 #include "Histogram.hpp"
 
 // Constructor #1 : for fresh run
@@ -18,9 +19,9 @@ Histogram::Histogram()
   modFactorReducer       = 2.0;         // don't change
   histogramCheckInterval = 5;
   //histogramCheckInterval = numBins * 10;
-  Emin                   = -334.0;      // need to change
-  Emax                   = -333.0;      // need to change
-  binSize                = 0.01;        // need to change
+  Emin                   = -333.77;      // need to change
+  Emax                   = -333.75;      // need to change
+  binSize                = 0.005;        // need to change
   numBins                = ceil((Emax - Emin) / binSize);
 
   hist    = new unsigned long int[numBins];
@@ -174,6 +175,7 @@ bool Histogram::checkHistogramFlatness()
 
 }
 
+
 void Histogram::writeHistogramDOSFile(char fileName[])
 {
   FILE *histdos_file;
@@ -207,37 +209,99 @@ void Histogram::writeHistogramDOSFile(char fileName[])
   fclose(histdos_file);
 }
 
+
 void Histogram::readHistogramDOSFile(char fileName[])
 {
 
-  // read these from file:
-  dim                    = 1;
-  flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
-  modFactor              = 1.0;         
-  modFactorFinal         = 0.125;       // should be ~ 10E-6
-  modFactorReducer       = 2.0;         // don't change
-  histogramCheckInterval = 5;
-  Emin                   = -340.0;      // need to change
-  Emax                   = -330.0;      // need to change
-  binSize                = 0.5;         // need to change
-  numBins                = ceil((Emax - Emin) / binSize);
-  totalMCsteps  = 0;
-  acceptedMoves = 0;
-  rejectedMoves = 0;
-  iterations    = 0;
+  FILE *histdos_file = fopen(fileName, "r");
+  if (histdos_file == NULL)
+    std::cerr << "Error: cannot open hist_dos restart file "  << fileName << std::endl;
+ 
+  if (fscanf(histdos_file, "%*s %d", &dim) != 1)
+    std::cerr << "Cannot read dim \n";    
+
+  if (fscanf(histdos_file, "%*s %lf", &flatnessCriterion) != 1)
+    std::cerr << "Cannot read flatnessCriterion \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &modFactor) != 1)
+    std::cerr << "Cannot read modFactor \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &modFactorFinal) != 1)
+    std::cerr << "Cannot read modFactorFinal \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &modFactorReducer) != 1)
+    std::cerr << "Cannot read modFactorReducer \n";
+
+  if (fscanf(histdos_file, "%*s %lu", &histogramCheckInterval) != 1)
+    std::cerr << "Cannot read histogramCheckInterval \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &Emin) != 1)
+    std::cerr << "Cannot read Emin \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &Emax) != 1)
+    std::cerr << "Cannot read Emax \n";
+
+  if (fscanf(histdos_file, "%*s %lf", &binSize) != 1)
+    std::cerr << "Cannot read binSize \n";
+
+  if (fscanf(histdos_file, "%*s %ld", &numBins) != 1)
+    std::cerr << "Cannot read numBins \n";
+
+  if (fscanf(histdos_file, "%*s %lu", &totalMCsteps) != 1)
+    std::cerr << "Cannot read totalMCsteps \n";
+
+  if (fscanf(histdos_file, "%*s %lu", &acceptedMoves) != 1)
+    std::cerr << "Cannot read acceptedMoves \n";
+
+  if (fscanf(histdos_file, "%*s %lu", &rejectedMoves) != 1)
+    std::cerr << "Cannot read rejectedMoves \n";
+
+  if (fscanf(histdos_file, "%*s %d", &iterations) != 1)
+    std::cerr << "Cannot read iterations \n";
 
   // Open up arrays needed to store the mask, histogram and DOS
+  visited = new int[numBins];
   hist    = new unsigned long int[numBins];
   dos     = new double[numBins];
-  visited = new int[numBins];
 
   // Continue reading these from file
-  for (int i=0; i<numBins; i++)
-  {
-    hist[i]    = 0;
-    dos[i]     = 1.0;
-    visited[i] = 0;
+  int dummy = 0;
+  for (int i = 0; i < numBins; i++) {
+    if (fscanf(histdos_file, "%d %d %lu %lf", &dummy, &visited[i], &hist[i], &dos[i]) != 4) 
+      std::cerr << "Cannot read histogram and DOS.\n";
+    if (dummy != i)
+      std::cerr << "Problem reading histogram and DOS. Check!\n";
   }
+
+  fclose(histdos_file);
+
+/*
+  // YingWai's check, should be removed when things work fine
+  std::cerr <<  "YingWai's check for I/O. dim = " << dim << std::endl;
+  std::cerr <<  "YingWai's check for I/O. flatnessCriterion = " << flatnessCriterion << std::endl;
+  std::cerr <<  "YingWai's check for I/O. modFactor = " << modFactor << std::endl;
+  std::cerr <<  "YingWai's check for I/O. modFactorFinal = " << modFactorFinal << std::endl;
+  std::cerr <<  "YingWai's check for I/O. modFactorReducer = " << modFactorReducer << std::endl;
+  std::cerr <<  "YingWai's check for I/O. histogramCheckInterval = " << histogramCheckInterval << std::endl;
+  std::cerr <<  "YingWai's check for I/O. Emin = " << Emin << std::endl;
+  std::cerr <<  "YingWai's check for I/O. Emax = " << Emax << std::endl;
+  std::cerr <<  "YingWai's check for I/O. binSize = " << binSize << std::endl;
+  std::cerr <<  "YingWai's check for I/O. numBins = " << numBins << std::endl;
+  std::cerr <<  "\n";
+
+  std::cerr << "YingWai's check for I/O. totalMCsteps = " << totalMCsteps << std::endl;
+  std::cerr << "YingWai's check for I/O. acceptedMoves = " << acceptedMoves << std::endl;
+  std::cerr << "YingWai's check for I/O. rejectedMoves = " << rejectedMoves << std::endl;
+  std::cerr << "YingWai's check for I/O. iterations = " << iterations << std::endl;
+  std::cerr << "\n";
+
+  // Write out histogram and DOS
+  for (int i = 0; i < numBins; i++) {
+    std::cerr << "YingWai's check for I/O. " 
+              << i       << " " << visited[i] << " " 
+              << hist[i] << " " << dos[i]     << std::endl;
+  }
+*/
 
 }
 

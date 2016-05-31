@@ -5,4 +5,4 @@
 
 void writeEnergyFile(char fileName[], double energy);
 
-void writeQErestartFile(char fileName[], Matrix<double> atom_postiion);
+void writeQErestartFile(char fileName[], Matrix<double> atom_postiion, Matrix<double> cell_vectors);

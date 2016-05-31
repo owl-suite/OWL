@@ -8,7 +8,8 @@ void writeEnergyFile(char fileName[], double energy)
   fclose(energy_file); 
 } 
 
-void writeQErestartFile(char fileName[], Matrix<double> atom_positions)
+void writeQErestartFile(char fileName[], Matrix<double> atom_positions, 
+                        Matrix<double> cell_vectors)
 {
 
   // Now hard-coded, need to generalize in the future.
@@ -77,6 +78,13 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions)
   fprintf(QE_file, "\n");
   fprintf(QE_file, "K_POINTS automatic\n");
   fprintf(QE_file, "4 4 4 0 0 0\n");
+  fprintf(QE_file, "\n");
+  fprintf(QE_file, "CELL_PARAMETERS {alat}\n");
+  for (int i=0; i<cell_vectors.n_col(); i++) {
+    for(int j=0; j<cell_vectors.n_row(); j++)
+      fprintf(QE_file, " %14.9f ", cell_vectors(j,i));
+    fprintf(QE_file, "\n");
+  }
 
   fclose(QE_file);
 }

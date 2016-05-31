@@ -20,7 +20,7 @@ Histogram::Histogram()
   histogramCheckInterval = 5;
   //histogramCheckInterval = numBins * 10;
   Emin                   = -333.775;      // need to change
-  Emax                   = -333.755;      // need to change
+  Emax                   = -333.745;      // need to change
   binSize                = 0.001;         // need to change
   numBins                = ceil((Emax - Emin) / binSize);
 
@@ -202,10 +202,8 @@ void Histogram::writeHistogramDOSFile(char fileName[])
   fprintf(histdos_file, "\n");
 
   // Write out histogram and DOS
-  for (int i=0; i<numBins; i++) {
+  for (int i=0; i<numBins; i++)
     fprintf(histdos_file, "%8d %5d %20lu %20.8f\n", i, visited[i], hist[i], dos[i]);
-    std::cerr << "visited[" << i << "] = " << visited[i] << std::endl;
-  }
 
   fprintf(histdos_file, "\n");
   fclose(histdos_file);

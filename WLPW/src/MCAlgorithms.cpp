@@ -165,7 +165,7 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
       //if (currentTime - lastBackUpTime > 1650) {
       if (currentTime - lastBackUpTime > 900) {
         h -> writeHistogramDOSFile("hist_dos_checkpoint.dat");
-        writeQErestartFile("OWL_QE_restart_input", trialPos);
+        writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
         lastBackUpTime = currentTime;
       }
     }
@@ -179,7 +179,7 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
     // Also write restart file here 
     sprintf(fileName, "hist_dos_iteration%02d.dat", h -> iterations);
     h -> writeHistogramDOSFile(fileName);
-    writeQErestartFile("OWL_QE_restart_input", trialPos);
+    writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
 
   }
 

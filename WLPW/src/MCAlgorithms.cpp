@@ -162,7 +162,8 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
       // Check histogram flatness
       h -> histogramFlat = h -> checkHistogramFlatness();
       currentTime = MPI_Wtime();
-      if (currentTime - lastBackUpTime > 1650) {
+      //if (currentTime - lastBackUpTime > 1650) {
+      if (currentTime - lastBackUpTime > 900) {
         h -> writeHistogramDOSFile("hist_dos_checkpoint.dat");
         writeQErestartFile("OWL_QE_restart_input", trialPos);
         lastBackUpTime = currentTime;
@@ -176,7 +177,7 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
     printf("Number of iterations performed = %d\n", h -> iterations);
     
     // Also write restart file here 
-    sprintf(fileName, "hist_dos_iteration%00d.dat", h -> iterations);
+    sprintf(fileName, "hist_dos_iteration%02d.dat", h -> iterations);
     h -> writeHistogramDOSFile(fileName);
     writeQErestartFile("OWL_QE_restart_input", trialPos);
 

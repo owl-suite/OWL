@@ -78,7 +78,7 @@ CPPFLAGS       = -P -C -traditional $(DFLAGS) $(IFLAGS)
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
 
-CFLAGS         = -O3 $(DFLAGS) $(IFLAGS)
+CFLAGS         = -O3 -std=c++11 $(DFLAGS) $(IFLAGS)
 F90FLAGS       = $(FFLAGS) -nomodule -fpp $(FDFLAGS) $(IFLAGS) $(MODFLAGS)
 FFLAGS         = -O2 -assume byterecl -g -traceback -par-report0 -vec-report0
 

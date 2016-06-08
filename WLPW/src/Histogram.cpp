@@ -5,7 +5,7 @@
 #include "Histogram.hpp"
 
 // Constructor #1 : for fresh run
-Histogram::Histogram()
+Histogram::Histogram(int restartFlag)
 {
   // Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
 
@@ -24,16 +24,18 @@ Histogram::Histogram()
   binSize                = 0.001;         // need to change
   numBins                = ceil((Emax - Emin) / binSize);
 
-  hist    = new unsigned long int[numBins];
-  dos     = new double[numBins];
-  visited = new int[numBins];
-
-  for (int i=0; i<numBins; i++)
-  {
-    hist[i]    = 0;
-    dos[i]     = 1.0;
-    visited[i] = 0;
-  }
+  //hist    = new unsigned long int[numBins];
+  //dos     = new double[numBins];
+  //visited = new int[numBins];
+  //for (int i=0; i<numBins; i++)
+  //{
+  //  hist[i]    = 0;
+  //  dos[i]     = 1.0;
+  //  visited[i] = 0;
+  //}
+  hist.assign(numBins, 0);
+  dos.assign(numBins, 1.0);
+  visited.assign(numBins, 0);
 
   idx = -1;
   totalMCsteps  = 0;
@@ -42,30 +44,23 @@ Histogram::Histogram()
   iterations    = 0;
   histogramFlat = false;
 
-  printf("Histogram class is created.\n");  
-}
-
-
-// Constructor #2 : for restarted run
-Histogram::Histogram(char fileName[])
-{
-  readHistogramDOSFile(fileName);
-
-  idx = -1;
-  histogramFlat = false;
+  if (restartFlag)
+    readHistogramDOSFile("hist_dos_checkpoint.dat");
 
   printf("Histogram class is created.\n");  
 }
-
-
 
 
 // Destructor
 Histogram::~Histogram()
 {
-  delete[] hist;
-  delete[] dos;
-  delete[] visited;
+  //delete[] hist;
+  //delete[] dos;
+  //delete[] visited;
+  hist.clear();
+  dos.clear();
+  visited.clear();
+
   printf("Histogram class is destroyed.\n");  
 
 }
@@ -76,7 +71,6 @@ int Histogram::getIndex(double energy)
 {
   return floor((energy - Emin) / double(binSize));
 }
-
 
 
 // Public member functions
@@ -93,9 +87,10 @@ int Histogram::getNumberOfBins()
 double Histogram::getDOS(double energy)
 {
   idx = getIndex(energy);
-  return dos[idx];
+  if (idx >= 0)
+    return dos[idx];
+  
 }
-
 
 void Histogram::setEnergyRange(double E1, double E2)
 {
@@ -130,15 +125,19 @@ void Histogram::updateHistogramDOS(double energy)
 {
   idx = getIndex(energy);
   dos[idx] += modFactor;
-  hist[idx]++;
+  hist[idx] ++;
   visited[idx] = 1;
+  std::cerr << "idx = " << idx << std::endl;
+  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
 void Histogram::updateHistogram(double energy)
 {
-   idx = getIndex(energy);
-   hist[idx]++;
-   visited[idx] = 1;
+  idx = getIndex(energy);
+  hist[idx] ++;
+  visited[idx] = 1;
+  std::cerr << "idx = " << idx << std::endl;
+  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
 void Histogram::updateDOS(double energy)
@@ -146,6 +145,16 @@ void Histogram::updateDOS(double energy)
   idx = getIndex(energy);
   dos[idx] += modFactor;
   visited[idx] = 1;
+  std::cerr << "idx = " << idx << std::endl;
+  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+}
+
+bool Histogram::checkEnergyInRange(double energy)
+{
+  if (energy < Emin || energy > Emax)
+    return false;
+  else
+    return true;
 }
 
 bool Histogram::checkHistogramFlatness()
@@ -202,8 +211,10 @@ void Histogram::writeHistogramDOSFile(char fileName[])
   fprintf(histdos_file, "\n");
 
   // Write out histogram and DOS
-  for (int i=0; i<numBins; i++)
-    fprintf(histdos_file, "%8d %5d %20lu %20.8f\n", i, visited[i], hist[i], dos[i]);
+  for (int i=0; i<numBins; i++) {
+    fprintf(histdos_file, "%8d %5d %lu %20.8f\n", i, visited[i], hist[i], dos[i]);
+    std::cerr << "visited[" << i << "] = " << visited[i] << std::endl;
+  }
 
   fprintf(histdos_file, "\n");
   fclose(histdos_file);
@@ -260,9 +271,12 @@ void Histogram::readHistogramDOSFile(char fileName[])
     std::cerr << "Cannot read iterations \n";
 
   // Open up arrays needed to store the mask, histogram and DOS
-  visited = new int[numBins];
-  hist    = new unsigned long int[numBins];
-  dos     = new double[numBins];
+  //visited = new int[numBins];
+  //hist    = new unsigned long int[numBins];
+  //dos     = new double[numBins];
+  hist.assign(numBins, 0);
+  dos.assign(numBins, 1.0);
+  visited.assign(numBins, 0);
 
   // Continue reading these from file
   int dummy = 0;

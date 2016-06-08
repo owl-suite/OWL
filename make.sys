@@ -13,18 +13,18 @@
 # remember the tabulator in the first column !!!
 
 .f90.o:
-        $(MPIF90) $(F90FLAGS) -c $<
+	$(MPIF90) $(F90FLAGS) -c $<
 
 .cpp.o:
-        $(CC) $(CFLAGS)  -c $<
+	$(CC) $(CFLAGS)  -c $<
 
 # .f.o and .c.o: do not modify
 
 .f.o:
-        $(F77) $(FFLAGS) -c $<
+	$(F77) $(FFLAGS) -c $<
 
 .c.o:
-        $(CC) $(CFLAGS)  -c $<
+	$(CC) $(CFLAGS)  -c $<
 
 # topdir for linking espresso libs with plugins
 TOPDIR = /global/homes/s/syuk/3_Programs/1_espresso_5_3_0

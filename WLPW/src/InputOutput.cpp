@@ -30,9 +30,8 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions,
   fprintf(QE_file, "!   nppstr = 8 \n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&system\n");
-  fprintf(QE_file, "    ibrav= 6\n");
-  fprintf(QE_file, "    celldm(1) = 7.28330256917748\n");
-  fprintf(QE_file, "    celldm(3) = 1.04661740543287\n");
+  fprintf(QE_file, "    ibrav= 0\n");
+  fprintf(QE_file, "    celldm(1) = 1.0\n");
   fprintf(QE_file, "    nat= 5\n");
   fprintf(QE_file, "    ntyp= 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");
@@ -59,7 +58,7 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions,
   fprintf(QE_file, "Ti  47.867   022-Ti-ca-sp-vgrp_serge.uspp\n");
   fprintf(QE_file, "O   16.00    O_ps.uspp.UPF\n");
   fprintf(QE_file, "\n");
-  fprintf(QE_file, "ATOMIC_POSITIONS {crystal}\n");
+  fprintf(QE_file, "ATOMIC_POSITIONS {angstrom}\n");
   fprintf(QE_file, "Pb    %14.9f %14.9f %14.9f\n", atom_positions(0,0), 
                                                    atom_positions(1,0), 
                                                    atom_positions(2,0) );
@@ -79,7 +78,7 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions,
   fprintf(QE_file, "K_POINTS automatic\n");
   fprintf(QE_file, "4 4 4 0 0 0\n");
   fprintf(QE_file, "\n");
-  fprintf(QE_file, "CELL_PARAMETERS {alat}\n");
+  fprintf(QE_file, "CELL_PARAMETERS {angstrom}\n");
   for (int i=0; i<cell_vectors.n_col(); i++) {
     for(int j=0; j<cell_vectors.n_row(); j++)
       fprintf(QE_file, " %14.9f ", cell_vectors(j,i));

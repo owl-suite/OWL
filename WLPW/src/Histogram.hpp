@@ -49,12 +49,15 @@ public:
 
 private:
  
-  int dim;                       // dimension of the histogram
+  int dim;                        // dimension of the histogram
 
-  double Emin;                   // energy range for WL sampling (should they be here?)
+  double Emin;                    // energy range for WL sampling (should they be here?)
   double Emax;
-  double binSize;                // energy bin size
-  int numBins;                   // total number of bins
+  double binSize;                 // energy bin size
+  int numBins;                    // total number of bins
+
+  unsigned long int numBelowRange;    // count the number of configurations that falls below Emin
+  unsigned long int numAboveRange;    // count the number of configurations that falls above Emax
 
   //unsigned long int *hist;       // an array to store the histogram
   //double *dos;                   // an array to store the density of states

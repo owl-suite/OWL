@@ -15,9 +15,6 @@ void YingWaisCheck(int comm_help, int &exit_status)
   run_pwscf_(&exit_status);          // Execute the PWscf calculation
   get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
  
-  // Write out the energy
-  writeEnergyFile("energyFromMCAlgorithms.txt", f_etot);
-
   Matrix<double> pos_array;  // Set up the position array (in angstrom)
   pos_array.resize(3,natom); 
  
@@ -26,6 +23,9 @@ void YingWaisCheck(int comm_help, int &exit_status)
  
   get_pos_array_(&pos_array(0,0));  // Extract the position array from QE
   get_cell_array_(&cell_array(0,0));  // Extract the cell array from QE
+
+  // Write out system info
+  writeSystemFile("energyFromMCAlgorithms.txt", f_etot, pos_array, cell_array);
 
   proposeMCmoves(pos_array, cell_array);
 
@@ -42,10 +42,10 @@ void YingWaisCheck(int comm_help, int &exit_status)
   wl_do_pwscf_(&exit_status);  // Run the subsequent PWscf calculation
   get_natom_ener_(&natom, &f_etot);
 
-  writeEnergyFile("energy2.txt", f_etot);
-
   get_pos_array_(&pos_array(0,0));
   get_cell_array_(&cell_array(0,0));
+
+  writeSystemFile("energy2.txt", f_etot, pos_array, cell_array);
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 }
@@ -86,11 +86,12 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
  
   get_pos_array_(&oldPos(0,0));            // Extract the position array from QE
   get_cell_array_(&oldLatticeVec(0,0));    // Extract the cell array from QE
+  trialEnergy = oldEnergy;
   trialPos = oldPos;
   trialLatticeVec = oldLatticeVec;
 
   // Write out the energy
-  writeEnergyFile("energyFromWLsampling.txt", oldEnergy);
+  writeSystemFile("energyLatticePos.dat", oldEnergy, trialPos, trialLatticeVec);
   
   // Always accept the first energy
   h.updateHistogramDOS(oldEnergy);
@@ -133,11 +134,10 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
            h.acceptedMoves++;        
  
            // Store trialPos, trialLatticeVec, trialEnergy
-           // TO DO: write out the atom coordinates, cell vectors, species, energies
            oldPos = trialPos;
            oldLatticeVec = trialLatticeVec;
            oldEnergy = trialEnergy;
-
+           writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
         }
         else {
            std::cerr << "trial move rejected: Energy = " << trialEnergy << "\n";
@@ -153,17 +153,24 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
         h.totalMCsteps++;
       
         wl_stop_run_(&exit_status);              // Clean up the PWscf run
+
+        // Write restart files at interval
+        currentTime = MPI_Wtime();
+        if (currentTime - lastBackUpTime > 300) {
+          h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+          writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+          lastBackUpTime = currentTime;
+        }
       }
 
       // Check histogram flatness
       h.histogramFlat = h.checkHistogramFlatness();
-      currentTime = MPI_Wtime();
+      //currentTime = MPI_Wtime();
       //if (currentTime - lastBackUpTime > 1650) {
-      if (currentTime - lastBackUpTime > 900) {
-        h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-        writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
-        lastBackUpTime = currentTime;
-      }
+      //  h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+      //  writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+      //  lastBackUpTime = currentTime;
+      //}
     }
 
     // Go to next iteration

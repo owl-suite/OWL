@@ -1,11 +1,21 @@
 #include "InputOutput.hpp"
 
-void writeEnergyFile(char fileName[], double energy)
+void writeSystemFile(char fileName[], double energy, Matrix<double> atom_positions, Matrix<double> cell_vectors)
 { 
-  FILE *energy_file;
-  energy_file = fopen(fileName, "a");
-  fprintf(energy_file, "%f", energy);
-  fclose(energy_file); 
+  FILE *system_file;
+  system_file = fopen(fileName, "a");
+  fprintf(system_file, " %14.9f ", energy);
+
+  for (int i=0; i<cell_vectors.n_col(); i++)
+    for(int j=0; j<cell_vectors.n_row(); j++)
+      fprintf(system_file, " %14.9f ", cell_vectors(j,i));
+  
+  for (int i=0; i<cell_vectors.n_col(); i++)
+    for(int j=0; j<cell_vectors.n_row(); j++)
+      fprintf(system_file, " %14.9f ", atom_positions(j,i));
+
+  fprintf(system_file, "\n");
+  fclose(system_file); 
 } 
 
 void writeQErestartFile(char fileName[], Matrix<double> atom_positions, 

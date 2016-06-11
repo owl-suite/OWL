@@ -3,6 +3,6 @@
 # include <cstdio>
 # include "Matrix.hpp"
 
-void writeEnergyFile(char fileName[], double energy);
+void writeSystemFile(char fileName[], double energy, Matrix<double> atom_positions, Matrix<double> cell_vectors);
 
-void writeQErestartFile(char fileName[], Matrix<double> atom_position, Matrix<double> cell_vectors);
+void writeQErestartFile(char fileName[], Matrix<double> atom_positions, Matrix<double> cell_vectors);

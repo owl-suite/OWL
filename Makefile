@@ -66,7 +66,7 @@ pw : bindir libfft mods liblapack libblas libs libiotk
 
 wlpw : bindir libfft mods libs pw
 	if test -d WLPW ; then \
-	( cd WLPW ; $(MAKE) all || exit 1; cd ../bin; ln -fs WLPW/src/wlpw.x . ) ; fi
+	( cd WLPW ; $(MAKE) all || exit 1; cd ../bin; ln -fs ../WLPW/src/wlpw.x . ) ; fi
 
 pw-lib : bindir libfft mods liblapack libblas libs libiotk
 	if test -d PW ; then \

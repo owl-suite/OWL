@@ -13,6 +13,9 @@ IFLAGS=
 LIBOBJS= ../../iotk/src/libiotk.a ../../flib/flib.a \
          ../../clib/clib.a ../../flib/ptools.a
 
+COMMLIBS = \
+Communications.o
+
 WLPWOBJS = \
 WL_DFT_Interface.o
 
@@ -36,20 +39,17 @@ TLDEPS=bindir mods libs liblapack libblas pw
 
 all : tldeps wlpw.x
 
-wlpw.x : $(WLPWOBJS) $(MCOBJS) libwlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
+wlpw.x : libcomm.a $(WLPWOBJS) $(MCOBJS) libwlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
 	$(LD) $(LDFLAGS) -o $@ -nofor_main -cxxlib \
-	$(WLPWOBJS) $(MCOBJS) libwlpw.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	$(WLPWOBJS) $(MCOBJS) libwlpw.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd ../../bin; ln -fs ../WLPW/src/$@ . )
+
+libcomm.a : $(COMMLIBS) 
+	$(AR) $(ARFLAGS) $@ $?
 
 libwlpw.a : $(WLPWLIBS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
-
-#libmc.a : $(MCLIBS) 
-#	$(AR) $(ARFLAGS) $@ $?
-
-#libio.a : $(IOLIBS)
-#	$(AR) $(ARFLAGS) $@ $?
 
 tldeps :
 	if test -n "$(TLDEPS)" ; then \

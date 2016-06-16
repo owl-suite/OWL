@@ -4,6 +4,7 @@
 # include "WL_DFT_Interface.hpp"
 # include "InputOutput.hpp"
 # include "Histogram.hpp"
+# include "Communications.hpp"
 
 void YingWaisCheck(int, int&);
 

@@ -13,6 +13,8 @@ void YingWaisCheck(int comm_help, int &exit_status)
  
   wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
   run_pwscf_(&exit_status);          // Execute the PWscf calculation
+
+  //if (myMPIRank == 0) {
   get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
  
   Matrix<double> pos_array;  // Set up the position array (in angstrom)
@@ -24,10 +26,14 @@ void YingWaisCheck(int comm_help, int &exit_status)
   get_pos_array_(&pos_array(0,0));  // Extract the position array from QE
   get_cell_array_(&cell_array(0,0));  // Extract the cell array from QE
 
-  // Write out system info
-  writeSystemFile("energyFromMCAlgorithms.txt", f_etot, pos_array, cell_array);
-
+  if (myMPIRank == 0) {
+    // Write out system info
+    writeSystemFile("energyFromMCAlgorithms.txt", f_etot, pos_array, cell_array);
+  }
   proposeMCmoves(pos_array, cell_array);
+  //MPI_Bcast(&pos_array(0,0), 3*natom, MPI_DOUBLE, 0, mpiCommunicator);
+  //MPI_Bcast(&cell_array(0,0), 3*3, MPI_DOUBLE, 0, mpiCommunicator);
+  //MPI_Barrier(mpiCommunicator);
 
   wl_stop_run_(&exit_status);  // Clean up the PWscf run
 
@@ -45,7 +51,8 @@ void YingWaisCheck(int comm_help, int &exit_status)
   get_pos_array_(&pos_array(0,0));
   get_cell_array_(&cell_array(0,0));
 
-  writeSystemFile("energy2.txt", f_etot, pos_array, cell_array);
+  //if (myMPIRank == 0)
+    writeSystemFile("energy2.txt", f_etot, pos_array, cell_array);
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 }
@@ -55,9 +62,10 @@ void YingWaisCheck(int comm_help, int &exit_status)
 void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
 {
 
-  printf("WangLandauSampling is called.\n");
   double startTime, currentTime, lastBackUpTime;
   startTime = lastBackUpTime = MPI_Wtime();
+  if (myMPIRank == 0) 
+    printf("WangLandauSampling is called.\n");
 
   // These should become Model class members 
   // System information
@@ -70,29 +78,31 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
   Matrix<double> oldLatticeVec;    // Old cell vector for restoration after a rejected MC move (in angstrom)
   bool accepted = true;            // store the decision of WL acceptance for each move
   char fileName[51];
-
-// Initialize the simulation
+    
+  // Initialize the simulation
   Histogram h(restartFlag);
   initializeRandomNumberGenerator();
- 
+
   wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
   run_pwscf_(&exit_status);                // Execute the PWscf calculation
+
   get_natom_ener_(&natom, &oldEnergy);     // Extract the number of atoms and energy
- 
+   
   trialPos.resize(3,natom);                // Resize position and cell vector arrays
   oldPos.resize(3,natom);
   trialLatticeVec.resize(3,3);
   oldLatticeVec.resize(3,3);
- 
+   
   get_pos_array_(&oldPos(0,0));            // Extract the position array from QE
   get_cell_array_(&oldLatticeVec(0,0));    // Extract the cell array from QE
   trialEnergy = oldEnergy;
   trialPos = oldPos;
   trialLatticeVec = oldLatticeVec;
-
+ 
   // Write out the energy
-  writeSystemFile("energyLatticePos.dat", oldEnergy, trialPos, trialLatticeVec);
-  
+  if (myMPIRank == 0) 
+    writeSystemFile("energyLatticePos.dat", oldEnergy, trialPos, trialLatticeVec);
+    
   // Always accept the first energy
   h.updateHistogramDOS(oldEnergy);
 
@@ -128,7 +138,6 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
         }
 
         if (accepted) {
-           std::cerr << "trial move accepted: Energy = " << trialEnergy << "\n";
            // Update histogram and DOS with trialEnergy
            h.updateHistogramDOS(trialEnergy);
            h.acceptedMoves++;        
@@ -137,11 +146,16 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
            oldPos = trialPos;
            oldLatticeVec = trialLatticeVec;
            oldEnergy = trialEnergy;
-           writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
+           if (myMPIRank == 0) {
+             writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
+             std::cerr << "trial move accepted: Energy = " << trialEnergy << "\n";
+           }
         }
         else {
-           std::cerr << "trial move rejected: Energy = " << trialEnergy << "\n";
-           std::cerr << "Update with energy = " << oldEnergy << "\n";
+           if (myMPIRank == 0) {
+             std::cerr << "trial move rejected: Energy = " << trialEnergy << "\n";
+             std::cerr << "Update with energy = " << oldEnergy << "\n";
+           }
            // Restore trialPos and trialLatticeVec
            trialPos = oldPos;
            trialLatticeVec = oldLatticeVec;
@@ -156,10 +170,12 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
 
         // Write restart files at interval
         currentTime = MPI_Wtime();
-        if (currentTime - lastBackUpTime > 300) {
-          h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-          writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
-          lastBackUpTime = currentTime;
+        if (myMPIRank == 0) {
+          if (currentTime - lastBackUpTime > 300) {
+            h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+            writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+            lastBackUpTime = currentTime;
+          }
         }
       }
 
@@ -177,13 +193,15 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
     h.modFactor /= h.modFactorReducer;
     h.resetHistogram();
     h.iterations++;
-    printf("Number of iterations performed = %d\n", h.iterations);
-    
-    // Also write restart file here 
-    sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
-    h.writeHistogramDOSFile(fileName);
-    writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
 
+    if (myMPIRank == 0) {
+      printf("Number of iterations performed = %d\n", h.iterations);
+    
+      // Also write restart file here 
+      sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
+      h.writeHistogramDOSFile(fileName);
+      writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+    }
   }
 
   wl_qe_stop_(&exit_status);  // Finish the PWscf calculation

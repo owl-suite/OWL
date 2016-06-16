@@ -1,21 +1,27 @@
 #include <cmath>
 #include <limits>
 #include "MCMoves.hpp"
+#include "Communications.hpp"
 
 
 void initializeRandomNumberGenerator(int seed)
 {
-  /* initialize random seed */
+ 
+  // get random seed
   if (seed == -1) {
-    srand(time(NULL));
-    std::cout << "No random number seed supplied. Take current time as a seed." << std::endl;
+    seed = int(time(NULL));
+    std::cout << "Rank: " << myMPIRank << " No random number seed supplied. Take current time as a seed." << std::endl;
   }
-  else {
+  else
     std::cout << "Random number seed supplied: " << seed << std::endl;
-    srand(seed);
-  }
-  
-  //std::cout << "RAND_MAX = " << RAND_MAX << std::endl;
+
+  // YingWai: need to revise the communicator later when DFTCommunicator is created.
+  MPI_Bcast(&seed, 1, MPI_INT, 0, mpiCommunicator);
+  std::cout << "Rank: " << myMPIRank << " Random number seed supplied: " << seed << std::endl;
+
+  // Initialize random number generator
+  srand(seed);
+
 }
 
 

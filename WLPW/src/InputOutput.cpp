@@ -41,7 +41,7 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions,
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&system\n");
   fprintf(QE_file, "    ibrav= 0\n");
-  fprintf(QE_file, "    celldm(1) = 1.0\n");
+  fprintf(QE_file, "!   celldm(1) = 1.0\n");
   fprintf(QE_file, "    nat= 5\n");
   fprintf(QE_file, "    ntyp= 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");

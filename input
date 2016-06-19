@@ -1,8 +1,7 @@
 &control
    calculation = 'scf'
    restart_mode = 'from_scratch'
-   etot_conv_thr = 1.0d-5
-   forc_conv_thr = 1.0d-5
+   forc_conv_thr = 3.0d-4
    tstress = .true.
    tprnfor = .true.
    pseudo_dir = './' 
@@ -46,7 +45,6 @@ Ti  1.927079   1.927079   2.350469
 O   1.927079   1.927079   0.101262
 O   1.927079   0.000000   2.069675
 O   0.000000   1.927079   2.069675
-
 
 K_POINTS automatic
 4 4 4 0 0 0

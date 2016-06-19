@@ -45,6 +45,7 @@ void writeQErestartFile(char fileName[], Matrix<double> atom_positions,
   fprintf(QE_file, "    nat= 5\n");
   fprintf(QE_file, "    ntyp= 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");
+  fprintf(QE_file, "    nosym = .true.\n");
   fprintf(QE_file, "!    nspin = 2     ! 1 = non-polarized 2 = spin-polarized\n");
   fprintf(QE_file, "!    occupations = 'smearing'\n");
   fprintf(QE_file, "!    smearing = 'methfessel-paxton'\n");

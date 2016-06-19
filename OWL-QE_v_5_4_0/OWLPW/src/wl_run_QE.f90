@@ -18,7 +18,7 @@ SUBROUTINE wl_qe_startup (my_comm)
   IMPLICIT NONE
   INTEGER :: my_comm
   !
-  CALL mp_startup (diag_in_band_group = .true.)
+  CALL mp_startup (my_comm, diag_in_band_group = .true.)
   CALL environment_start ('PWSCF')
   !
   CALL read_input_file ('PW', input_file_ )

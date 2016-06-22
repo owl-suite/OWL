@@ -10,8 +10,8 @@ void writeSystemFile(char fileName[], double energy, Matrix<double> atom_positio
     for(int j=0; j<cell_vectors.n_row(); j++)
       fprintf(system_file, " %14.9f ", cell_vectors(j,i));
   
-  for (int i=0; i<cell_vectors.n_col(); i++)
-    for(int j=0; j<cell_vectors.n_row(); j++)
+  for (int i=0; i<atom_positions.n_col(); i++)
+    for(int j=0; j<atom_positions.n_row(); j++)
       fprintf(system_file, " %14.9f ", atom_positions(j,i));
 
   fprintf(system_file, "\n");

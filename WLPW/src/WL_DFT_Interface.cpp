@@ -20,22 +20,18 @@
 
 int main (int argc, char *argv[]) {
 
-  // Set up MPI communicator:
+  // Moved to Communications.hpp/cpp
   int exit_status;           // Environmental parameter for QE
   int comm_help;             // MPI communicator handle for Fortran
   //int myMPIrank {-1};        // MPI rank for this processor
   //int numProcessors {-1};    // Total number of processors
-  MPI_Comm commMCWalker;     // Communicator for a Monte Carlo walker
-  MPI_Status mpiStatus;
-
-  //MPI_Init(&argc, &argv);
-  //MPI_Comm_rank(MPI_COMM_WORLD, &myMPIrank);         // Get the MPI rank for this processor
-  //MPI_Comm_size(MPI_COMM_WORLD, &numProcessors);     // Get the total number of processors
-  // To be replaced with:
-  initializeMPICommunication();
 
   comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
-  std::cout << "myMPIrank = " << myMPIRank << ", comm_help = " << comm_help << std::endl;
+  //std::cout << "myMPIrank = " << myMPIRank << ", comm_help = " << comm_help << std::endl;
+
+  // Set up MPI communicator:
+  wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
+  initializeMPICommunication();
 
   // Read in restarting information
   int restartFlag {-1};
@@ -64,13 +60,10 @@ int main (int argc, char *argv[]) {
 
   //YingWai's check   (Apr 7: can be removed when things work fine)
   //YingWaisCheck(comm_help, exit_status);
-
   WangLandauSampling(comm_help, exit_status, restartFlag);
 
-
-  //MPI_Finalize();
-  // To be replaced with:
-  finalizeMPICommunication();
+  //finalizeMPICommunication();
+  wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 
   return 0;
 }

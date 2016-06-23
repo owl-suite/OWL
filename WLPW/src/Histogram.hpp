@@ -19,7 +19,7 @@ public:
   int iterations;
   bool histogramFlat;
 
-  // Constructors
+  // Constructor
   Histogram(int);
 
   // Destructor
@@ -40,7 +40,6 @@ public:
   void updateDOS(double);
 
   void writeHistogramDOSFile(char[]);
-  void readHistogramDOSFile(char[]);
 
   bool checkEnergyInRange(double energy);
   bool checkHistogramFlatness();
@@ -69,5 +68,7 @@ private:
 
   // Private member functions:
   int getIndex(double);          // Calculate the bin index from an energy
+  void readHistogramDOSFile(char[]);
+  void readWangLandauInputFile(char[]);
 
 };

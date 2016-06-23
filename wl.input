@@ -1,0 +1,9 @@
+dim  1   
+flatnessCriterion  0.600 
+modFactor  1.000 
+modFactorFinal  1.25000000e-01 
+modFactorReducer  2.000 
+histogramCheckInterval  500 
+Emin  -333.767
+Emax  -333.758
+binSize   0.0001

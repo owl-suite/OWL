@@ -44,6 +44,9 @@ Histogram::Histogram(int restart)
   idx           = -1;
   histogramFlat = false;
 
+  //std::cerr << "Emin = " << Emin << std::endl;
+  //std::cerr << "Emax = " << Emax << std::endl;
+
   printf("Histogram class is created.\n");  
 }
 
@@ -79,6 +82,9 @@ double Histogram::getDOS(double energy)
   idx = getIndex(energy);
   if (idx >= 0)
     return dos[idx];
+  else {
+    std::cerr << "Problem in File " << __FILE__ << " Line " << __LINE__  << std::endl;
+  }
   
 }
 
@@ -114,11 +120,19 @@ void Histogram::resetDOS()
 void Histogram::updateHistogramDOS(double energy)
 {
   idx = getIndex(energy);
-  dos[idx] += modFactor;
-  hist[idx] ++;
-  visited[idx] = 1;
+
+  if (idx >= 0) {
+    dos[idx] += modFactor;
+    hist[idx] ++;
+    visited[idx] = 1;
+  }
+  //else {
+  //  std::cerr << "idx < 0 in updateHistogramDOS!!" << std::endl;
+  //}
+  //std::cerr << "energy = " << energy << std::endl;
   //std::cerr << "idx = " << idx << std::endl;
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "hist[idx] = " << hist[idx] << std::endl;
 }
 
 void Histogram::updateHistogram(double energy)
@@ -141,16 +155,24 @@ void Histogram::updateDOS(double energy)
 
 bool Histogram::checkEnergyInRange(double energy)
 {
+  bool isWithinRange {false};
   if (energy < Emin) {
+    //std::cerr << "Energy below range. Energy = " << energy << std::endl;
     numBelowRange++; 
-    return false;
+    isWithinRange = false;
   }
   else if (energy > Emax) {
+    //std::cerr << "Energy above range. Energy = " << energy << std::endl;
     numAboveRange++;
-    return false;
+    isWithinRange = false;
   }
-  else
-    return true;
+  else {
+    //std::cerr << "Energy within range. Energy = " << energy << std::endl;
+    isWithinRange = true;
+  }
+
+  return isWithinRange;
+
 }
 
 bool Histogram::checkHistogramFlatness()

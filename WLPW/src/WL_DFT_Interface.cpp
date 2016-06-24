@@ -26,12 +26,13 @@ int main (int argc, char *argv[]) {
   //int myMPIrank {-1};        // MPI rank for this processor
   //int numProcessors {-1};    // Total number of processors
 
+  MPI_Init(NULL, NULL);
+  initializeMPICommunication();
   comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
   //std::cout << "myMPIrank = " << myMPIRank << ", comm_help = " << comm_help << std::endl;
 
   // Set up MPI communicator:
   wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
-  initializeMPICommunication();
 
   // Read in restarting information
   int restartFlag {-1};

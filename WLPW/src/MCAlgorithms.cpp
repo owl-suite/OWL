@@ -201,11 +201,6 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
       //}
     }
 
-    // Go to next iteration
-    h.modFactor /= h.modFactorReducer;
-    h.resetHistogram();
-    h.iterations++;
-
     if (myMPIRank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);
     
@@ -214,6 +209,12 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
       h.writeHistogramDOSFile(fileName);
       writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
     }
+
+    // Go to next iteration
+    h.modFactor /= h.modFactorReducer;
+    h.resetHistogram();
+    h.iterations++;
+
   }
 
   //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation

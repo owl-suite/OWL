@@ -6,6 +6,32 @@
 # include "Histogram.hpp"
 # include "Communications.hpp"
 
-void YingWaisCheck(int, int&);
 
+// These two should be derived from MonteCarloAlgorithm
+void YingWaisCheck(int, int&);
 void WangLandauSampling(int, int&, int);
+
+
+
+class MonteCarloAlgorithm {
+
+public:
+
+  // Constructor
+  MonteCarloAlgorithm();
+
+  // Destructor
+  ~MonteCarloAlgorithm();
+
+protected:
+
+  unsigned long int totalMCsteps;
+  unsigned long int acceptedMoves;
+  unsigned long int rejectedMoves;
+
+
+private:
+
+
+};
+

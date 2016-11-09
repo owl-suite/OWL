@@ -1,54 +1,51 @@
 //#include <cstdlib>
-//#include <limits>
+#include <limits>
 #include <cmath>
 #include <iostream>
 #include "Histogram.hpp"
 
-// Constructor #1 : for fresh run
-Histogram::Histogram(int restartFlag)
+// Constructor
+Histogram::Histogram(int restart)
 {
   // Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
 
-  //Emax = std::numeric_limits<double>::max();
-  //Emin = -std::numeric_limits<double>::infinity();
-  //Emin = std::numeric_limits<double>::lowest();    // C++11
-  dim                    = 1;
-  flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
-  modFactor              = 1.0;         
-  modFactorFinal         = 0.125;       // should be ~ 10E-6
-  modFactorReducer       = 2.0;         // don't change
-  histogramCheckInterval = 100;
-  //histogramCheckInterval = numBins * 10;
-  Emin                   = -333.775;      // need to change
-  Emax                   = -333.695;      // need to change
-  binSize                = 0.001;         // need to change
-  numBins                = ceil((Emax - Emin) / binSize);
+  if (restart)
+    readHistogramDOSFile("hist_dos_checkpoint.dat");
+  else {
+    Emax = std::numeric_limits<double>::max();
+    //Emin = std::numeric_limits<double>::lowest();    // C++11
+    Emin = -std::numeric_limits<double>::max();
+    readWangLandauInputFile("wl.input");
 
-  numBelowRange          = 0;
-  numAboveRange          = 0;
+    //dim                    = 1;
+    //flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
+    //modFactor              = 1.0;         
+    //modFactorFinal         = 0.125;       // should be ~ 10E-6
+    //modFactorReducer       = 2.0;         // don't change
+    //Emin                   = -333.775;      // need to change
+    //Emax                   = -333.695;      // need to change
+    //binSize                = 0.001;         // need to change
+    numBins                = ceil((Emax - Emin) / binSize);
+    //histogramCheckInterval = 500;
+    //histogramCheckInterval = numBins * 10;
 
-  //hist    = new unsigned long int[numBins];
-  //dos     = new double[numBins];
-  //visited = new int[numBins];
-  //for (int i=0; i<numBins; i++)
-  //{
-  //  hist[i]    = 0;
-  //  dos[i]     = 1.0;
-  //  visited[i] = 0;
-  //}
-  hist.assign(numBins, 0);
-  dos.assign(numBins, 0.0);
-  visited.assign(numBins, 0);
+    hist.assign(numBins, 0);
+    dos.assign(numBins, 0.0);
+    visited.assign(numBins, 0);
 
-  idx = -1;
-  totalMCsteps  = 0;
-  acceptedMoves = 0;
-  rejectedMoves = 0;
-  iterations    = 1;
+    totalMCsteps           = 0;
+    acceptedMoves          = 0;
+    rejectedMoves          = 0;
+    iterations             = 1;
+    numBelowRange          = 0;
+    numAboveRange          = 0;
+  }
+
+  idx           = -1;
   histogramFlat = false;
 
-  if (restartFlag)
-    readHistogramDOSFile("hist_dos_checkpoint.dat");
+  //std::cerr << "Emin = " << Emin << std::endl;
+  //std::cerr << "Emax = " << Emax << std::endl;
 
   printf("Histogram class is created.\n");  
 }
@@ -69,13 +66,6 @@ Histogram::~Histogram()
 }
 
 
-// Private member functions
-int Histogram::getIndex(double energy)
-{
-  return floor((energy - Emin) / double(binSize));
-}
-
-
 // Public member functions
 double Histogram::getBinSize()
 {
@@ -92,6 +82,9 @@ double Histogram::getDOS(double energy)
   idx = getIndex(energy);
   if (idx >= 0)
     return dos[idx];
+  else {
+    std::cerr << "Problem in File " << __FILE__ << " Line " << __LINE__  << std::endl;
+  }
   
 }
 
@@ -127,11 +120,19 @@ void Histogram::resetDOS()
 void Histogram::updateHistogramDOS(double energy)
 {
   idx = getIndex(energy);
-  dos[idx] += modFactor;
-  hist[idx] ++;
-  visited[idx] = 1;
-  std::cerr << "idx = " << idx << std::endl;
-  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+
+  if (idx >= 0) {
+    dos[idx] += modFactor;
+    hist[idx] ++;
+    visited[idx] = 1;
+  }
+  //else {
+  //  std::cerr << "idx < 0 in updateHistogramDOS!!" << std::endl;
+  //}
+  //std::cerr << "energy = " << energy << std::endl;
+  //std::cerr << "idx = " << idx << std::endl;
+  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "hist[idx] = " << hist[idx] << std::endl;
 }
 
 void Histogram::updateHistogram(double energy)
@@ -139,8 +140,8 @@ void Histogram::updateHistogram(double energy)
   idx = getIndex(energy);
   hist[idx] ++;
   visited[idx] = 1;
-  std::cerr << "idx = " << idx << std::endl;
-  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "idx = " << idx << std::endl;
+  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
 void Histogram::updateDOS(double energy)
@@ -148,22 +149,30 @@ void Histogram::updateDOS(double energy)
   idx = getIndex(energy);
   dos[idx] += modFactor;
   visited[idx] = 1;
-  std::cerr << "idx = " << idx << std::endl;
-  std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "idx = " << idx << std::endl;
+  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
 bool Histogram::checkEnergyInRange(double energy)
 {
+  bool isWithinRange {false};
   if (energy < Emin) {
+    //std::cerr << "Energy below range. Energy = " << energy << std::endl;
     numBelowRange++; 
-    return false;
+    isWithinRange = false;
   }
   else if (energy > Emax) {
+    //std::cerr << "Energy above range. Energy = " << energy << std::endl;
     numAboveRange++;
-    return false;
+    isWithinRange = false;
   }
-  else
-    return true;
+  else {
+    //std::cerr << "Energy within range. Energy = " << energy << std::endl;
+    isWithinRange = true;
+  }
+
+  return isWithinRange;
+
 }
 
 bool Histogram::checkHistogramFlatness()
@@ -225,11 +234,24 @@ void Histogram::writeHistogramDOSFile(char fileName[])
   // Write out histogram and DOS
   for (int i=0; i<numBins; i++) {
     fprintf(histdos_file, "%8d %5d %lu %20.8f\n", i, visited[i], hist[i], dos[i]);
-    std::cerr << "visited[" << i << "] = " << visited[i] << std::endl;
+    //std::cerr << "visited[" << i << "] = " << visited[i] << std::endl;
   }
 
   fprintf(histdos_file, "\n");
   fclose(histdos_file);
+}
+
+
+bool Histogram::checkIntegrity()
+{
+
+}
+
+
+// Private member functions
+int Histogram::getIndex(double energy)
+{
+  return floor((energy - Emin) / double(binSize));
 }
 
 
@@ -338,7 +360,42 @@ void Histogram::readHistogramDOSFile(char fileName[])
 }
 
 
-bool Histogram::checkIntegrity()
+void Histogram::readWangLandauInputFile(char fileName[])
 {
+ 
+  FILE *WLinput_file = fopen(fileName, "r");
+  if (WLinput_file == NULL)
+    std::cerr << "Error: cannot open Wang-Landau input file "  << fileName << std::endl;
+ 
+  if (fscanf(WLinput_file, "%*s %d", &dim) != 1)
+    std::cerr << "Cannot read dim \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &flatnessCriterion) != 1)
+    std::cerr << "Cannot read flatnessCriterion \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &modFactor) != 1)
+    std::cerr << "Cannot read modFactor \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &modFactorFinal) != 1)
+    std::cerr << "Cannot read modFactorFinal \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &modFactorReducer) != 1)
+    std::cerr << "Cannot read modFactorReducer \n";
+
+  if (fscanf(WLinput_file, "%*s %lu", &histogramCheckInterval) != 1)
+    std::cerr << "Cannot read histogramCheckInterval \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &Emin) != 1)
+    std::cerr << "Cannot read Emin \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &Emax) != 1)
+    std::cerr << "Cannot read Emax \n";
+
+  if (fscanf(WLinput_file, "%*s %lf", &binSize) != 1)
+    std::cerr << "Cannot read binSize \n";
+
+  fclose(WLinput_file);
 
 }
+
+

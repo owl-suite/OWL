@@ -56,6 +56,10 @@ tldeps :
 	( cd ../.. ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi
 
 clean :
+	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
+	- /bin/rm -f ../../bin/owlpw.x
+
+veryclean :
 	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L *.cpp *.hpp
 	- /bin/rm -f ../../bin/owlpw.x
 

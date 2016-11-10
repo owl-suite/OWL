@@ -16,7 +16,7 @@
 	$(MPIF90) $(F90FLAGS) -c $<
 
 .cpp.o:
-	$(CPP) $(CPPFLAGS)  -c $<
+	$(CC) $(CFLAGS)  -c $<
 
 # .f.o and .c.o: do not modify
 
@@ -51,7 +51,7 @@ FDFLAGS        = $(DFLAGS) $(MANUAL_DFLAGS)
 #          typically -I../include -I/some/other/directory/
 #          the latter contains .e.g. files needed by FFT libraries
 
-IFLAGS         = -I../include
+IFLAGS         = -I../include 
 
 # MOD_FLAGS = flag used by f90 compiler to locate modules
 # Each Makefile defines the list of needed modules in MODFLAGS
@@ -68,8 +68,8 @@ MOD_FLAG      = -I
 # and to specify the location of MPI libraries in MPI_LIBS
 
 MPIF90         = ftn
-#F90           = ftn
-CC             = icc
+#F90           = ifort
+CC             = CC
 F77            = ftn
 
 # C preprocessor and preprocessing flags - for explicit preprocessing,
@@ -77,13 +77,13 @@ F77            = ftn
 # preprocessing flags must include DFLAGS and IFLAGS
 
 CPP            = CC
-CPPFLAGS       = -O3 $(DFLAGS) $(IFLAGS)
+CPPFLAGS       = -P -C -traditional $(DFLAGS) $(IFLAGS)
 
 # compiler flags: C, F90, F77
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
 
-CFLAGS         = -O3 $(DFLAGS) $(IFLAGS)
+CFLAGS         = -O3 -std=c++11 $(DFLAGS) $(IFLAGS)
 F90FLAGS       = $(FFLAGS) -nomodule -openmp -fpp $(FDFLAGS) $(IFLAGS) $(MODFLAGS)
 FFLAGS         = -O2 -assume byterecl -g -traceback -openmp
 
@@ -101,7 +101,7 @@ FFLAGS_NOMAIN   = -nofor_main
 # Typically LD coincides with F90 or MPIF90, LD_LIBS is empty
 
 LD             = ftn
-LDFLAGS        =  -openmp
+LDFLAGS        = -static-intel  -openmp
 LD_LIBS        = 
 
 # External Libraries (if any) : blas, lapack, fft, MPI
@@ -110,7 +110,7 @@ LD_LIBS        =
 # BLAS_LIBS = /your/path/to/espresso/BLAS/blas.a
 # BLAS_LIBS_SWITCH = internal
 
-BLAS_LIBS      =  
+BLAS_LIBS      =   
 BLAS_LIBS_SWITCH = external
 
 # If you have nothing better, use the local copy :
@@ -119,7 +119,7 @@ BLAS_LIBS_SWITCH = external
 # For IBM machines with essl (-D__ESSL): load essl BEFORE lapack !
 # remember that LAPACK_LIBS precedes BLAS_LIBS in loading order
 
-LAPACK_LIBS    =   
+LAPACK_LIBS    = 
 LAPACK_LIBS_SWITCH = external
 
 ELPA_LIBS_SWITCH = disabled

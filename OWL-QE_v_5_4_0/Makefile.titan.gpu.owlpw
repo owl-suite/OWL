@@ -1,0 +1,303 @@
+# Copyright (C) 2001-2016 Quantum ESPRESSO group
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License. See the file `License' in the root directory
+# of the present distribution.
+
+include make.sys
+
+default :
+	@echo '========================================================'
+	@echo '            GPU-Accelerated Quantum ESPRESSO '
+	@echo '========================================================'
+	@echo 'To install, type at the shell prompt:'
+	@echo '  ./configure'
+	@echo '  make target'
+	@echo 'where target is one of the following:'
+	@echo '  pw-gpu       basic code for scf, structure optimization'
+	@echo '  ph-gpu       phonon code, Gamma-only version and third-order derivatives'
+	@echo '  neb-gpu      code for Nudged Elastic Band method'
+	@echo '  cp-gpu       CP code: CP MD with ultrasoft pseudopotentials'
+	@echo '  pwall-gpu    same as "make pw-gpu ph-gpu neb-gpu"'
+	@echo '  all-gpu      same as "make pwall-gpu cp-gpu"'
+	@echo '  clean        remove executables and objects'
+	@echo '  clean-gpu    remove executables and objects (GPU-only section)'
+	@echo '  veryclean    revert distribution to the original status'
+
+###########################################################
+# Main targets
+###########################################################
+
+pw-gpu : bindir libfft libla mods liblapack libblas libphiGEMM libMAGMA gpu-mods libs libiotk libenviron
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./PW/src/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	if test -d PW ; then \
+	( cd PW ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= pw-lib ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= pw-lib ; fi ) ; fi
+	if test -d GPU/PW ; then \
+	( cd GPU/PW ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ) ; fi
+
+cp-gpu : bindir mods liblapack libblas libphiGEMM libMAGMA gpu-mods libs libiotk
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./CPV/src/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	if test -d CPV ; then \
+	( cd CPV/src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= libcp.a ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= libcp.a ; fi ) ; fi
+	if test -d GPU/CPV ; then \
+	( cd GPU/CPV ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ) ; fi
+
+
+lr-lib : bindir libfft libla mods liblapack libblas libs libiotk
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./LR_Modules/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	if test -d LR_Modules ; then \
+	( cd LR_Modules ; $(MAKE) TLDEPS= all || exit 1) ; fi
+
+ph-gpu : bindir  mods libphiGEMM libMAGMA gpu-mods libs lr-lib pw-gpu
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile uncompress-phonon
+	# Hack h_psic file ...
+	cp GPU/PH/h_psiq.f90-t LR_Modules/h_psiq.f90
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./PHonon/PH/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	if test -d PHonon ; then \
+	( cd PHonon/PH ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= libs-ph ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= libs-ph ; fi ) ; fi
+	if test -d GPU/PH ; then \
+	( cd GPU/PH ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ) ; fi
+
+owlpw-gpu : bindir mods libphiGEMM libMAGMA gpu-mods libs pw-gpu
+	if test -d OWLPW ; then \
+	( cd OWLPW ; $(MAKE) TLDEPS= all || exit 1) ; fi
+
+neb-gpu : bindir mods libphiGEMM libMAGMA gpu-mods libs pw-gpu
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile uncompress-neb
+	if test -d NEB ; then \
+	( cd NEB/src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= libneb.a ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= libneb.a ; fi ) ; fi
+	if test -d GPU/NEB ; then \
+	( cd GPU/NEB ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ) ; fi
+
+pwall-gpu : pw-gpu neb-gpu ph-gpu
+
+all-gpu   : pwall-gpu cp-gpu
+
+
+###########################################################
+# Auxiliary targets used by main targets:
+# compile modules, libraries, directory for binaries, etc
+###########################################################
+
+libfft : touch-dummy
+	cp GPU/include/fft_defs.h include/
+	cp GPU/include/c_defs.h include/
+	( cd FFTXlib ; $(MAKE) TLDEPS= all || exit 1 )
+
+libla : touch-dummy libelpa
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./LAXlib/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	( cd LAXlib ; $(MAKE) TLDEPS= all || exit 1 )
+
+mods : libiotk libla libfft
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	grep -rl -E 'gemm|GEMM' ./Modules/*.f90 | python ./GPU/scripts/addPhigemmSymbs.py
+endif
+	( cd Modules ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi )
+
+libs : mods
+	( cd clib ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi )
+
+lrmods :
+	( cd LR_Modules ; $(MAKE) TLDEPS=lr-lib || exit 1 )
+
+gpu-mods : mods
+	( cd GPU/Modules ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi )
+
+libenviron :  mods
+	( if test -d Environ ; then cd Environ ; if test "$(MAKE)" = "" ;  \
+	then make $(MFLAGS) TLDEPS= all; else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ; fi )
+
+bindir :
+	test -d bin || mkdir bin
+
+#############################################################
+# Targets for external libraries
+#############################################################
+libblas : touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile $@
+
+liblapack: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile $@
+
+libelpa: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile $@
+
+libiotk: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile $@
+
+# In case of trouble with iotk and compilers, add
+# FFLAGS="$(FFLAGS_NOOPT)" after $(MFLAGS)
+
+#############################################################
+# Targets for third-part CUDA-enabled libraries
+#############################################################
+
+libphiGEMM: touch-dummy
+ifeq ($(PHIGEMM_INTERNAL),1)
+	cd GPU/install ; $(MAKE) $(MFLAGS) -f extlibs_GPU_makefile $@
+else
+	$(dummy-variable)
+endif
+
+libMAGMA: touch-dummy
+ifeq ($(MAGMA_INTERNAL),1)
+	cd GPU/install ; $(MAKE) $(MFLAGS) -f extlibs_GPU_makefile $@
+else
+	$(dummy-variable)
+endif
+
+#########################################################
+# plugins
+#########################################################
+
+w90: bindir libblas liblapack
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile $@
+
+want : touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile $@
+
+yambo: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile $@
+
+plumed: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile $@
+
+epw: touch-dummy
+	cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile $@
+
+touch-dummy :
+	$(dummy-variable)
+
+#########################################################
+# "make links" produces links to all executables in bin/
+# while "make inst" INSTALLDIR=/some/place" links all
+# available executables to /some/place/ (must exist and
+# be writable), prepending "qe_" to all executables (e.g.:
+# /some/place/qe_pw.x). This allows installation of QE
+# into system directories with no danger of name conflicts
+#########################################################
+inst :
+	( for exe in */*/*.x */bin/* ; do \
+	   file=`basename $$exe`; if test "$(INSTALLDIR)" != ""; then \
+		if test ! -L $(PWD)/$$exe; then ln -fs $(PWD)/$$exe $(INSTALLDIR)/qe_$$file ; fi ; \
+		fi ; \
+	done )
+
+links : bindir
+	( cd bin/ ; \
+	rm -f *.x ; \
+	for exe in ../*/*/*.x ../*/bin/* ; do \
+	    if test ! -L $$exe ; then ln -fs $$exe . ; fi \
+	done \
+	)
+
+
+#########################################################
+# Other targets: clean up
+#########################################################
+
+# remove object files and executables
+clean : clean-gpu
+	touch make.sys
+	for dir in \
+		CPV LAXlib FFTXlib Modules PW PH NEB \
+		clib flib upftools LR_Modules \
+		dev-tools extlibs Environ \
+	; do \
+	    if test -d $$dir ; then \
+		( cd $$dir ; \
+		if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= clean ; \
+		else $(MAKE) $(MFLAGS) TLDEPS= clean ; fi ) \
+	    fi \
+	done
+	- @(cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile clean)
+	- @(cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile clean)
+	- @(cd GPU/install ; $(MAKE) $(MFLAGS) -f extlibs_GPU_makefile clean)
+	- /bin/rm -rf bin/*.x tmp
+	- cd PW/tests; /bin/rm -rf CRASH *.out *.out? ; cd -
+	- cd CPV/tests; /bin/rm -rf CRASH *.out *.out?
+
+# remove object files and executables (GPU-only section, library excluded)
+clean-gpu :
+	touch make.sys
+ifeq ($(PHIGEMM_SYMBOLS),1)
+	for dir in \
+        CPV/src Modules PW/src PHonon/PH NEB/src LR_Modules LAXlib \
+	; do \
+		grep -rl -E 'gemm|GEMM' $$dir/*.f90 | python ./GPU/scripts/remPhigemmSymbs.py ; \
+	done
+endif
+	for dir in \
+		GPU/NEB GPU/PW GPU/Modules GPU/PH GPU/CPV \
+	; do \
+	if test -d $$dir ; then \
+		( cd $$dir ; \
+		if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= clean ; \
+		else $(MAKE) $(MFLAGS) TLDEPS= clean ; fi ) \
+	    fi \
+	done
+	- /bin/rm -rf bin/*-gpu.x tmp
+
+# remove configuration files too
+distclean veryclean : clean
+	- @(cd install ; $(MAKE) $(MFLAGS) -f plugins_makefile veryclean)
+	- @(cd install ; $(MAKE) $(MFLAGS) -f extlibs_makefile veryclean)
+	- @(cd GPU/install ; $(MAKE) $(MFLAGS) -f extlibs_GPU_makefile veryclean)
+	- rm -rf install/patch-plumed
+	- cd GPU/install ; rm -f config.log configure.msg config.status \
+	CPV/version.h ChangeLog* intel.pcl */intel.pcl
+	- cd GPU/install ; rm -fr autom4te.cache *.inc
+	- cd install ; rm -fr autom4te.cache
+	- cd pseudo; ./clean_ps ; cd -
+	- cd install; ./clean.sh ; cd -
+	- cd include; ./clean.sh ; cd -
+	- rm -f espresso.tar.gz
+	- for dir in Doc; do \
+	    test -d $$dir && ( cd $$dir ; $(MAKE) $(MFLAGS) TLDEPS= clean ) \
+	done
+	- rm -rf make.sys Makefile.gpu
+
+
+#########################################################
+# Tools for the developers
+#########################################################
+
+# NOTICE about "make doc": in order to build the .html and .txt
+# documentation in Doc, "tcl", "tcllib", "xsltproc" are needed;
+# in order to build the .pdf files in Doc, "pdflatex" is needed;
+# in order to build html files for user guide and developer manual,
+# "latex2html" and "convert" (from Image-Magick) are needed.
+doc : touch-dummy
+	if test -d Doc ; then \
+	( cd Doc ; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi ) ; fi
+	for dir in */Doc; do \
+	( if test -f $$dir/Makefile ; then cd $$dir; if test "$(MAKE)" = "" ; then make $(MFLAGS) TLDEPS= all ; \
+	else $(MAKE) $(MFLAGS) TLDEPS= all ; fi  ; fi ); done
+
+depend:
+	@echo 'Checking dependencies...'
+	- ( if test -x install/makedeps.sh ; then install/makedeps.sh ; fi)

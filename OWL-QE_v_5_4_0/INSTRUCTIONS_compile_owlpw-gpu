@@ -1,0 +1,32 @@
+Instructions for building GPU-enabled quantum espresso-5.4.0 and OWL on Titan with GNU compiler:
+[Assuming default programming environment]
+
+Steps:
+======
+1. module swap PrgEnv-pgi PrgEnv-gnu
+
+
+[build CPU PW...]
+2. ./configure --enable-openmp CC=cc F77=ftn MPIF90=ftn
+3. make pw
+
+
+[build GPU PW...]
+
+4. module load cudatoolkit
+5. module load magma
+6. Extract QE-GPU-5.4.0.tar.gz inside espresso-5.4.0
+7. cd GPU/
+8. ./configure --enable-parallel --enable-openmp --enable-cuda --with-gpu-arch=sm_35 --with-cuda-dir=$CRAY_CUDATOOLKIT_DIR --with-magma CC=cc F77=ftn MPIF90=ftn
+9. cd ..
+10. make -f Makefile.gpu pw-gpu
+
+
+[build OWL with the GPU PW...]
+
+11. Copy "Makefile.titan.gpu.owlpw" and "make.sys.titan.gpu.owlpw" into espresso-5.4.0/
+12. cp OWLPW/src/Makefile.gnu.gpu espresso-5.4.0/OWLPW/src/Makefile
+13. make -f Makefile.titan.gpu.owlpw owlpw-gpu
+
+Voila!
+

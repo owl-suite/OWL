@@ -2,36 +2,37 @@
 #include <limits>
 #include "MCMoves.hpp"
 #include "Communications.hpp"
+#include "RandomNumberGenerator.hpp"
 
-
-void initializeRandomNumberGenerator(int seed)
-{
- 
-  // get random seed
-  if (seed == -1) {
-    seed = int(time(NULL));
-    std::cout << "Rank: " << myMPIRank << " No random number seed supplied. Take current time as a seed." << std::endl;
-  }
-  else
-    std::cout << "Random number seed supplied: " << seed << std::endl;
-
-  // YingWai: need to revise the communicator later when DFTCommunicator is created.
-  MPI_Bcast(&seed, 1, MPI_INT, 0, mpiCommunicator);
-  std::cout << "Rank: " << myMPIRank << " Random number seed supplied: " << seed << std::endl;
-
-  // Initialize random number generator
-  srand(seed);
-
-}
+// Moved to RandomNumberGenerator.hpp/.cpp
+//void initializeRandomNumberGenerator(int seed)
+//{
+// 
+//  // get random seed
+//  if (seed == -1) {
+//    seed = int(time(NULL));
+//    std::cout << "Rank: " << myMPIRank << " No random number seed supplied. Take current time as a seed." << std::endl;
+//  }
+//  else
+//    std::cout << "Random number seed supplied: " << seed << std::endl;
+//
+//  // YingWai: need to revise the communicator later when DFTCommunicator is created.
+//  MPI_Bcast(&seed, 1, MPI_INT, 0, mpiCommunicator);
+//  std::cout << "Rank: " << myMPIRank << " Random number seed supplied: " << seed << std::endl;
+//
+//  // Initialize random number generator
+//  srand(seed);
+//
+//}
 
 
 void writeAtomicPositions(Matrix<double> atom_positions)
 {
 
   printf("YingWai's debug: atom_position inside displaceAnAtom\n");
-  for(int i=0; i<atom_positions.n_col(); i++) {
+  for(unsigned int i=0; i<atom_positions.n_col(); i++) {
     printf("atom %d : ", i);
-    for(int j=0; j<atom_positions.n_row(); j++)
+    for(unsigned int j=0; j<atom_positions.n_row(); j++)
       printf(" %14.9f ", atom_positions(j,i));
     printf("\n");
   }
@@ -43,9 +44,9 @@ void writeLatticeVectors(Matrix<double> cell_vectors)
 {
 
   printf("YingWai's debug: lattice_vector inside stretchCrystalCell\n");
-  for(int i=0; i<cell_vectors.n_col(); i++) {
+  for(unsigned int i=0; i<cell_vectors.n_col(); i++) {
     printf("vector %d : ", i);
-    for(int j=0; j<cell_vectors.n_row(); j++)
+    for(unsigned int j=0; j<cell_vectors.n_row(); j++)
       printf(" %14.9f ", cell_vectors(j,i));
     printf("\n");
   }
@@ -77,10 +78,10 @@ void displaceAnAtom(Matrix<double> &atom_positions)
   double dr = 0.0;
 
   // Choose an atom randomly
-  int ranAtom = rand() % atom_positions.n_col() ;
+  int ranAtom = rng() % atom_positions.n_col() ;
 
   // For each of the x-,y-,z-direction,
-  for (int i=0; i<atom_positions.n_row(); i++)
+  for (unsigned int i=0; i<atom_positions.n_row(); i++)
   {
     // randomly choose a displacement magnitude
     dr = 2.0 * getRandomNumber() * dr_max;
@@ -108,11 +109,11 @@ void stretchCrystalCell(Matrix<double> &cell_vectors)
   double dL_max = 0.1;
 
   // Choose a vector randomly to stretch
-  int ranLatticeVector = rand() % cell_vectors.n_row() ;
+  int ranLatticeVector = rng() % cell_vectors.n_row() ;
 
   // Lengths of lattice vector
   double L = 0.0;
-  for (int j=0; j<cell_vectors.n_col(); j++)
+  for (unsigned int j=0; j<cell_vectors.n_col(); j++)
     L += cell_vectors(j,ranLatticeVector) * cell_vectors(j,ranLatticeVector);
   L = sqrt(L);
 
@@ -162,7 +163,7 @@ void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors
   std::cout << " i    atom_positions " << std::endl;
 
   //Choose a MC move to perform
-  int r = rand() % 2;
+  int r = rng() % 2;
   switch(r)
   {
     case 0 :

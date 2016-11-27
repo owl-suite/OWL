@@ -17,7 +17,9 @@ COMMLIBS = \
 Communications.o
 
 WLPWOBJS = \
-WL_DFT_Interface.o
+QuantumEspressoSystem.o   \
+Heisenberg2D.o            \
+OWLMain.o
 
 WLPWLIBS = \
 wl_getInfo_pwscf.o \
@@ -26,6 +28,7 @@ wl_run_QE.o
 
 MCOBJS = \
 Histogram.o \
+RandomNumberGenerator.o \
 MCAlgorithms.o \
 MCMoves.o
 

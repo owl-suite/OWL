@@ -11,22 +11,75 @@ MPI_Comm mpiCommunicator;
 //int comm_help;
 
 
-void initializeMPICommunication() 
+void initializeMPICommunication(SimulationInfo simInfo) 
 {
-  //MPI_Init(NULL, NULL);
-  //comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
-  //wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
+  MPI_Init(NULL, NULL);
 
   mpiCommunicator = MPI_COMM_WORLD;
   MPI_Comm_rank(mpiCommunicator, &myMPIRank);
   MPI_Comm_size(mpiCommunicator, &numMPIRanks);
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
+
+  // Here, the MC algorithm communicator should be initialized before Physical system...
+
+
+  switch (simInfo.system) {
+    case 1 :
+      initializeQEMPICommunication();
+      //comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
+      //wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
+      break;
+
+    case 2 :
+      // initializeLSMSMPICommunication();
+      break;
+
+    default :  // this includes cases 3 and 4 (all simple models)
+      // initializeSimpleMPICommunication();
+      // basically nothing; 1 MPI per system
+      {};
+  }
+
 }
 
-void finalizeMPICommunication()
+
+void finalizeMPICommunication(SimulationInfo simInfo)
 {
-  //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
-  //MPI_Finalize();
+
+  switch (simInfo.system) {
+    case 1 :
+      finalizeQEMPICommunication();
+      //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
+      break;
+
+    case 2 :
+      //finalizeLSMSMPICommunication();
+      break;
+
+    default :  // this includes cases 3 and 4 (all simple models)
+      MPI_Finalize();   // this might need to be moved outside the switch
+
+  }
+
+}
+
+// The following two should be moved to the Physical System MPI class, which in terms should be a member of the QuantumEspressoSystem class, which is then called in the QuantumEspressoSystem constructor`
+void initializeQEMPICommunication()
+{
+  // !!! MPI_COMM_WORLD should be changed to the MPI Comm. group after the MC Algorithm Communicator is set up. !!!
+  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
+  wl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  
+  std::cout << "Intialized QE MPI communications..." << std::endl;
+  std::cout << "myMPIrank = " << myMPIRank << std::endl;
 }
 
 
+void finalizeQEMPICommunication()
+{
+  int exit_status;                                // Environmental parameter for QE
+  wl_qe_stop_(&exit_status);                      // Finish the PWscf calculation
+  
+  std::cout << "Finalized QE MPI communications..." << std::endl;
+  std::cout << "myMPIrank = " << myMPIRank << std::endl;
+}

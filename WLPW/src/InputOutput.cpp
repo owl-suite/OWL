@@ -1,100 +1,87 @@
+#include <iostream>
+#include <fstream>
+#include <string>             // std::string
+#include <sstream>            // std::istringstream
 #include "InputOutput.hpp"
+//#include "RandomNumberGenerator.hpp"
 
-void writeSystemFile(char fileName[], double energy, Matrix<double> atom_positions, Matrix<double> cell_vectors)
-{ 
-  FILE *system_file;
-  system_file = fopen(fileName, "a");
-  fprintf(system_file, " %14.9f ", energy);
 
-  for (int i=0; i<cell_vectors.n_col(); i++)
-    for(int j=0; j<cell_vectors.n_row(); j++)
-      fprintf(system_file, " %14.9f ", cell_vectors(j,i));
+// Input file should be specified as the first argument in command line
+void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
   
-  for (int i=0; i<atom_positions.n_col(); i++)
-    for(int j=0; j<atom_positions.n_row(); j++)
-      fprintf(system_file, " %14.9f ", atom_positions(j,i));
+  std::cout << "Reading main input file: " << FileName << std::endl;
 
-  fprintf(system_file, "\n");
-  fclose(system_file); 
-} 
+  std::ifstream inputFile(FileName);
+  std::string line, key;
 
-void writeQErestartFile(char fileName[], Matrix<double> atom_positions, 
-                        Matrix<double> cell_vectors)
-{
+  while (std::getline(inputFile, line)) {
+    if (!line.empty()) {
+      std::istringstream lineStream(line);
+      lineStream >> key;
 
-  // Now hard-coded, need to generalize in the future.
-  // Should look if QE has this functionality already.
+      if (key.compare(0, 1, "#") != 0) {
 
-  FILE *QE_file;
-  QE_file = fopen(fileName, "w");
+        // Read and set SimulationInfo
+        if (key == "RestartFlag") {
+          lineStream >> sim_info.restartFlag;
+          std::cout << "Simulation Info: restartFlag = " << sim_info.restartFlag << std::endl;
+          continue;
+        }
+        if (key == "PhysicalSystem") {
+          lineStream >> sim_info.system;
+          std::cout << "Simulation Info: system = " << sim_info.system << std::endl;
+          continue;
+        }
+        if (key == "Algorithm") {
+          lineStream >> sim_info.algorithm;
+          std::cout << "Simulation Info: algorithm = " << sim_info.algorithm << std::endl;
+          continue;
+        }
+        if (key == "RngSeed"){
+          lineStream >> sim_info.rngSeed;
+          std::cout << "Random number seed = " << sim_info.rngSeed << std::endl;
+          continue;
+        }
+        if (key == "LatticeSize") {
+          lineStream >> sim_info.size;
+          std::cout << "Simulation Info: lattice size = " << sim_info.size << std::endl;
+          continue;
+        }
+        if (key == "InputFile") {
+          lineStream >> sim_info.inputFile;
+          std::cout << "Simulation Info: Input file for MC simulation = " << sim_info.inputFile << std::endl;
+          continue;
+        }
 
-  fprintf(QE_file, "&control\n");
-  fprintf(QE_file, "   calculation = 'scf'\n");
-  fprintf(QE_file, "   restart_mode = 'from_scratch'\n");
-  fprintf(QE_file, "   forc_conv_thr = 3.0d-4\n");
-  fprintf(QE_file, "   tstress = .true.\n");
-  fprintf(QE_file, "   tprnfor = .true.\n");
-  fprintf(QE_file, "   pseudo_dir = './'\n");
-  fprintf(QE_file, "!   lberry = .true.\n");
-  fprintf(QE_file, "!   gdir = 3\n");
-  fprintf(QE_file, "!   nppstr = 8 \n");
-  fprintf(QE_file, "/\n");
-  fprintf(QE_file, "&system\n");
-  fprintf(QE_file, "    ibrav= 0\n");
-  fprintf(QE_file, "!   celldm(1) = 1.0\n");
-  fprintf(QE_file, "    nat= 5\n");
-  fprintf(QE_file, "    ntyp= 3\n");
-  fprintf(QE_file, "    ecutwfc = 50\n");
-  fprintf(QE_file, "    nosym = .true.\n");
-  fprintf(QE_file, "!    nspin = 2     ! 1 = non-polarized 2 = spin-polarized\n");
-  fprintf(QE_file, "!    occupations = 'smearing'\n");
-  fprintf(QE_file, "!    smearing = 'methfessel-paxton'\n");
-  fprintf(QE_file, "!    degauss = 0.02\n");
-  fprintf(QE_file, "!    starting_magnetization(1) = 2\n");
-  fprintf(QE_file, "!    starting_magnetization(2) = -2\n");
-  fprintf(QE_file, "/\n");
-  fprintf(QE_file, "&electrons\n");
-  fprintf(QE_file, "    electron_maxstep = 1000\n");
-  fprintf(QE_file, "    mixing_beta = 0.7\n");
-  fprintf(QE_file, "    conv_thr = 1.0d-8\n");
-  fprintf(QE_file, "/\n");
-  fprintf(QE_file, "&ions\n");
-  fprintf(QE_file, "/\n");
-  fprintf(QE_file, "&cell\n");
-  fprintf(QE_file, "    cell_factor = 3.0d0\n");
-  fprintf(QE_file, "/\n");
-  fprintf(QE_file, "\n");
-  fprintf(QE_file, "ATOMIC_SPECIES\n");
-  fprintf(QE_file, "Pb  207.2    Pb.pz-d-van.UPF\n");
-  fprintf(QE_file, "Ti  47.867   022-Ti-ca-sp-vgrp_serge.uspp\n");
-  fprintf(QE_file, "O   16.00    O_ps.uspp.UPF\n");
-  fprintf(QE_file, "\n");
-  fprintf(QE_file, "ATOMIC_POSITIONS {angstrom}\n");
-  fprintf(QE_file, "Pb    %14.9f %14.9f %14.9f\n", atom_positions(0,0), 
-                                                   atom_positions(1,0), 
-                                                   atom_positions(2,0) );
-  fprintf(QE_file, "Ti    %14.9f %14.9f %14.9f\n", atom_positions(0,1),
-                                                   atom_positions(1,1), 
-                                                   atom_positions(2,1) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", atom_positions(0,2),
-                                                   atom_positions(1,2), 
-                                                   atom_positions(2,2) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", atom_positions(0,3),
-                                                   atom_positions(1,3), 
-                                                   atom_positions(2,3) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", atom_positions(0,4),
-                                                   atom_positions(1,4), 
-                                                   atom_positions(2,4) );
-  fprintf(QE_file, "\n");
-  fprintf(QE_file, "K_POINTS automatic\n");
-  fprintf(QE_file, "4 4 4 0 0 0\n");
-  fprintf(QE_file, "\n");
-  fprintf(QE_file, "CELL_PARAMETERS {angstrom}\n");
-  for (int i=0; i<cell_vectors.n_col(); i++) {
-    for(int j=0; j<cell_vectors.n_row(); j++)
-      fprintf(QE_file, " %14.9f ", cell_vectors(j,i));
-    fprintf(QE_file, "\n");
+        // The following are inputs specific to different SimulationInfo parameters
+        //switch (sim_info.system) {
+
+        //  case 1 :
+        //    std::cout << "Now read inputs for Quantum Espresso system." << std::endl;
+        //    // specify QE input files
+        //    break;
+
+        //  case 2 :
+        //    std::cout << "Now read inputs for LSMS system." << std::endl;
+        //    // specify LSMS input files
+        //    break;
+ 
+        //  case 3 :
+        //    std::cout << "Now read inputs for a Heisenberg 2D system." << std::endl;
+        //    break;
+
+        //  case 4 :
+        //    std::cout << "Now read inputs for an Ising 2D system." << std::endl;
+        //    break;
+
+        //  default:
+        //    {;}
+        //}
+        std::cout << "Unknown key: " << key << "  in input file " << FileName << std::endl;
+        
+      }
+    }
   }
 
-  fclose(QE_file);
 }
+

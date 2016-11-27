@@ -31,7 +31,7 @@
     typedef const T&     const_reference;
 
     // The basic constructor builds an empty matrix, that needs to be resized before use.
-    Matrix() : nRow(0), nCol(0), lDim(0), owner(true), data(0), physicalSize(0) {;}
+    Matrix() : nRow(0), nCol(0), lDim(0), physicalSize(0), owner(true), data(0) {;}
 
     // We also can construct a matrix with |nRows| rows and |nCols| the leading dimension |ldim| defaults to |nRows|, but can be set to any larger value to get the desired memory alignement.
     Matrix(size_type nRows,size_type nCols,size_type ldim=0,const T& val=T()) {

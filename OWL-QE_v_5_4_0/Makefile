@@ -37,7 +37,7 @@ default :
 	@echo '  gipaw        NMR and EPR spectra'
 	@echo '  w90          Maximally localised Wannier functions'
 	@echo '  want         Quantum transport with Wannier functions'
-	@echo '  west         Many-body perturbation corrections without mmpty states'
+	@echo '  west         Many-body perturbation corrections Without Empty STates'
 #	@echo '  SaX          Standard GW-BSE with plane waves'
 	@echo '  yambo        Electronic excitations with plane waves'
 	@echo '  yambo-devel  Yambo devel version'

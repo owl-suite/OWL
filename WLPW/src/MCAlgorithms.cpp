@@ -1,125 +1,58 @@
 #include <cstdio>
 #include <cmath>
 #include "MCAlgorithms.hpp"
+#include "RandomNumberGenerator.hpp"
+#include "Communications.hpp"
 
 
-void YingWaisCheck(int comm_help, int &exit_status)
+WangLandauSampling::WangLandauSampling(int restart, const char* inputFile) : h(restart, inputFile)    // call h's constructor here
 {
+  printf("Simulation method: Wang-Landau sampling\n");
+  restartFlag = restart;
+//  physical_system = ps;
 
-  int natom;        // Total number of atoms in system
-  double f_etot;    // Total energy of system (in Ry)
- 
-  initializeRandomNumberGenerator();
- 
-  //wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
-  run_pwscf_(&exit_status);          // Execute the PWscf calculation
-
-  //if (myMPIRank == 0) {
-  get_natom_ener_(&natom, &f_etot);  // Extract the number of atoms and energy
- 
-  Matrix<double> pos_array;  // Set up the position array (in angstrom)
-  pos_array.resize(3,natom); 
- 
-  Matrix<double> cell_array;  // Set up the cell vector array (in angstrom)
-  cell_array.resize(3,3);
- 
-  get_pos_array_(&pos_array(0,0));  // Extract the position array from QE
-  get_cell_array_(&cell_array(0,0));  // Extract the cell array from QE
-
-  if (myMPIRank == 0) {
-    // Write out system info
-    writeSystemFile("energyFromMCAlgorithms.txt", f_etot, pos_array, cell_array);
-  }
-  proposeMCmoves(pos_array, cell_array);
-  //MPI_Bcast(&pos_array(0,0), 3*natom, MPI_DOUBLE, 0, mpiCommunicator);
-  //MPI_Bcast(&cell_array(0,0), 3*3, MPI_DOUBLE, 0, mpiCommunicator);
-  //MPI_Barrier(mpiCommunicator);
-
-  wl_stop_run_(&exit_status);  // Clean up the PWscf run
-
-  // Based on the type of moves, one of these subroutines will be called 
-  // to update either the atomic positions or lattice cell vector of  
-  // simulation cell (needs to be merged with the Wang-Landau codes later...):
-
-  pass_pos_array_(&pos_array(0,0));  // Update the atomic positions
-  pass_cell_array_(&cell_array(0,0));  // Update the lattice cell vector
-
-  // Call the Quantum Espresso subroutines to run the second PWscf calculation:
-  wl_do_pwscf_(&exit_status);  // Run the subsequent PWscf calculation
-  get_natom_ener_(&natom, &f_etot);
-
-  get_pos_array_(&pos_array(0,0));
-  get_cell_array_(&cell_array(0,0));
-
-  //if (myMPIRank == 0)
-    writeSystemFile("energy2.txt", f_etot, pos_array, cell_array);
-
-  //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 }
 
 
-
-void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
+WangLandauSampling::~WangLandauSampling()
 {
 
-  double startTime, currentTime, lastBackUpTime;
-  startTime = lastBackUpTime = MPI_Wtime();
-  if (myMPIRank == 0) 
-    printf("WangLandauSampling is called.\n");
+//  delete physical_system;
 
-  // These should become Model class members 
-  // System information
-  int natom;                       // Total number of atoms in system
-  double trialEnergy;              // Trial total energy of system (in Ry)
-  double oldEnergy;                // Old total energy of the system (in Ry)
-  Matrix<double> trialPos;         // Trial atom position    (in angstrom)
-  Matrix<double> oldPos;           // Old atom position for restoration after a rejected MC move  (in angstrom)
-  Matrix<double> trialLatticeVec;  // Trial cell vector   (in angstrom)
-  Matrix<double> oldLatticeVec;    // Old cell vector for restoration after a rejected MC move (in angstrom)
-  bool acceptMove {false};         // store the decision of WL acceptance for each move
+}
+
+
+void WangLandauSampling::run(PhysicalSystem* physical_system)
+{
+
+  //double currentTime, lastBackUpTime;
+  currentTime = lastBackUpTime = MPI_Wtime();
+  if (myMPIRank == 0)
+    printf("Running WangLandauSampling...\n");
+
+  //bool acceptMove {false};         // store the decision of WL acceptance for each move
   char fileName[51];
-    
-  // Initialize the simulation
-  Histogram h(restartFlag);
-  initializeRandomNumberGenerator();
 
-  //wl_qe_startup_(&comm_help);              // Set up the PWscf calculation
-  run_pwscf_(&exit_status);                   // Execute the PWscf calculation
-  get_natom_ener_(&natom, &oldEnergy);        // Extract the number of atoms and energy
-   
-  trialPos.resize(3,natom);                   // Resize position and cell vector arrays
-  oldPos.resize(3,natom);
-  trialLatticeVec.resize(3,3);
-  oldLatticeVec.resize(3,3);
-   
-  get_pos_array_(&oldPos(0,0));               // Extract the position array from QE
-  get_cell_array_(&oldLatticeVec(0,0));       // Extract the cell array from QE
-  wl_stop_run_(&exit_status);              // Clean up the PWscf run
+  physical_system -> getObservables();
+  physical_system -> acceptMCMove();    // always accept the move to push the state forward
+  acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
 
   // Find the first energy that falls within the WL energy range    
-  acceptMove = h.checkEnergyInRange(oldEnergy);
   while (!acceptMove) {
-    proposeMCmoves(oldPos, oldLatticeVec);
-    pass_pos_array_(&oldPos(0,0));            // Update the atomic positions
-    pass_cell_array_(&oldLatticeVec(0,0));    // Update the lattice cell vector
-
-    wl_do_pwscf_(&exit_status);               // Run the subsequent PWscf calculation
-    get_natom_ener_(&natom, &oldEnergy);
-    wl_stop_run_(&exit_status);              // Clean up the PWscf run
-
-    acceptMove = h.checkEnergyInRange(oldEnergy);
+    physical_system -> doMCMove();
+    physical_system -> getObservables();
+    physical_system -> acceptMCMove();    // always accept the move to push the state forward
+    acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
   }
 
   // Always accept the first energy if it is within range
-  h.updateHistogramDOS(oldEnergy);
-  trialEnergy = oldEnergy;
-  trialPos = oldPos;
-  trialLatticeVec = oldLatticeVec; 
+  h.updateHistogramDOS(physical_system -> observables[0]);
+  //physical_system -> acceptMCMove();
 
   // Write out the energy
   if (myMPIRank == 0) 
-    writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
-
+    physical_system -> writeConfiguration(0, "energyLatticePos.dat");
+    //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
 
 //-------------- End initialization --------------//
 
@@ -128,22 +61,25 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
     h.histogramFlat = false;
 
     while (!(h.histogramFlat)) {
-      for (int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
+      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
       {
 
-        proposeMCmoves(trialPos, trialLatticeVec);
-        pass_pos_array_(&trialPos(0,0));          // Update the atomic positions
-        pass_cell_array_(&trialLatticeVec(0,0));  // Update the lattice cell vector
+        physical_system -> doMCMove();
+        physical_system -> getObservables();
+        //proposeMCmoves(trialPos, trialLatticeVec);
+        //pass_pos_array_(&trialPos(0,0));          // Update the atomic positions
+        //pass_cell_array_(&trialLatticeVec(0,0));  // Update the lattice cell vector
 
-        wl_do_pwscf_(&exit_status);               // Run the subsequent PWscf calculation 
-        get_natom_ener_(&natom, &trialEnergy);
+        //wl_do_pwscf_(&exit_status);               // Run the subsequent PWscf calculation 
+        //get_natom_ener_(&natom, &trialEnergy);
 
         // check if the energy falls within the energy range
-        if ( !h.checkEnergyInRange(trialEnergy) )
+        if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
           acceptMove = false;
         else {
           // determine WL acceptance
-          if ( exp(h.getDOS(oldEnergy) - h.getDOS(trialEnergy)) > getRandomNumber() )
+          if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
+                   h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
             acceptMove = true;
           else
             acceptMove = false;
@@ -151,54 +87,59 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
 
         if (acceptMove) {
            // Update histogram and DOS with trialEnergy
-           h.updateHistogramDOS(trialEnergy);
+           h.updateHistogramDOS(physical_system -> observables[0]);
            h.acceptedMoves++;        
  
+           physical_system -> acceptMCMove();
            // Store trialPos, trialLatticeVec, trialEnergy
-           oldPos = trialPos;
-           oldLatticeVec = trialLatticeVec;
-           oldEnergy = trialEnergy;
+           //oldPos = trialPos;
+           //oldLatticeVec = trialLatticeVec;
+           //oldEnergy = trialEnergy;
+/*
            if (myMPIRank == 0) {
-             writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
-             std::cerr << "trial move accepted: Energy = " << trialEnergy << "\n";
+             physical_system -> writeConfiguration(0, "energyLatticePos.dat");
+             //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
+             std::cerr << "trial move accepted: Energy = " << physical_system -> observables[0] << "\n";
            }
+*/
         }
         else {
+/*
            if (myMPIRank == 0) {
-             std::cerr << "trial move rejected: Energy = " << trialEnergy << "\n";
-             std::cerr << "Update with energy = " << oldEnergy << "\n";
+             std::cerr << "trial move rejected: Energy = " << physical_system -> observables[0] << "\n";
+             std::cerr << "Update with energy = " << physical_system -> oldObservables[0] << "\n";
            }
+*/
+           physical_system -> rejectMCMove();
            // Restore trialPos and trialLatticeVec
-           trialPos = oldPos;
-           trialLatticeVec = oldLatticeVec;
+           //trialPos = oldPos;
+           //trialLatticeVec = oldLatticeVec;
 
            // Update histogram and DOS with oldEnergy
-           h.updateHistogramDOS(oldEnergy);
+           h.updateHistogramDOS(physical_system -> oldObservables[0]);
            h.rejectedMoves++;
         }
         h.totalMCsteps++;
-      
-        wl_stop_run_(&exit_status);              // Clean up the PWscf run
+     
+        //wl_stop_run_(&exit_status);              // Clean up the PWscf run
 
         // Write restart files at interval
         currentTime = MPI_Wtime();
         if (myMPIRank == 0) {
           if (currentTime - lastBackUpTime > 300) {
             h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+            physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
+            //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
             lastBackUpTime = currentTime;
           }
         }
       }
+      //h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
 
       // Check histogram flatness
       h.histogramFlat = h.checkHistogramFlatness();
-      //currentTime = MPI_Wtime();
-      //if (currentTime - lastBackUpTime > 1650) {
-      //  h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-      //  writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
-      //  lastBackUpTime = currentTime;
-      //}
+      if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
+        h.refreshHistogram();
     }
 
     if (myMPIRank == 0) {
@@ -207,16 +148,19 @@ void WangLandauSampling(int comm_help, int &exit_status, int restartFlag)
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+      physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
+      //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
     }
 
     // Go to next iteration
     h.modFactor /= h.modFactorReducer;
     h.resetHistogram();
     h.iterations++;
-
   }
 
+  // Write out data at the end of the simulation
+  h.writeNormDOSFile("dos.dat");
+  h.writeHistogramDOSFile("hist_dos_final.dat");
   //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 
 }
@@ -230,9 +174,10 @@ MonteCarloAlgorithm::MonteCarloAlgorithm()
   rejectedMoves = 0;
 }
 
-
+/*
 MonteCarloAlgorithm::~MonteCarloAlgorithm()
 {
 
 }
+*/
 

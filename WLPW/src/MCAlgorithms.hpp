@@ -1,37 +1,75 @@
-# include <mpi.h>
-# include "Matrix.hpp"          // Matrix class header
-# include "MCMoves.hpp"
-# include "WL_DFT_Interface.hpp"
-# include "InputOutput.hpp"
-# include "Histogram.hpp"
-# include "Communications.hpp"
+#ifndef MC_ALGORITHMS_HPP
+#define MC_ALGORITHMS_HPP
+
+#include <mpi.h>
+#include "PhysicalSystemBase.hpp"
+#include "Histogram.hpp"
+//# include "Communications.hpp"
 
 
-// These two should be derived from MonteCarloAlgorithm
-void YingWaisCheck(int, int&);
-void WangLandauSampling(int, int&, int);
-
-
-
+// Base class for all Monte Carlo algorithms
 class MonteCarloAlgorithm {
 
-public:
+public :
 
   // Constructor
   MonteCarloAlgorithm();
 
   // Destructor
-  ~MonteCarloAlgorithm();
+  virtual ~MonteCarloAlgorithm() {}
 
-protected:
+  virtual void run(PhysicalSystem*) = 0;
 
+  // Should they be set directly by I/O? (Now set through constructor)
+  int restartFlag;     
+  //PhysicalSystem* physical_system;
+
+protected :
+
+  double currentTime;
+  double lastBackUpTime;
+
+  bool acceptMove {false};
+
+  // MC statistics:
   unsigned long int totalMCsteps;
   unsigned long int acceptedMoves;
   unsigned long int rejectedMoves;
 
-
-private:
+private :
 
 
 };
 
+
+
+class WangLandauSampling : public MonteCarloAlgorithm {
+
+public :
+  
+  WangLandauSampling(int, const char*);
+  ~WangLandauSampling();
+
+  void run(PhysicalSystem*);
+
+private :
+
+  Histogram h;
+
+};
+
+
+// To be implemented.
+class Metropolis : public MonteCarloAlgorithm {
+
+public :
+
+  Metropolis(int, const char*) {}
+  ~Metropolis() {}
+
+  void run(PhysicalSystem*) {}
+
+};
+
+
+#endif

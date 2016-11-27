@@ -16,7 +16,7 @@
 	$(MPIF90) $(F90FLAGS) -c $<
 
 .cpp.o:
-	$(CC) $(CFLAGS)  -c $<
+	$(CXX) $(CXXFLAGS)  -c $<
 
 # .f.o and .c.o: do not modify
 
@@ -69,21 +69,23 @@ MOD_FLAG      = -I
 
 MPIF90         = ftn
 #F90           = ifort
-CC             = CC
+CC             = cc
+CXX            = CC
 F77            = ftn
 
 # C preprocessor and preprocessing flags - for explicit preprocessing,
 # if needed (see the compilation rules above)
 # preprocessing flags must include DFLAGS and IFLAGS
 
-CPP            = CC
+CPP            = cpp
 CPPFLAGS       = -P -C -traditional $(DFLAGS) $(IFLAGS)
 
 # compiler flags: C, F90, F77
 # C flags must include DFLAGS and IFLAGS
 # F90 flags must include MODFLAGS, IFLAGS, and FDFLAGS with appropriate syntax
 
-CFLAGS         = -O3 -std=c++11 $(DFLAGS) $(IFLAGS)
+CFLAGS         = -O3 $(DFLAGS) $(IFLAGS)
+CXXFLAGS       = -O3 -std=c++11 $(DFLAGS) $(IFLAGS)
 F90FLAGS       = $(FFLAGS) -nomodule -openmp -fpp $(FDFLAGS) $(IFLAGS) $(MODFLAGS)
 FFLAGS         = -O2 -assume byterecl -g -traceback -openmp
 
@@ -101,7 +103,7 @@ FFLAGS_NOMAIN   = -nofor_main
 # Typically LD coincides with F90 or MPIF90, LD_LIBS is empty
 
 LD             = ftn
-LDFLAGS        = -static-intel  -openmp
+LDFLAGS        = -static-intel -openmp -nofor_main -cxxlib
 LD_LIBS        = 
 
 # External Libraries (if any) : blas, lapack, fft, MPI

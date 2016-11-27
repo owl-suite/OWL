@@ -1,8 +1,9 @@
-# include <iostream>
-# include <fstream>
-# include <cstdio>
-# include "Matrix.hpp"
+#ifndef INPUT_OUTPUT_HPP
+#define INPUT_OUTPUT_HPP
 
-void writeSystemFile(char fileName[], double energy, Matrix<double> atom_positions, Matrix<double> cell_vectors);
+#include <iostream>
+#include "Globals.hpp"
 
-void writeQErestartFile(char fileName[], Matrix<double> atom_positions, Matrix<double> cell_vectors);
+void readMainInputFile(const char* inputFileName, SimulationInfo& sim_info);
+
+#endif

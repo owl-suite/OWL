@@ -2,12 +2,13 @@
 #define HEISENBERG2D_HPP
 
 #include "PhysicalSystemBase.hpp"
+#include "Globals.hpp"
 
 class Heisenberg2D : public PhysicalSystem {
 
 public :
 
-  Heisenberg2D(int, const char* = NULL, int = 0); 
+  Heisenberg2D(SimulationInfo& sim_info, const char* = NULL, int = 0); 
   ~Heisenberg2D();
 
   void writeConfiguration(int = 0, const char* = NULL);

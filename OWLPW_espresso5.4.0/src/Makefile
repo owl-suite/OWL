@@ -1,17 +1,30 @@
 # Makefile for OWLPW
+QUANTUM_ESPRESSO_ROOT=./qe
+include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 
-include ../../make.sys
+EXECUTABLE = owlpw
+
+### C++ Compiler:
+CXX = CC
+### Compiler Flags:
+CXXFLAGS = -O3 -Wall -std=c++11 -g
+
+.SUFFIXES :
+.SUFFIXES : .o .c .f .f90 .cpp
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS)  -c $<
 
 # location of needed modules and included files (if any)
-MODFLAGS= $(MOD_FLAG)../../iotk/src \
-	  $(MOD_FLAG)../../FFTXlib  \
-          $(MOD_FLAG)../../LAXlib   \
-	  $(MOD_FLAG)../../Modules  \
-	  $(MOD_FLAG)../../PW/src $(MOD_FLAG).
+MODFLAGS= $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/iotk/src \
+	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/FFTXlib  \
+          $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/LAXlib   \
+	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/Modules  \
+	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/PW/src $(MOD_FLAG).
 IFLAGS=
 
 #location of needed libraries
-LIBOBJS= ../../iotk/src/libiotk.a ../../clib/clib.a
+LIBOBJS= $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/clib/clib.a
 
 COMMLIBS = \
 Communications.o
@@ -35,17 +48,17 @@ MCMoves.o
 IOOBJS = \
 InputOutput.o
 
-QEMODS=../../Modules/libqemod.a ../../FFTXlib/libqefft.a ../../LAXlib/libqela.a
-PWOBJS= ../../PW/src/libpw.a
+QEMODS=$(QUANTUM_ESPRESSO_ROOT)/Modules/libqemod.a $(QUANTUM_ESPRESSO_ROOT)/FFTXlib/libqefft.a $(QUANTUM_ESPRESSO_ROOT)/LAXlib/libqela.a
+PWOBJS= $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
 
 TLDEPS=bindir mods libs liblapack libblas pw
 
-all : tldeps owlpw.x
+all : tldeps $(EXECUTABLE)
 
-owlpw.x : libcomm.a $(OWLPWOBJS) $(MCOBJS) libowlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
-	$(LD) $(LDFLAGS) -o $@ \
+$(EXECUTABLE) : libcomm.a $(OWLPWOBJS) $(MCOBJS) libowlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
+	$(LD) $(LDFLAGS) -lstdc++ -nofor_main -o $@ \
 	$(OWLPWOBJS) $(MCOBJS) libowlpw.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
-	- ( cd ../../bin; ln -fs ../OWLPW/src/$@ . )
+	- ( cd $(QUANTUM_ESPRESSO_ROOT)/bin; ln -fs $(CURDIR)/$@ . )
 
 libcomm.a : $(COMMLIBS) 
 	$(AR) $(ARFLAGS) $@ $?
@@ -56,14 +69,14 @@ libowlpw.a : $(OWLPWLIBS)
 
 tldeps :
 	if test -n "$(TLDEPS)" ; then \
-	( cd ../.. ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi
+	( cd $(QUANTUM_ESPRESSO_ROOT) ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi
 
 clean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
-	- /bin/rm -f ../../bin/owlpw.x
+	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L $(EXECUTABLE)
+	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
 
 veryclean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L *.cpp *.hpp
-	- /bin/rm -f ../../bin/owlpw.x
+	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L *.cpp *.hpp $(EXECUTABLE)
+	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
 
 include make.depend

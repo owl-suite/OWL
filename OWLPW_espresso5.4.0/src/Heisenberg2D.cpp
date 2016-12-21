@@ -4,16 +4,16 @@
 #include "Heisenberg2D.hpp"
 #include "RandomNumberGenerator.hpp"
 
-Heisenberg2D::Heisenberg2D(int s, const char* filename, int initial)
+Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
 {
 
-  printf("Simulation for 2D Heisenberg model: %dx%d \n", s,s);
+  printf("Simulation for 2D Heisenberg model: %dx%d \n",sim_info.size,sim_info.size);
 
   int i, j;
   char c;
   double r1, r2, rr;
 
-  Size = s;
+  Size = sim_info.size;
   LatticeSize = Size * Size;
 
   spin = new SpinDirection*[Size];

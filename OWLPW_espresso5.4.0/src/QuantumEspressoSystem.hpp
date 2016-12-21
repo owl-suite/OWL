@@ -3,12 +3,13 @@
 
 #include "PhysicalSystemBase.hpp"
 #include "Matrix.hpp"
+#include "Globals.hpp"
 
 class QuantumEspressoSystem : public PhysicalSystem {
 
 public:
 
-  QuantumEspressoSystem(int n);
+  QuantumEspressoSystem(SimulationInfo& sim_info);
   ~QuantumEspressoSystem();
 
   void writeConfiguration(int = 0, const char* = NULL);

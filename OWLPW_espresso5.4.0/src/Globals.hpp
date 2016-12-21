@@ -8,10 +8,11 @@ struct SimulationInfo {
   int  algorithm       {2};
   int  system          {2};
   int  rngSeed         {-1};
-  char inputFile[100]  {};
+  char inputFile[255]  {};
 
   // these are system specific:
   int  size            {3};
+  char commandline[255] {};
 
 };
 

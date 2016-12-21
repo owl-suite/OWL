@@ -87,7 +87,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  5: ...
   switch (simInfo.system) {
     case 1 :
-      physical_system = new QuantumEspressoSystem(simInfo.size);
+      physical_system = new QuantumEspressoSystem(simInfo);
       break;
 
     case 2 :
@@ -95,7 +95,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
 
     case 3 :
-      physical_system = new Heisenberg2D(simInfo.size);
+      physical_system = new Heisenberg2D(simInfo);
       break;
 
     case 4 :

@@ -13,14 +13,18 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   initializeObservables(1); // observable[0] = energy
 
   std::cout << "Initializing Quantum Espresso with the following command line: \"" << sim_info.commandline << "\"" << std::endl;
-  command_line_options_mp_get_command_line_(sim_info.commandline,256);
-  //__command_line_options_MOD_get_command_line(sim_info.commandline,256);
 
-//  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
-//  wl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
-//
-//  std::cout << "Intialized QE MPI communications..." << std::endl;
-//  std::cout << "myMPIrank = " << myMPIRank << std::endl;
+#if defined(__ICC) || defined(__INTEL_COMPILER)
+  command_line_options_mp_get_command_line_(sim_info.commandline,256);
+#elif (defined(__GNUC__) || defined(__GNUG__)) //&& !(defined(__clang__) || defined(__INTEL_COMPILER))
+  __command_line_options_MOD_get_command_line(sim_info.commandline,256);
+#endif
+
+  //initializeQEMPICommunication();
+  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
+  wl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  std::cout << "Intialized QE MPI communications..." << std::endl;
+  std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
   run_pwscf_(&MPI_exit_status);                 // Execute the PWscf calculation
   get_natom_ener_(&natom, &trialEnergy);        // Extract the number of atoms and energy
@@ -43,9 +47,10 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
 //Destructor
 QuantumEspressoSystem::~QuantumEspressoSystem()
 {
-//  int exit_status;                                // Environmental parameter for QE
-//  wl_qe_stop_(&exit_status);                      // Finish the PWscf calculation
 
+  //finalizeQEMPICommunication();
+  int exit_status;                                // Environmental parameter for QE
+  wl_qe_stop_(&exit_status);                      // Finish the PWscf calculation
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 

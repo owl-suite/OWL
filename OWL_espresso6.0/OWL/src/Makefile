@@ -2,12 +2,18 @@
 QUANTUM_ESPRESSO_ROOT=../../
 include $(QUANTUM_ESPRESSO_ROOT)/make.inc
 
-EXECUTABLE = owl
+EXECUTABLE = owl.x
 
 ### C++ Compiler:
 CXX = CC
 ### Compiler Flags:
 CXXFLAGS = -O3 -Wall -std=c++11 -g
+
+### Linking flags are compiler dependent ### For GNU compiler:
+#LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++ 
+
+### For Intel compiler:
+LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90 .cpp
@@ -56,7 +62,7 @@ TLDEPS=bindir mods libs liblapack libblas pw
 all : tldeps $(EXECUTABLE)
 
 $(EXECUTABLE) : libcomm.a $(OWLOBJS) $(MCOBJS) libowl.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
-	$(LD) $(LDFLAGS) -lstdc++ -nofor_main -o $@ \
+	$(LD) $(LDFLAGS) $(LINKFLAGS) -o $@ \
 	$(OWLOBJS) $(MCOBJS) libowl.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd $(QUANTUM_ESPRESSO_ROOT)/bin; ln -fs $(CURDIR)/$@ . )
 

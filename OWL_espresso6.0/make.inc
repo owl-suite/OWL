@@ -32,7 +32,7 @@
 # The following syntax should always point to TOPDIR:
 #   $(dir $(abspath $(filter %make.sys,$(MAKEFILE_LIST))))
 
-TOPDIR = /global/homes/s/syuk/3_Programs/7_OWL_Cori
+TOPDIR = /global/homes/s/syuk/3_Programs/6_OWL_6_0_Cori
 
 # DFLAGS  = precompilation options (possible arguments to -D and -U)
 #           used by the C compiler and preprocessor
@@ -117,7 +117,7 @@ FFLAGS_NOMAIN   = -nofor_main
 #LD             = mpiifort
 LD		= ftn
 #LD             = tau_f90.sh
-LDFLAGS        = -static-intel -openmp -nofor_main -cxxlib
+LDFLAGS        = -static-intel -qopenmp -nofor_main -cxxlib
 LD_LIBS        = #-L$(MEMKIND_DIR)/lib -lmemkind
 
 # External Libraries (if any) : blas, lapack, fft, MPI

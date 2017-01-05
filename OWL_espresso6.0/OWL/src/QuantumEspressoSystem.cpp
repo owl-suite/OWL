@@ -167,6 +167,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "&control\n");
   fprintf(QE_file, "   calculation = 'scf'\n");
   fprintf(QE_file, "   restart_mode = 'from_scratch'\n");
+  fprintf(QE_file, "   forc_conv_thr = 1.0d-4\n");
   fprintf(QE_file, "   forc_conv_thr = 3.0d-4\n");
   fprintf(QE_file, "   tstress = .true.\n");
   fprintf(QE_file, "   tprnfor = .true.\n");
@@ -176,11 +177,11 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "!   nppstr = 8 \n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&system\n");
-  fprintf(QE_file, "    ibrav= 0\n");
-  fprintf(QE_file, "!   celldm(1) = 1.0\n");
-  fprintf(QE_file, "    nat= 5\n");
-  fprintf(QE_file, "    ntyp= 3\n");
+  fprintf(QE_file, "    ibrav = 0\n");
+  fprintf(QE_file, "    nat = 5\n");
+  fprintf(QE_file, "    ntyp = 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");
+  fprintf(QE_file, "    ecutrho = 400\n");
   fprintf(QE_file, "    nosym = .true.\n");
   fprintf(QE_file, "!    nspin = 2     ! 1 = non-polarized 2 = spin-polarized\n");
   fprintf(QE_file, "!    occupations = 'smearing'\n");

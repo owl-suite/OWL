@@ -20,12 +20,12 @@ void initializeMPICommunication(SimulationInfo simInfo)
   MPI_Comm_size(mpiCommunicator, &numMPIRanks);
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
-  // Here, the MC algorithm communicator should be initialized before Physical system...
+  // Here, the MPI communicators for (i) MCAlgorithm and (ii) PhysicalSystem should be defined
 
-
+/*
   switch (simInfo.system) {
     case 1 :
-      initializeQEMPICommunication();
+      //initializeQEMPICommunication();
       //comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
       //wl_qe_startup_(&comm_help);        // Set up the PWscf calculation
       break;
@@ -39,6 +39,7 @@ void initializeMPICommunication(SimulationInfo simInfo)
       // basically nothing; 1 MPI per system
       {};
   }
+*/
 
 }
 
@@ -46,6 +47,7 @@ void initializeMPICommunication(SimulationInfo simInfo)
 void finalizeMPICommunication(SimulationInfo simInfo)
 {
 
+/*
   switch (simInfo.system) {
     case 1 :
       finalizeQEMPICommunication();
@@ -60,10 +62,15 @@ void finalizeMPICommunication(SimulationInfo simInfo)
       MPI_Finalize();   // this might need to be moved outside the switch
 
   }
+*/
+
+  MPI_Finalize();
 
 }
 
 // The following two should be moved to the Physical System MPI class, which in terms should be a member of the QuantumEspressoSystem class, which is then called in the QuantumEspressoSystem constructor
+// i.e., initializeQEMPICommunication --> initializePhysicalSystemMPICommunication
+//       finalizeQEMPICommunication   --> finalizePhysicalSystemMPICommunication
 void initializeQEMPICommunication()
 {
   // !!! MPI_COMM_WORLD should be changed to the MPI Comm. group after the MC Algorithm Communicator is set up. !!!

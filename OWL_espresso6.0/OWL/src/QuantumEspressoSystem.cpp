@@ -13,14 +13,18 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   initializeObservables(1); // observable[0] = energy
 
   std::cout << "Initializing Quantum Espresso with the following command line: \"" << sim_info.commandline << "\"" << std::endl;
-  command_line_options_mp_get_command_line_(sim_info.commandline,256);
-  //__command_line_options_MOD_get_command_line(sim_info.commandline,256);
 
-//  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
-//  owl_qe_startup_(&comm_help);                    // Set up the PWscf calculation
-//
-//  std::cout << "Intialized QE MPI communications..." << std::endl;
-//  std::cout << "myMPIrank = " << myMPIRank << std::endl;
+#if defined(__ICC) || defined(__INTEL_COMPILER)
+  command_line_options_mp_get_command_line_(sim_info.commandline,256);
+#elif (defined(__GNUC__) || defined(__GNUG__)) //&& !(defined(__clang__) || defined(__INTEL_COMPILER))
+  __command_line_options_MOD_get_command_line(sim_info.commandline,256);
+#endif
+
+  // initializeQEMPICommunication();
+  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
+  owl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  std::cout << "Intialized QE MPI communications..." << std::endl;
+  std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
   run_pwscf_(&MPI_exit_status);                 // Execute the PWscf calculation
   get_natom_ener_(&natom, &trialEnergy);        // Extract the number of atoms and energy
@@ -32,7 +36,7 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   trialLatticeVec.resize(3,3);
   oldLatticeVec.resize(3,3);
 
-  //check if the following should be called in here:
+  // check if the following should be called in here:
   // yes, because they intialize trialPos and trialLatticeVec
   get_pos_array_(&trialPos(0,0));               // Extract the position array from QE
   get_cell_array_(&trialLatticeVec(0,0));       // Extract the cell array from QE
@@ -40,12 +44,13 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
 
 }
 
-//Destructor
+// Destructor
 QuantumEspressoSystem::~QuantumEspressoSystem()
 {
-//  int exit_status;                              // Environmental parameter for QE
-//  owl_qe_stop_(&exit_status);                   // Finish the PWscf calculation
 
+  // finalizeQEMPICommunication();
+  int exit_status;                                // Environmental parameter for QE
+  owl_qe_stop_(&exit_status);                     // Finish the PWscf calculation
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
@@ -76,7 +81,7 @@ void QuantumEspressoSystem::getObservables()
   // trialEnergy should be changed to observables[0]
 
   owl_do_pwscf_(&MPI_exit_status);               // Run the subsequent PWscf calculation
-  get_natom_ener_(&natom, &trialEnergy);
+  get_natom_ener_(&natom, &trialEnergy);         // Obtain the # of atoms and energy from QE
   observables[0] = trialEnergy;
   owl_stop_run_(&MPI_exit_status);               // Clean up the PWscf run
 
@@ -104,7 +109,7 @@ void QuantumEspressoSystem::acceptMCMove()
   // update "old" observables
   for (int i=0; i<numObservables; i++)
     oldObservables[i] = observables[i];
-    oldEnergy      = trialEnergy;
+  oldEnergy      = trialEnergy;
 
   // update "old" configurations
   oldLatticeVec  = trialLatticeVec;
@@ -162,6 +167,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "&control\n");
   fprintf(QE_file, "   calculation = 'scf'\n");
   fprintf(QE_file, "   restart_mode = 'from_scratch'\n");
+  fprintf(QE_file, "   forc_conv_thr = 1.0d-4\n");
   fprintf(QE_file, "   forc_conv_thr = 3.0d-4\n");
   fprintf(QE_file, "   tstress = .true.\n");
   fprintf(QE_file, "   tprnfor = .true.\n");
@@ -171,11 +177,11 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "!   nppstr = 8 \n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&system\n");
-  fprintf(QE_file, "    ibrav= 0\n");
-  fprintf(QE_file, "!   celldm(1) = 1.0\n");
-  fprintf(QE_file, "    nat= 5\n");
-  fprintf(QE_file, "    ntyp= 3\n");
+  fprintf(QE_file, "    ibrav = 0\n");
+  fprintf(QE_file, "    nat = 5\n");
+  fprintf(QE_file, "    ntyp = 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");
+  fprintf(QE_file, "    ecutrho = 400\n");
   fprintf(QE_file, "    nosym = .true.\n");
   fprintf(QE_file, "!    nspin = 2     ! 1 = non-polarized 2 = spin-polarized\n");
   fprintf(QE_file, "!    occupations = 'smearing'\n");
@@ -218,7 +224,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
                                                    oldPos(2,4) );
   fprintf(QE_file, "\n");
   fprintf(QE_file, "K_POINTS automatic\n");
-  fprintf(QE_file, "4 4 4 0 0 0\n");
+  fprintf(QE_file, "8 8 8 0 0 0\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "CELL_PARAMETERS {angstrom}\n");
   for (unsigned int i=0; i<oldLatticeVec.n_col(); i++) {

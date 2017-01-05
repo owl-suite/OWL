@@ -22,6 +22,7 @@ default :
 	@echo '  pwall        same as "make pw ph pp pwcond neb"'
 	@echo '  cp           CP code: CP MD with ultrasoft pseudopotentials'
 	@echo '  tddfpt       time dependent dft code'
+	@echo '  owl          Oak Ridge Wang-Landau simulation code'
 	@echo '  gwl          GW with Lanczos chains'
 	@echo '  ld1          utilities for pseudopotential generation'
 	@echo '  upf          utilities for pseudopotential conversion'

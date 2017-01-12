@@ -32,7 +32,7 @@
 # The following syntax should always point to TOPDIR:
 #   $(dir $(abspath $(filter %make.sys,$(MAKEFILE_LIST))))
 
-TOPDIR = /global/homes/s/syuk/3_Programs/2_espresso_5_4_0_Edison
+TOPDIR = /global/homes/s/syuk/3_Programs/2_OWL_5_4_Cori
 
 # DFLAGS  = precompilation options (possible arguments to -D and -U)
 #           used by the C compiler and preprocessor
@@ -86,8 +86,8 @@ CPPFLAGS       = -P -C -traditional $(DFLAGS) $(IFLAGS)
 
 CFLAGS         = -O3 $(DFLAGS) $(IFLAGS)
 CXXFLAGS       = -O3 -std=c++11 $(DFLAGS) $(IFLAGS)
-F90FLAGS       = $(FFLAGS) -nomodule -openmp -fpp $(FDFLAGS) $(IFLAGS) $(MODFLAGS)
-FFLAGS         = -O2 -assume byterecl -g -traceback -openmp
+F90FLAGS       = $(FFLAGS) -nomodule -qopenmp -fpp $(FDFLAGS) $(IFLAGS) $(MODFLAGS)
+FFLAGS         = -O2 -assume byterecl -g -traceback -qopenmp
 
 # compiler flags without optimization for fortran-77
 # the latter is NEEDED to properly compile dlamch.f, used by lapack
@@ -103,7 +103,7 @@ FFLAGS_NOMAIN   = -nofor_main
 # Typically LD coincides with F90 or MPIF90, LD_LIBS is empty
 
 LD             = ftn
-LDFLAGS        = -static-intel -openmp -nofor_main -cxxlib
+LDFLAGS        = -static-intel -qopenmp -nofor_main -cxxlib
 LD_LIBS        = 
 
 # External Libraries (if any) : blas, lapack, fft, MPI

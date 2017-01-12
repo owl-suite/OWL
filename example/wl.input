@@ -4,6 +4,7 @@ modFactor  1.000
 modFactorFinal  1.25000000e-01 
 modFactorReducer  2.000 
 histogramCheckInterval  500 
+histogramRefreshInterval  5000
 Emin  -333.7685
 Emax  -333.7585
 binSize   0.0001

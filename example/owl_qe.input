@@ -17,7 +17,7 @@ RngSeed  183083
 # 5: ...
 
 PhysicalSystem  1
-PhysicalSystemCommandLine -i input
+PhysicalSystemCommandLine -i input -nk 5
 
 ##### Lattice size for Heisenberg and Ising models #####
 

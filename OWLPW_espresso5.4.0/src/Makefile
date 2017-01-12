@@ -5,17 +5,18 @@ include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 EXECUTABLE = owlpw
 
 ### C++ Compiler:
+#CXX = mpicxx
 CXX = CC
 ### Compiler Flags:
-#CXXFLAGS = -Wall -std=c++11 -g
-CXXFLAGS = -O3 -Wall -std=c++11 -g
+CXXFLAGS = -Wall -std=c++11 -g
+#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
 
 ### Linking flags are compiler dependent
 ### For GNU compiler:
-LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+#LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
 
 ### For Intel compiler:
-#LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90 .cpp

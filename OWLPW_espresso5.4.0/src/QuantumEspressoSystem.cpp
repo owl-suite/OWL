@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cstdio>
 #include "QuantumEspressoSystem.hpp"
 #include "MCMoves.hpp"
 #include "Communications.hpp"
@@ -12,6 +14,7 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   
   initializeObservables(1); // observable[0] = energy
 
+/*
   std::cout << "Initializing Quantum Espresso with the following command line: \"" << sim_info.commandline << "\"" << std::endl;
 
 #if defined(__ICC) || defined(__INTEL_COMPILER)
@@ -19,10 +22,12 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
 #elif (defined(__GNUC__) || defined(__GNUG__)) //&& !(defined(__clang__) || defined(__INTEL_COMPILER))
   __command_line_options_MOD_get_command_line(sim_info.commandline,256);
 #endif
+*/
 
   //initializeQEMPICommunication();
-  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
-  wl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  readCommandLineOptions(sim_info);
+  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);               // MPI communicator handle for Fortran
+  wl_qe_startup_(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag);  // Set up the PWscf calculation
   std::cout << "Intialized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
@@ -56,6 +61,87 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
 
   deleteObservables();
 }
+
+
+void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
+{
+  std::cout << "Reading the following command line for Quantum Espresso: \"" 
+            << sim_info.commandLine << "\"" << std::endl;
+
+  char* pch;
+  pch = strtok (sim_info.commandLine, " ");
+  while (pch != NULL)
+  {
+    printf ("%s\n", pch);
+
+        if (strncmp("-i",pch,2) == 0) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            strncpy(QEInputFile, pch, 80);
+            QEInputFile[80] = '\0';
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        if ((strncmp("-ni",pch,3) == 0) 
+             || (strncmp("-npot",pch,5) == 0)) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            nimage = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        //if (strncmp("-npot",pch,5) == 0) {
+        //    pch = strtok (NULL, " ");
+        //    printf ("%s\n", pch);
+        //    npots = std::atoi(pch);
+        //    pch = strtok (NULL, " ");
+        //    continue;
+        //}   
+        if ((strncmp("-nk",pch,3) == 0)
+             || (strncmp("-npoo",pch,5) == 0)) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            npool = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        if (strncmp("-nt",pch,3) == 0) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            ntg = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        if (strncmp("-nb",pch,3) == 0) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            nband = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        if ((strncmp("-nd",pch,3) == 0)
+            || (strncmp("-no",pch,3) == 0)
+            || (strcmp("-nproc_diag",pch) == 0)
+            || (strcmp("-nproc_ortho",pch) == 0)) {
+            pch = strtok (NULL, " ");
+            printf ("%s\n", pch);
+            ndiag = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        //if (strncmp("-nr",pch,3) == 0) {
+        //    pch = strtok (NULL, " ");
+        //    printf ("%s\n", pch);
+        //    nres = std::atoi(pch);
+        //    pch = strtok (NULL, " ");
+        //    continue;
+        //}
+        std::cerr << "Error when reading QE command line options!!\n "
+                  << std::endl;
+
+  }  
+
+};
 
 
 void QuantumEspressoSystem::writeConfiguration(int option, const char* fileName)

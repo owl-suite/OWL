@@ -33,9 +33,9 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
           continue;
         }
         if (key == "PhysicalSystemCommandLine") {
-//          lineStream >> sim_info.commandline;
-          lineStream.getline(sim_info.commandline,256);
-          std::cout << "Simulation Info: command line = " << sim_info.commandline << std::endl;
+//          lineStream >> sim_info.commandLine;
+          lineStream.getline(sim_info.commandLine,256);
+          std::cout << "Simulation Info: command line = " << sim_info.commandLine << std::endl;
           continue;
         }
         if (key == "Algorithm") {

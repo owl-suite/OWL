@@ -5,7 +5,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_qe_startup (my_comm)
+SUBROUTINE wl_qe_startup (lib_comm,nim,npl,nta,nbn,ndg)
   !----------------------------------------------------------------------------
   !
   ! ... Set up the PWscf calculation for Quantum Espresso
@@ -13,12 +13,16 @@ SUBROUTINE wl_qe_startup (my_comm)
   USE environment,       ONLY : environment_start
   USE mp_global,         ONLY : mp_startup
   USE read_input,        ONLY : read_input_file
-  USE command_line_options, ONLY: input_file_
+  USE command_line_options, ONLY : set_command_line
+  USE command_line_options, ONLY : input_file_
   !
   IMPLICIT NONE
-  INTEGER :: my_comm
+  INTEGER, INTENT(IN) :: lib_comm, nim, npl, nta, nbn, ndg
+  !INTEGER :: my_comm
   !
-  CALL mp_startup (my_comm, diag_in_band_group = .true.)
+  CALL set_command_line (nimage=nim, npool=npl, ntg=nta, &
+       nband=nbn, ndiag=ndg )
+  CALL mp_startup (lib_comm, diag_in_band_group = .true.)
   CALL environment_start ('PWSCF')
   !
   CALL read_input_file ('PW', input_file_ )

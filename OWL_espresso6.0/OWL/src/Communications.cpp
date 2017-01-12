@@ -27,7 +27,7 @@ void initializeMPICommunication(SimulationInfo simInfo)
     case 1 :
       //initializeQEMPICommunication();
       //comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);
-      //owl_qe_startup_(&comm_help);        // Set up the PWscf calculation
+      //owl_qe_startup(&comm_help);        // Set up the PWscf calculation
       break;
 
     case 2 :
@@ -51,7 +51,7 @@ void finalizeMPICommunication(SimulationInfo simInfo)
   switch (simInfo.system) {
     case 1 :
       finalizeQEMPICommunication();
-      //owl_qe_stop_(&exit_status);  // Finish the PWscf calculation
+      //owl_qe_stop(&exit_status);  // Finish the PWscf calculation
       break;
 
     case 2 :
@@ -74,8 +74,8 @@ void finalizeMPICommunication(SimulationInfo simInfo)
 void initializeQEMPICommunication()
 {
   // !!! MPI_COMM_WORLD should be changed to the MPI Comm. group after the MC Algorithm Communicator is set up. !!!
-  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
-  owl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
+  //owl_qe_startup(&comm_help);                     // Set up the PWscf calculation
   
   std::cout << "Intialized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
@@ -84,8 +84,8 @@ void initializeQEMPICommunication()
 
 void finalizeQEMPICommunication()
 {
-  int exit_status;                                // Environmental parameter for QE
-  owl_qe_stop_(&exit_status);                      // Finish the PWscf calculation
+  //int exit_status;                                // Environmental parameter for QE
+  //owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;

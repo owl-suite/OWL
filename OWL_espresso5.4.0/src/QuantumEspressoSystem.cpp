@@ -3,7 +3,7 @@
 #include "QuantumEspressoSystem.hpp"
 #include "MCMoves.hpp"
 #include "Communications.hpp"
-#include "WL_DFT_Interface.hpp"
+#include "OWL_DFT_Interface.hpp"
 
 //Constructor
 QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
@@ -17,7 +17,7 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   //initializeQEMPICommunication();
   readCommandLineOptions(sim_info);
   int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);               // MPI communicator handle for Fortran
-  wl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
+  owl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
   std::cout << "Intialized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
@@ -32,21 +32,21 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   trialLatticeVec.resize(3,3);
   oldLatticeVec.resize(3,3);
 
-  //check if the following should be called in here:
+  // check if the following should be called in here:
   // yes, because they intialize trialPos and trialLatticeVec
   get_pos_array(&trialPos(0,0));               // Extract the position array from QE
   get_cell_array(&trialLatticeVec(0,0));       // Extract the cell array from QE
-  wl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
+  owl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
 
 }
 
-//Destructor
+// Destructor
 QuantumEspressoSystem::~QuantumEspressoSystem()
 {
 
-  //finalizeQEMPICommunication();
+  // finalizeQEMPICommunication();
   int exit_status;                                // Environmental parameter for QE
-  wl_qe_stop(&exit_status);                      // Finish the PWscf calculation
+  owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
@@ -157,10 +157,10 @@ void QuantumEspressoSystem::getObservables()
 {
   // trialEnergy should be changed to observables[0]
 
-  wl_do_pwscf(&MPI_exit_status);               // Run the subsequent PWscf calculation
-  get_natom_ener(&natom, &trialEnergy);
+  owl_do_pwscf(&MPI_exit_status);               // Run the subsequent PWscf calculation
+  get_natom_ener(&natom, &trialEnergy);         // Obtain the # of atoms and energy from QE
   observables[0] = trialEnergy;
-  wl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
+  owl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
 
 }
 
@@ -244,6 +244,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "&control\n");
   fprintf(QE_file, "   calculation = 'scf'\n");
   fprintf(QE_file, "   restart_mode = 'from_scratch'\n");
+  fprintf(QE_file, "   forc_conv_thr = 1.0d-4\n");
   fprintf(QE_file, "   forc_conv_thr = 3.0d-4\n");
   fprintf(QE_file, "   tstress = .true.\n");
   fprintf(QE_file, "   tprnfor = .true.\n");
@@ -253,11 +254,11 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "!   nppstr = 8 \n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&system\n");
-  fprintf(QE_file, "    ibrav= 0\n");
-  fprintf(QE_file, "!   celldm(1) = 1.0\n");
-  fprintf(QE_file, "    nat= 5\n");
-  fprintf(QE_file, "    ntyp= 3\n");
+  fprintf(QE_file, "    ibrav = 0\n");
+  fprintf(QE_file, "    nat = 5\n");
+  fprintf(QE_file, "    ntyp = 3\n");
   fprintf(QE_file, "    ecutwfc = 50\n");
+  fprintf(QE_file, "    ecutrho = 400\n");
   fprintf(QE_file, "    nosym = .true.\n");
   fprintf(QE_file, "!    nspin = 2     ! 1 = non-polarized 2 = spin-polarized\n");
   fprintf(QE_file, "!    occupations = 'smearing'\n");
@@ -300,7 +301,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
                                                    oldPos(2,4) );
   fprintf(QE_file, "\n");
   fprintf(QE_file, "K_POINTS automatic\n");
-  fprintf(QE_file, "4 4 4 0 0 0\n");
+  fprintf(QE_file, "8 8 8 0 0 0\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "CELL_PARAMETERS {angstrom}\n");
   for (unsigned int i=0; i<oldLatticeVec.n_col(); i++) {

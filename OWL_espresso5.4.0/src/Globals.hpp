@@ -1,7 +1,6 @@
 #ifndef GLOBALS_HPP
 #define GLOBALS_HPP
 
-#include <string>
 
 struct SimulationInfo {
 
@@ -13,9 +12,7 @@ struct SimulationInfo {
 
   // these are system specific:
   int  size            {3};
-  //std::string commandLine {};
   char commandLine[256] {};
-  //char* commandline {};
 
 };
 

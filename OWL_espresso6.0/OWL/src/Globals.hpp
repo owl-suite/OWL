@@ -12,7 +12,7 @@ struct SimulationInfo {
 
   // these are system specific:
   int  size            {3};
-  char commandline[255] {};
+  char commandLine[256] {};
 
 };
 

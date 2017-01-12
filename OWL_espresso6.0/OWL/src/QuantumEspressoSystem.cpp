@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cstdio>
 #include "QuantumEspressoSystem.hpp"
 #include "MCMoves.hpp"
 #include "Communications.hpp"
@@ -12,22 +14,16 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
   
   initializeObservables(1); // observable[0] = energy
 
-  std::cout << "Initializing Quantum Espresso with the following command line: \"" << sim_info.commandline << "\"" << std::endl;
-
-#if defined(__ICC) || defined(__INTEL_COMPILER)
-  command_line_options_mp_get_command_line_(sim_info.commandline,256);
-#elif (defined(__GNUC__) || defined(__GNUG__)) //&& !(defined(__clang__) || defined(__INTEL_COMPILER))
-  __command_line_options_MOD_get_command_line(sim_info.commandline,256);
-#endif
-
-  // initializeQEMPICommunication();
-  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
-  owl_qe_startup_(&comm_help);                     // Set up the PWscf calculation
+  //initializeQEMPICommunication();
+  readCommandLineOptions(sim_info);
+  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);               // MPI communicator handle for Fortran
+  owl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
   std::cout << "Intialized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
+
   run_pwscf_(&MPI_exit_status);                 // Execute the PWscf calculation
-  get_natom_ener_(&natom, &trialEnergy);        // Extract the number of atoms and energy
+  get_natom_ener(&natom, &trialEnergy);        // Extract the number of atoms and energy
   std::cout << "Here: " << natom << ", " << trialEnergy << std::endl;
   observables[0] = trialEnergy;
 
@@ -38,9 +34,9 @@ QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
 
   // check if the following should be called in here:
   // yes, because they intialize trialPos and trialLatticeVec
-  get_pos_array_(&trialPos(0,0));               // Extract the position array from QE
-  get_cell_array_(&trialLatticeVec(0,0));       // Extract the cell array from QE
-  owl_stop_run_(&MPI_exit_status);              // Clean up the PWscf run
+  get_pos_array(&trialPos(0,0));               // Extract the position array from QE
+  get_cell_array(&trialLatticeVec(0,0));       // Extract the cell array from QE
+  owl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
 
 }
 
@@ -50,12 +46,93 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
 
   // finalizeQEMPICommunication();
   int exit_status;                                // Environmental parameter for QE
-  owl_qe_stop_(&exit_status);                     // Finish the PWscf calculation
+  owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
   deleteObservables();
 }
+
+
+void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
+{
+  std::cout << "Reading the following command line for Quantum Espresso: \"" 
+            << sim_info.commandLine << "\"" << std::endl;
+
+  char* pch;
+  pch = strtok (sim_info.commandLine, " ");
+  while (pch != NULL)
+  {
+    //printf ("%s\n", pch);
+
+        if (strncmp("-i",pch,2) == 0) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            strncpy(QEInputFile, pch, 80);
+            QEInputFile[80] = '\0';
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        if ((strncmp("-ni",pch,3) == 0) 
+             || (strncmp("-npot",pch,5) == 0)) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            nimage = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        //if (strncmp("-npot",pch,5) == 0) {
+        //    pch = strtok (NULL, " ");
+        //    printf ("%s\n", pch);
+        //    npots = std::atoi(pch);
+        //    pch = strtok (NULL, " ");
+        //    continue;
+        //}   
+        if ((strncmp("-nk",pch,3) == 0)
+             || (strncmp("-npoo",pch,5) == 0)) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            npool = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }   
+        if (strncmp("-nt",pch,3) == 0) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            ntg = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        if (strncmp("-nb",pch,3) == 0) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            nband = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        if ((strncmp("-nd",pch,3) == 0)
+            || (strncmp("-no",pch,3) == 0)
+            || (strcmp("-nproc_diag",pch) == 0)
+            || (strcmp("-nproc_ortho",pch) == 0)) {
+            pch = strtok (NULL, " ");
+            //printf ("%s\n", pch);
+            ndiag = std::atoi(pch);
+            pch = strtok (NULL, " ");
+            continue;
+        }
+        //if (strncmp("-nr",pch,3) == 0) {
+        //    pch = strtok (NULL, " ");
+        //    printf ("%s\n", pch);
+        //    nres = std::atoi(pch);
+        //    pch = strtok (NULL, " ");
+        //    continue;
+        //}
+        std::cerr << "Error when reading QE command line options!!\n "
+                  << std::endl;
+
+  }  
+
+};
 
 
 void QuantumEspressoSystem::writeConfiguration(int option, const char* fileName)
@@ -80,10 +157,10 @@ void QuantumEspressoSystem::getObservables()
 {
   // trialEnergy should be changed to observables[0]
 
-  owl_do_pwscf_(&MPI_exit_status);               // Run the subsequent PWscf calculation
-  get_natom_ener_(&natom, &trialEnergy);         // Obtain the # of atoms and energy from QE
+  owl_do_pwscf(&MPI_exit_status);               // Run the subsequent PWscf calculation
+  get_natom_ener(&natom, &trialEnergy);         // Obtain the # of atoms and energy from QE
   observables[0] = trialEnergy;
-  owl_stop_run_(&MPI_exit_status);               // Clean up the PWscf run
+  owl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
 
 }
 
@@ -92,8 +169,8 @@ void QuantumEspressoSystem::doMCMove()
 {
 
   proposeMCmoves(trialPos, trialLatticeVec);
-  pass_pos_array_(&trialPos(0,0));              // Update the atomic positions
-  pass_cell_array_(&trialLatticeVec(0,0));      // Update the lattice cell vector
+  pass_pos_array(&trialPos(0,0));              // Update the atomic positions
+  pass_cell_array(&trialLatticeVec(0,0));      // Update the lattice cell vector
   
 }
 
@@ -236,3 +313,5 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fclose(QE_file);
 
 }
+
+

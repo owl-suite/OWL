@@ -5,11 +5,11 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_qe_startup (lib_comm,nim,npl,nta,nbn,ndg,infile) BIND(C)
+SUBROUTINE owl_qe_startup (lib_comm,nim,npl,nta,nbn,ndg,infile) BIND(C)
   !----------------------------------------------------------------------------
   !
-  ! ... C wrapper for library interface to the Pwscf
   USE ISO_C_BINDING
+  !
   ! ... Set up the PWscf calculation for Quantum Espresso
   !
   USE environment,       ONLY : environment_start
@@ -41,10 +41,10 @@ SUBROUTINE wl_qe_startup (lib_comm,nim,npl,nta,nbn,ndg,infile) BIND(C)
   CALL read_input_file ('PW', input_file )
   !CALL read_input_file ('PW', input_file_ )
   !
-END SUBROUTINE wl_qe_startup
+END SUBROUTINE owl_qe_startup
   !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_qe_stop (exit_status) BIND(C)
+SUBROUTINE owl_qe_stop (exit_status) BIND(C)
   !----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
@@ -57,10 +57,10 @@ SUBROUTINE wl_qe_stop (exit_status) BIND(C)
   CALL stop_run( exit_status )
   CALL do_stop( exit_status )
   !
-END SUBROUTINE wl_qe_stop
+END SUBROUTINE owl_qe_stop
   !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_stop_run( exit_status ) BIND(C)
+SUBROUTINE owl_stop_run( exit_status ) BIND(C)
   !----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
@@ -101,6 +101,6 @@ SUBROUTINE wl_stop_run( exit_status ) BIND(C)
   !
   CALL clean_pw( .FALSE. )   ! ... Need to restart the subsequent PWscf runs
   !
-END SUBROUTINE wl_stop_run
+END SUBROUTINE owl_stop_run
   !
 !----------------------------------------------------------------------------

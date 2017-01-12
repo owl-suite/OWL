@@ -11,6 +11,7 @@ public :
   Heisenberg2D(SimulationInfo& sim_info, const char* = NULL, int = 0); 
   ~Heisenberg2D();
 
+  void readCommandLineOptions(SimulationInfo& sim_info);
   void writeConfiguration(int = 0, const char* = NULL);
   void getObservables();
   void doMCMove();

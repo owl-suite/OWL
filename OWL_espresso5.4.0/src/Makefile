@@ -1,8 +1,8 @@
-# Makefile for OWLPW
+# Makefile for OWL
 QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 
-EXECUTABLE = owlpw
+EXECUTABLE = owl
 
 ### C++ Compiler:
 #CXX = mpicxx
@@ -38,15 +38,15 @@ LIBOBJS= $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/cl
 COMMLIBS = \
 Communications.o
 
-OWLPWOBJS = \
+OWLOBJS = \
 QuantumEspressoSystem.o   \
 Heisenberg2D.o            \
 OWLMain.o
 
-OWLPWLIBS = \
-wl_getInfo_pwscf.o \
-wl_do_pwscf.o \
-wl_run_QE.o
+OWLLIBS = \
+owl_getInfo_pwscf.o \
+owl_do_pwscf.o \
+owl_run_QE.o
 
 MCOBJS = \
 Histogram.o \
@@ -64,15 +64,15 @@ TLDEPS=bindir mods libs liblapack libblas pw
 
 all : tldeps $(EXECUTABLE)
 
-$(EXECUTABLE) : libcomm.a $(OWLPWOBJS) $(MCOBJS) libowlpw.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
+$(EXECUTABLE) : libcomm.a $(OWLOBJS) $(MCOBJS) libowl.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
 	$(LD) $(LDFLAGS) $(LINKFLAGS) -o $@ \
-	$(OWLPWOBJS) $(MCOBJS) libowlpw.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	$(OWLOBJS) $(MCOBJS) libowl.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	- ( cd $(QUANTUM_ESPRESSO_ROOT)/bin; ln -fs $(CURDIR)/$@ . )
 
 libcomm.a : $(COMMLIBS) 
 	$(AR) $(ARFLAGS) $@ $?
 
-libowlpw.a : $(OWLPWLIBS)
+libowl.a : $(OWLLIBS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
 

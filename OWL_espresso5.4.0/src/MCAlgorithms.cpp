@@ -67,11 +67,11 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
         physical_system -> doMCMove();
         physical_system -> getObservables();
         //proposeMCmoves(trialPos, trialLatticeVec);
-        //pass_pos_array_(&trialPos(0,0));          // Update the atomic positions
-        //pass_cell_array_(&trialLatticeVec(0,0));  // Update the lattice cell vector
+        //pass_pos_array(&trialPos(0,0));          // Update the atomic positions
+        //pass_cell_array(&trialLatticeVec(0,0));  // Update the lattice cell vector
 
-        //wl_do_pwscf_(&exit_status);               // Run the subsequent PWscf calculation 
-        //get_natom_ener_(&natom, &trialEnergy);
+        //owl_do_pwscf(&exit_status);               // Run the subsequent PWscf calculation 
+        //get_natom_ener(&natom, &trialEnergy);
 
         // check if the energy falls within the energy range
         if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
@@ -92,9 +92,9 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
  
            physical_system -> acceptMCMove();
            // Store trialPos, trialLatticeVec, trialEnergy
-           //oldPos = trialPos;
-           //oldLatticeVec = trialLatticeVec;
-           //oldEnergy = trialEnergy;
+           // oldPos = trialPos;
+           // oldLatticeVec = trialLatticeVec;
+           // oldEnergy = trialEnergy;
 /*
            if (myMPIRank == 0) {
              physical_system -> writeConfiguration(0, "energyLatticePos.dat");
@@ -121,7 +121,7 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
         }
         h.totalMCsteps++;
      
-        //wl_stop_run_(&exit_status);              // Clean up the PWscf run
+        // owl_stop_run(&exit_status);              // Clean up the PWscf run
 
         // Write restart files at interval
         currentTime = MPI_Wtime();

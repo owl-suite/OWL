@@ -2,15 +2,16 @@
 QUANTUM_ESPRESSO_ROOT=../../
 include $(QUANTUM_ESPRESSO_ROOT)/make.inc
 
-EXECUTABLE = owl.x
+EXECUTABLE = owl
 
 ### C++ Compiler:
 CXX = CC
 ### Compiler Flags:
 CXXFLAGS = -O3 -Wall -std=c++11 -g
 
-### Linking flags are compiler dependent ### For GNU compiler:
-#LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++ 
+### Linking flags are compiler dependent
+### For GNU compiler:
+#LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
 
 ### For Intel compiler:
 LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib

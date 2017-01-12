@@ -84,8 +84,8 @@ void initializeQEMPICommunication()
 
 void finalizeQEMPICommunication()
 {
-  int exit_status;                                // Environmental parameter for QE
-  wl_qe_stop_(&exit_status);                      // Finish the PWscf calculation
+  //int exit_status;                                // Environmental parameter for QE
+  //wl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   
   std::cout << "Finalized QE MPI communications..." << std::endl;
   std::cout << "myMPIrank = " << myMPIRank << std::endl;

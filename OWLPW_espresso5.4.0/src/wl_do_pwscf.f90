@@ -5,8 +5,10 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_do_pwscf ( exit_status ) 
+SUBROUTINE wl_do_pwscf ( exit_status ) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... The modified subroutine to run multiple PWscf calculations, providing 
   ! ... inputs for Wang-Landau algorithm

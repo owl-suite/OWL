@@ -5,8 +5,10 @@
 ! or http://www.gnu.org/copyleft/gpl.txt.
 !
 !----------------------------------------------------------------------------
-SUBROUTINE get_natom_ener (natom, f_etot)
+SUBROUTINE get_natom_ener (natom, f_etot) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Extract a total number of atoms and total energy from the QE modules
   !
@@ -23,8 +25,10 @@ SUBROUTINE get_natom_ener (natom, f_etot)
 END SUBROUTINE get_natom_ener
   !
 !----------------------------------------------------------------------------
-SUBROUTINE get_pos_array (pos_array)
+SUBROUTINE get_pos_array (pos_array) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Extract the position array from the Quantum Espresso modules
   !
@@ -40,8 +44,10 @@ SUBROUTINE get_pos_array (pos_array)
 END SUBROUTINE get_pos_array
   !
 !----------------------------------------------------------------------------
-SUBROUTINE get_cell_array (cell_array)
+SUBROUTINE get_cell_array (cell_array) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Extract the position array from the Quantum Espresso modules
   !
@@ -56,8 +62,10 @@ SUBROUTINE get_cell_array (cell_array)
 END SUBROUTINE get_cell_array
   !
 !----------------------------------------------------------------------------
-SUBROUTINE pass_pos_array (pos_array)
+SUBROUTINE pass_pos_array (pos_array) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Extract the position array from the Quantum Espresso modules
   ! ... after updating the atomic positions from Wang-Landau codes
@@ -80,8 +88,10 @@ SUBROUTINE pass_pos_array (pos_array)
 END SUBROUTINE pass_pos_array
   !
 !----------------------------------------------------------------------------
-SUBROUTINE pass_cell_array (cell_array)
+SUBROUTINE pass_cell_array (cell_array) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Extract the position array from the Quantum Espresso modules
   ! ... after updating the cell lattice vector from Wang-Landau codes

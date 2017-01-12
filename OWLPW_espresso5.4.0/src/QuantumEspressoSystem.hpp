@@ -24,12 +24,12 @@ public:
 private:
 
   // Parameters from command line options for controlling parallelization in Quantum Espresso
-  int   nimage            {1};    // number of images
-  int   npool             {1};    // (?)
-  int   ndiag             {1};    // (?)
-  int   ntg               {1};    // ntaskg (?)
-  int   nband             {1};    // number of bands
-  char  QEInputFile[81]   {};     //
+  int   nimage            {1};                 // number of images
+  int   npool             {1};                 // (?)
+  int   ndiag             {1};                 // (?)
+  int   ntg               {1};                 // ntaskg (?)
+  int   nband             {1};                 // number of bands
+  char  QEInputFile[81]   = { ' ', '\0' };     // QE input file
 
   // System information
   int natom;                       // Total number of atoms in system

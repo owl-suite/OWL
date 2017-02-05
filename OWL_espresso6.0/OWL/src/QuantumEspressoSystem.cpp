@@ -275,7 +275,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "&ions\n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&cell\n");
-  fprintf(QE_file, "    cell_factor = 7.0d0\n");
+  fprintf(QE_file, "    cell_factor = 30.0d0\n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "ATOMIC_SPECIES\n");

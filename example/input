@@ -32,7 +32,7 @@
 &ions
 /
 &cell
-    cell_factor = 7.0d0
+    cell_factor = 30.0d0
 /
 
 ATOMIC_SPECIES

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include "Globals.hpp"
 
 class PhysicalSystem {
 
@@ -15,6 +16,7 @@ public:
   virtual ~PhysicalSystem() {}  
 
   // Functions:
+  virtual void readCommandLineOptions(SimulationInfo&) = 0;
   virtual void writeConfiguration(int = 0, const char* = NULL) = 0;
   virtual void getObservables() = 0;
   virtual void doMCMove() = 0;

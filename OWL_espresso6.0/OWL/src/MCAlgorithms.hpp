@@ -29,6 +29,7 @@ protected :
   double currentTime;
   double lastBackUpTime;
 
+  // it stores the decision of WL acceptance for each move
   bool acceptMove {false};
 
   // MC statistics:

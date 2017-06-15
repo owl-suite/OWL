@@ -30,12 +30,11 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
   if (myMPIRank == 0)
     printf("Running WangLandauSampling...\n");
 
-  //bool acceptMove {false};         // store the decision of WL acceptance for each move
   char fileName[51];
 
-  physical_system -> getObservables();
-  physical_system -> acceptMCMove();    // always accept the move to push the state forward
-  acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
+  //physical_system -> getObservables();
+  //physical_system -> acceptMCMove();    // always accept the move to push the state forward
+  //acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
 
   // Find the first energy that falls within the WL energy range    
   while (!acceptMove) {
@@ -121,7 +120,7 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
         }
         h.totalMCsteps++;
      
-        // owl_stop_run_(&exit_status);              // Clean up the PWscf run
+        //owl_stop_run(&exit_status);              // Clean up the PWscf run
 
         // Write restart files at interval
         currentTime = MPI_Wtime();

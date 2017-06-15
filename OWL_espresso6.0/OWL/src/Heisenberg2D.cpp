@@ -124,6 +124,9 @@ Heisenberg2D::~Heisenberg2D()
 }
 
 
+void Heisenberg2D::readCommandLineOptions(SimulationInfo& sim_info)
+{ };
+
 
 void Heisenberg2D::writeConfiguration(int format, const char* filename)
 {

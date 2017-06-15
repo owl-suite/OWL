@@ -5,7 +5,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE wl_do_pwscf ( exit_status ) BIND(C)
+SUBROUTINE owl_do_pwscf ( exit_status ) BIND(C)
   !----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
@@ -179,4 +179,4 @@ SUBROUTINE wl_do_pwscf ( exit_status ) BIND(C)
            & /,5X,'Max number of k-points (npk) = ',I6,&
            & /,5X,'Max angular momentum in pseudopotentials (lmaxx) = ',i2)
   !
-END SUBROUTINE wl_do_pwscf
+END SUBROUTINE owl_do_pwscf

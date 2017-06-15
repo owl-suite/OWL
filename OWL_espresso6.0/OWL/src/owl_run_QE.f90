@@ -5,29 +5,49 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE owl_qe_startup (my_comm)
+SUBROUTINE owl_qe_startup (lib_comm,nim,npl,nta,nbn,ndg,infile) BIND(C)
   !----------------------------------------------------------------------------
   !
+  ! ... C wrapper for library interface to the Pwscf
+  USE ISO_C_BINDING
   ! ... Set up the PWscf calculation for Quantum Espresso
   !
   USE environment,       ONLY : environment_start
   USE mp_global,         ONLY : mp_startup
   USE read_input,        ONLY : read_input_file
-  USE command_line_options, ONLY: input_file_
+  USE command_line_options, ONLY : set_command_line
   !
   IMPLICIT NONE
-  INTEGER :: my_comm
+  INTEGER, INTENT(IN) :: lib_comm, nim, npl, nta, nbn, ndg
+  CHARACTER (kind=C_CHAR), INTENT(IN) :: infile(*)
+  CHARACTER(LEN=80)  :: input_file
+  INTEGER :: i
+  !USE command_line_options, ONLY : input_file_
+  !INTEGER :: my_comm
   !
-  CALL mp_startup (my_comm, diag_in_band_group = .true.)
+  input_file = ' '
+  !
+  ! ... Copying a string from C to Fortran is a bit ugly.
+  DO i=1,80
+      IF (infile(i) == C_NULL_CHAR) EXIT
+      input_file = TRIM(input_file) // infile(i)
+  END DO
+  !
+  CALL set_command_line (nimage=nim, npool=npl, ntg=nta, &
+       nband=nbn, ndiag=ndg )
+  CALL mp_startup (lib_comm, diag_in_band_group = .true.)
   CALL environment_start ('PWSCF')
   !
-  CALL read_input_file ('PW', input_file_ )
+  CALL read_input_file ('PW', input_file )
+  !CALL read_input_file ('PW', input_file_ )
   !
 END SUBROUTINE owl_qe_startup
   !
 !----------------------------------------------------------------------------
-SUBROUTINE owl_qe_stop (exit_status)
+SUBROUTINE owl_qe_stop (exit_status) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Finish the PWscf calculation for Quantum Espresso
   !
@@ -40,8 +60,10 @@ SUBROUTINE owl_qe_stop (exit_status)
 END SUBROUTINE owl_qe_stop
   !
 !----------------------------------------------------------------------------
-SUBROUTINE owl_stop_run( exit_status )
+SUBROUTINE owl_stop_run( exit_status ) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... Modified subroutine to restart the PWscf calculation after receiving
   ! ... the Wang-Landau inputs

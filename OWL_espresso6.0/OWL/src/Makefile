@@ -2,7 +2,7 @@
 QUANTUM_ESPRESSO_ROOT=../../
 include $(QUANTUM_ESPRESSO_ROOT)/make.inc
 
-EXECUTABLE = owl.x
+EXECUTABLE = owl
 
 ### C++ Compiler:
 CXX = CC

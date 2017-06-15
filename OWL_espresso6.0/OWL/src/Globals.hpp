@@ -1,8 +1,6 @@
 #ifndef GLOBALS_HPP
 #define GLOBALS_HPP
 
-#include <string>
-
 struct SimulationInfo {
 
   int  restartFlag      {0};

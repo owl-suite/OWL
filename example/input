@@ -1,20 +1,21 @@
 &control
    calculation = 'scf'
    restart_mode = 'from_scratch'
-   forc_conv_thr = 3.0d-4
+   etot_conv_thr = 0.0001
+   forc_conv_thr = 0.0003
    tstress = .true.
    tprnfor = .true.
-   pseudo_dir = './' 
+   pseudo_dir = './'
 !   lberry = .true.
 !   gdir = 3
 !   nppstr = 8
 /
 &system
-    ibrav= 0  
-!    celldm(1) = 1.00
-    nat= 5
-    ntyp= 3 
+    ibrav = 0
+    nat = 5
+    ntyp = 3
     ecutwfc = 50
+    ecutrho = 400
     nosym = .true.
 !    nspin = 2     ! 1 = non-polarized 2 = spin-polarized
 !    occupations = 'smearing'
@@ -31,7 +32,7 @@
 &ions
 /
 &cell
-    cell_factor = 3.0d0
+    cell_factor = 30.0d0
 /
 
 ATOMIC_SPECIES
@@ -40,16 +41,16 @@ Ti  47.867   022-Ti-ca-sp-vgrp_serge.uspp
 O   16.00    O_ps.uspp.UPF
 
 ATOMIC_POSITIONS {angstrom}
-Pb  0.000000   0.000000   0.468119
-Ti  1.927079   1.927079   2.350469
-O   1.927079   1.927079   0.101262
-O   1.927079   0.000000   2.069675
-O   0.000000   1.927079   2.069675
+Pb       0.000000175   0.000000043   0.464800095
+Ti       1.928084408   1.928089324   2.343483484
+O        1.928084215   1.928089356   0.103651369
+O        1.928084422   0.000000083   2.066176324
+O       -0.000000070   1.928089814   2.066167377
 
 K_POINTS automatic
-4 4 4 0 0 0
+8 8 8 0 0 0
 
 CELL_PARAMETERS {angstrom}
-3.854158  0.000000  0.000000
-0.000000  3.854158  0.000000
-0.000000  0.000000  4.033829
+   3.856168677   0.000000005   0.000000070
+   0.000000005   3.856179101  -0.000000021
+   0.000000073  -0.000000022   4.025302471

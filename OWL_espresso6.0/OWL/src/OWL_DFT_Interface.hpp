@@ -1,6 +1,5 @@
 // Define the external Quantum Espresso F90 subroutines
 
-
 extern "C" {
 
   void owl_qe_startup(int* lib_comm, int* nim, int* npl, int* nta, int* nbn, int* ndg, const char* infile);

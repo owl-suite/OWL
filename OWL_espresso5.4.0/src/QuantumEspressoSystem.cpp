@@ -63,11 +63,11 @@ void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
   pch = strtok (sim_info.commandLine, " ");
   while (pch != NULL)
   {
-    printf ("%s\n", pch);
+    //printf ("%s\n", pch);
 
         if (strncmp("-i",pch,2) == 0) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             strncpy(QEInputFile, pch, 80);
             QEInputFile[80] = '\0';
             pch = strtok (NULL, " ");
@@ -76,7 +76,7 @@ void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
         if ((strncmp("-ni",pch,3) == 0) 
              || (strncmp("-npot",pch,5) == 0)) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             nimage = std::atoi(pch);
             pch = strtok (NULL, " ");
             continue;
@@ -91,21 +91,21 @@ void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
         if ((strncmp("-nk",pch,3) == 0)
              || (strncmp("-npoo",pch,5) == 0)) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             npool = std::atoi(pch);
             pch = strtok (NULL, " ");
             continue;
         }   
         if (strncmp("-nt",pch,3) == 0) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             ntg = std::atoi(pch);
             pch = strtok (NULL, " ");
             continue;
         }
         if (strncmp("-nb",pch,3) == 0) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             nband = std::atoi(pch);
             pch = strtok (NULL, " ");
             continue;
@@ -115,7 +115,7 @@ void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
             || (strcmp("-nproc_diag",pch) == 0)
             || (strcmp("-nproc_ortho",pch) == 0)) {
             pch = strtok (NULL, " ");
-            printf ("%s\n", pch);
+            //printf ("%s\n", pch);
             ndiag = std::atoi(pch);
             pch = strtok (NULL, " ");
             continue;
@@ -276,7 +276,7 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "&ions\n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "&cell\n");
-  fprintf(QE_file, "    cell_factor = 3.0d0\n");
+  fprintf(QE_file, "    cell_factor = 7.0d0\n");
   fprintf(QE_file, "/\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "ATOMIC_SPECIES\n");

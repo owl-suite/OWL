@@ -4,6 +4,12 @@
 #include <iostream>
 #include <cstdlib>
 #include "Globals.hpp"
+#include "Communications.hpp"
+
+
+// To DO: make it a template class to allow for int / double observables  (July 15, 2017)
+// Got the following compiling error when adding template 
+
 
 class PhysicalSystem {
 
@@ -24,10 +30,16 @@ public:
   virtual void acceptMCMove() = 0;
   virtual void rejectMCMove() = 0;
 
+  // MPI Communicator for one energy calculation
+  //MPICommunicator PhysicalSystemCommunicator;
+
   // Parameters common to (needed by) all models:
   int numObservables;
   double* observables;
   double* oldObservables;
+  //int* observables;
+  //int* oldObservables;
+
 
 protected:
 
@@ -36,9 +48,11 @@ protected:
     if (numObservables > 0) {
       observables    = new double[numObservables];
       oldObservables = new double[numObservables];
+      //observables    = new int[numObservables];
+      //oldObservables = new int[numObservables];
       for (int i=0; i<numObservables; i++) {
-        observables[i]    = 0.0;
-        oldObservables[i] = 0.0;
+        observables[i]    = 0;
+        oldObservables[i] = 0;
       }
     }
     else {
@@ -47,14 +61,14 @@ protected:
     }
   }
 
-/*
   void resetObservables() {
     for (int i=0; i<numObservables; i++) {
       oldObservables[i] = observables[i];
-      observables[i] = 0.0;
+      observables[i] = 0;
     }
   }
 
+/*
   void restoreObservables() {
     double tmp;
     for (int i=0; i<numObservables; i++) {

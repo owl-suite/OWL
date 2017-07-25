@@ -21,7 +21,11 @@ PhysicalSystemCommandLine -i input -nk 5
 
 ##### Lattice size for Heisenberg and Ising models #####
 
-#LatticeSize  4
+#SpinModelLatticeSize  4
+
+##### Number of atoms in Quantum Espresso #####
+
+QENumberOfAtoms 5
 
 
 ##### Monte Carlo algorithm #####
@@ -36,6 +40,11 @@ Algorithm  2
 
 ##### Input file for Wang-Landau sampling #####
 
-InputFile  wl.input
+MCInputFile  wl.input
 
+
+##### Information for MPI rank distribution #####
+
+NumberOfRandomWalkers      1
+NumberOfMPIranksPerWalker  5
 

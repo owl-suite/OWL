@@ -1,16 +1,16 @@
-#ifndef HEISENBERG2D_HPP
-#define HEISENBERG2D_HPP
+#ifndef ISING2D_HPP
+#define ISING2D_HPP
 
 #include "PhysicalSystemBase.hpp"
 #include "Globals.hpp"
 
-//class Heisenberg2D : public PhysicalSystem<double> {
-class Heisenberg2D : public PhysicalSystem {
+//class Ising2D : public PhysicalSystem<int> {
+class Ising2D : public PhysicalSystem {
 
 public :
 
-  Heisenberg2D(SimulationInfo& sim_info, const char* = NULL, int = 0); 
-  ~Heisenberg2D();
+  Ising2D(SimulationInfo& sim_info, const char* = NULL, int = 0); 
+  ~Ising2D();
 
   void readCommandLineOptions(SimulationInfo& sim_info);
   void writeConfiguration(int = 0, const char* = NULL);
@@ -23,14 +23,11 @@ public :
 
 private :
 
+  enum SpinDirection {DOWN = -1, UP = +1};
+
   int Size;
   long LatticeSize;
 
-  struct SpinDirection {
-    double x;
-    double y;
-    double z;
-  };  
 
   // Old configuration
   int CurX, CurY;
@@ -38,7 +35,6 @@ private :
 
   // New configuration
   SpinDirection** spin;          // 2D array because it is a 2D model
-  double spinLength;
   
   bool firstTimeGetMeasures;
 

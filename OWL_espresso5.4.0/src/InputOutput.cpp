@@ -33,9 +33,9 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
           continue;
         }
         if (key == "PhysicalSystemCommandLine") {
-//          lineStream >> sim_info.commandLine;
-          lineStream.getline(sim_info.commandLine,256);
-          std::cout << "Simulation Info: command line = " << sim_info.commandLine << std::endl;
+//          lineStream >> sim_info.physicalSystemCommandLine;
+          lineStream.getline(sim_info.physicalSystemCommandLine, 256);
+          std::cout << "Simulation Info: command line = " << sim_info.physicalSystemCommandLine << std::endl;
           continue;
         }
         if (key == "Algorithm") {
@@ -48,14 +48,29 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
           std::cout << "Random number seed = " << sim_info.rngSeed << std::endl;
           continue;
         }
-        if (key == "LatticeSize") {
-          lineStream >> sim_info.size;
-          std::cout << "Simulation Info: lattice size = " << sim_info.size << std::endl;
+        if (key == "SpinModelLatticeSize") {
+          lineStream >> sim_info.spinModelLatticeSize;
+          std::cout << "Simulation Info: lattice size = " << sim_info.spinModelLatticeSize << std::endl;
           continue;
         }
-        if (key == "InputFile") {
-          lineStream >> sim_info.inputFile;
-          std::cout << "Simulation Info: Input file for MC simulation = " << sim_info.inputFile << std::endl;
+        if (key == "QENumberOfAtoms") {
+          lineStream >> sim_info.numAtoms;
+          std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << sim_info.numAtoms << std::endl;
+          continue;
+        }
+        if (key == "MCInputFile") {
+          lineStream >> sim_info.MCInputFile;
+          std::cout << "Simulation Info: Input file for MC simulation = " << sim_info.MCInputFile << std::endl;
+          continue;
+        }
+        if (key == "NumberOfRandomWalkers") {
+          lineStream >> sim_info.numWalkers;
+          std::cout << "Simulation Info: Number of random walkers = " << sim_info.numWalkers << std::endl;
+          continue;
+        }
+        if (key == "NumberOfMPIranksPerWalker") {
+          lineStream >> sim_info.numMPIranksPerWalker;
+          std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << sim_info.numMPIranksPerWalker << std::endl;
           continue;
         }
 

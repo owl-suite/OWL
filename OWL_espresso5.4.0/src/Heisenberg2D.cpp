@@ -7,13 +7,13 @@
 Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
 {
 
-  printf("Simulation for 2D Heisenberg model: %dx%d \n",sim_info.size,sim_info.size);
+  printf("Simulation for 2D Heisenberg model: %dx%d \n", sim_info.spinModelLatticeSize, sim_info.spinModelLatticeSize);
 
   int i, j;
   char c;
   double r1, r2, rr;
 
-  Size = sim_info.size;
+  Size = sim_info.spinModelLatticeSize;
   LatticeSize = Size * Size;
 
   spin = new SpinDirection*[Size];

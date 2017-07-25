@@ -2,12 +2,13 @@
 #define RANDOM_NUMBER_GENERATOR_HPP
 
 #include <random>
+#include "Communications.hpp"
 
 // An RNG for global use
 extern std::mt19937 rng;
 //extern int RngSeed;
 
-void initializeRandomNumberGenerator(int = -1);
+void initializeRandomNumberGenerator(MPICommunicator, int = -1);
 
 
 // Returns a random number between [-0.5,0.5]

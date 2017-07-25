@@ -6,21 +6,23 @@
 #include "OWL_DFT_Interface.hpp"
 
 //Constructor
-QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info)
+QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info, 
+                                             MPICommunicator PhysicalSystemComm)
 {
-  natom       = sim_info.size;
+  natom       = sim_info.numAtoms;  // TO DO: this should be cross-checked with QE input file!
   oldEnergy   = 0.0;
   trialEnergy = 0.0;
   
   initializeObservables(1); // observable[0] = energy
 
-  //initializeQEMPICommunication();
   readCommandLineOptions(sim_info);
-  int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);               // MPI communicator handle for Fortran
+
+  //initializeQEMPICommunication();
+  //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);         // MPI communicator handle for Fortran
+  int comm_help = MPI_Comm_c2f(PhysicalSystemComm.communicator);
   owl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
   std::cout << "Intialized QE MPI communications..." << std::endl;
-  std::cout << "myMPIrank = " << myMPIRank << std::endl;
-
+  //std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
   run_pwscf_(&MPI_exit_status);                 // Execute the PWscf calculation
   get_natom_ener(&natom, &trialEnergy);         // Extract the number of atoms and energy
@@ -48,7 +50,7 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
   int exit_status;                                // Environmental parameter for QE
   owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   std::cout << "Finalized QE MPI communications..." << std::endl;
-  std::cout << "myMPIrank = " << myMPIRank << std::endl;
+  //std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
   deleteObservables();
 }
@@ -57,10 +59,10 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
 void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
 {
   std::cout << "Reading the following command line for Quantum Espresso: \"" 
-            << sim_info.commandLine << "\"" << std::endl;
+            << sim_info.physicalSystemCommandLine << "\"" << std::endl;
 
   char* pch;
-  pch = strtok (sim_info.commandLine, " ");
+  pch = strtok (sim_info.physicalSystemCommandLine, " ");
   while (pch != NULL)
   {
     //printf ("%s\n", pch);

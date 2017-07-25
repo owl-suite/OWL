@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <vector>
 
+
+// TO DO: make it a template class to allow for int / double histogram
 class Histogram {
 
 public:

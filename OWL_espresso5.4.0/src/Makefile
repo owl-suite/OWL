@@ -41,17 +41,21 @@ Communications.o
 OWLOBJS = \
 QuantumEspressoSystem.o   \
 Heisenberg2D.o            \
+Ising2D.o                 \
 OWLMain.o
 
 OWLLIBS = \
-owl_getInfo_pwscf.o \
-owl_do_pwscf.o \
+owl_getInfo_pwscf.o       \
+owl_do_pwscf.o            \
 owl_run_QE.o
 
 MCOBJS = \
-Histogram.o \
-RandomNumberGenerator.o \
-MCAlgorithms.o \
+Histogram.o               \
+RandomNumberGenerator.o   \
+MCAlgorithms.o            \
+WangLandauSampling.o      \
+MulticanonicalSampling.o  \
+HistogramFreeMUCA.o       \
 MCMoves.o
 
 IOOBJS = \

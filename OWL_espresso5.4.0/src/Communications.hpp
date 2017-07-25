@@ -4,52 +4,32 @@
 #include "mpi.h"
 #include "Globals.hpp"
 
-// Global variables for MPI info
-extern int myMPIRank;                 // MPI rank for this processor
-extern int numMPIRanks;               // Total number of processors
-extern MPI_Comm mpiCommunicator;      // Global Communicator
-//extern MPI_Status mpiStatus;        // MPI status for the communicator
-//extern int exit_status;               // Environmental parameter for QE
-//extern int comm_help;                 // MPI communicator handle for Fortran
 
-
-void initializeMPICommunication(SimulationInfo);
-void finalizeMPICommunication(SimulationInfo);
-
-void initializeQEMPICommunication();
-void finalizeQEMPICommunication();
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Ying Wai's plan: MPI communications should be rearranged with the following classes //
-/////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-class MPICommunicatorBase {
+class MPICommunicator {
 
 public :
 
-  MPI_Comm comm;
-  int myRank;
-  int totalRanks;
+  MPI_Comm communicator;
+  int      thisMPIrank;
+  int      totalMPIranks;
 
-  void initializeCommunicator();
-  void finalizeCommunicator();
-
-};
-
-
-
-class MCAlgorithmCommunicator : public MPICommunicatorBase 
-{
+  void initialize(MPI_Comm incomingComm);    // this initializes communicator
+  void finalize();                           // this finalizes communicator
 
 };
 
+// Global variables for MPI communicators info
+extern MPICommunicator GlobalComm;
 
-class PhysicalSystemCommunicator : public MPICommunicatorBase
-{
 
-};
-*/
+// Functions
+void initializeMPICommunication(SimulationInfo, MPICommunicator&, MPICommunicator&);
+void finalizeMPICommunication(SimulationInfo);
+
+// The following should be replaced once the MPI classes are ready? (Jun 14, 17)
+void initializeQEMPICommunication();
+void finalizeQEMPICommunication();
+
 
 
 #endif

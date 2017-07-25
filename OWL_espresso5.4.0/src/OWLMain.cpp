@@ -7,9 +7,12 @@
 
 int main (int argc, char *argv[]) {
 
-  PhysicalSystem*      physical_system;
-  MonteCarloAlgorithm* MC;
-  SimulationInfo       simInfo;
+  SimulationInfo        simInfo;
+  PhysicalSystem*       physical_system;
+  MonteCarloAlgorithm*  MC;
+  MPICommunicator       physicalSystemComm;
+  MPICommunicator       mcAlgorithmComm;
+
 
   readCommandLineArguments(argc, argv);
 
@@ -17,11 +20,11 @@ int main (int argc, char *argv[]) {
   readMainInputFile(argv[1], simInfo);
 
   // Initializations
-  initializeMPICommunication(simInfo);
-  initializeRandomNumberGenerator(simInfo.rngSeed);
+  initializeMPICommunication(simInfo, physicalSystemComm, mcAlgorithmComm);
+  initializeRandomNumberGenerator(physicalSystemComm, simInfo.rngSeed);
 
   // Determine and setup the PhysicalSystem and MonteCarlo classes
-  setSimulation(physical_system, MC, simInfo);
+  setSimulation(simInfo, physical_system, MC, physicalSystemComm, mcAlgorithmComm);
 
   // Main calculations
   MC -> run(physical_system); 

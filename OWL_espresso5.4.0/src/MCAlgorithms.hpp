@@ -3,8 +3,9 @@
 
 #include <mpi.h>
 #include "PhysicalSystemBase.hpp"
-#include "Histogram.hpp"
-//# include "Communications.hpp"
+#include "Globals.hpp"
+//#include "Histogram.hpp"
+//#include "Communications.hpp"
 
 
 // Base class for all Monte Carlo algorithms
@@ -21,41 +22,27 @@ public :
   virtual void run(PhysicalSystem*) = 0;
 
   // Should they be set directly by I/O? (Now set through constructor)
-  int restartFlag;     
+  int restartFlag {0};
   //PhysicalSystem* physical_system;
+
+  // MPI Communicator for communications among MC walkers
+  //MPICommunicator MCAlgorithmCommunicator;
 
 protected :
 
   double currentTime;
   double lastBackUpTime;
 
-  // it stores the decision of WL acceptance for each move
+  // it stores the decision of acceptance for each move
   bool acceptMove {false};
 
   // MC statistics:
-  unsigned long int totalMCsteps;
-  unsigned long int acceptedMoves;
-  unsigned long int rejectedMoves;
+  unsigned long int totalMCsteps  {0};
+  unsigned long int acceptedMoves {0};
+  unsigned long int rejectedMoves {0};
 
 private :
 
-
-};
-
-
-
-class WangLandauSampling : public MonteCarloAlgorithm {
-
-public :
-  
-  WangLandauSampling(int, const char*);
-  ~WangLandauSampling();
-
-  void run(PhysicalSystem*);
-
-private :
-
-  Histogram h;
 
 };
 

@@ -4,7 +4,11 @@
 #include <iostream>
 #include "Globals.hpp"
 #include "MCAlgorithms.hpp"
+#include "WangLandauSampling.hpp"
+#include "MulticanonicalSampling.hpp"
+#include "HistogramFreeMUCA.hpp"
 #include "Heisenberg2D.hpp"
+#include "Ising2D.hpp"
 #include "QuantumEspressoSystem.hpp"
 
 
@@ -40,9 +44,11 @@ void readCommandLineArguments(int argc, char* argv[]) {
 */
 }
 
-void setSimulation(PhysicalSystem*      &physical_system,
+void setSimulation(SimulationInfo       simInfo,
+                   PhysicalSystem*      &physical_system,
                    MonteCarloAlgorithm* &MC,
-                   SimulationInfo       simInfo)
+                   MPICommunicator      physicalSystemComm,
+                   MPICommunicator      mcAlgorithmComm)
 {
   
   // Determine MC algorithm
@@ -50,19 +56,19 @@ void setSimulation(PhysicalSystem*      &physical_system,
   // 2. Wang-Landau sampling
   // 3. Multicanonical sampling (MUCA)
   // 4. Parallel tempering
-  // 5. Replica-Exchange Wang-Landau (REWL)
+  // 5. Replica-Exchange Wang-Landau sampling (REWL)
+  // 6. Histogram-free Multicanonical sampling (discrete energy version)
   switch (simInfo.algorithm) {
     case 1 :
-      MC = new Metropolis(simInfo.restartFlag, simInfo.inputFile);
+      MC = new Metropolis( simInfo.restartFlag, simInfo.MCInputFile );
       break;
 
     case 2 :
-      MC = new WangLandauSampling(simInfo.restartFlag, simInfo.inputFile);
+      MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
       break;
 
     case 3 :
-      std::cout << "Multicanonical sampling (MUCA) not yet implemented\n";
-      exit(10);
+      MC = new MulticanonicalSampling( simInfo.restartFlag, simInfo.MCInputFile );
       break;
 
     case 4 :
@@ -73,6 +79,10 @@ void setSimulation(PhysicalSystem*      &physical_system,
     case 5 :
       std::cout << "Replica-Exchange Wang-Landau (REWL) not yet implemented\n";
       exit(10);
+      break;
+      
+    case 6 :
+      MC = new DiscreteHistogramFreeMUCA( simInfo.restartFlag, simInfo.MCInputFile );
       break;
       
     default :
@@ -87,7 +97,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  5: ...
   switch (simInfo.system) {
     case 1 :
-      physical_system = new QuantumEspressoSystem(simInfo);
+      physical_system = new QuantumEspressoSystem(simInfo, physicalSystemComm);
       break;
 
     case 2 :
@@ -99,13 +109,13 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
 
     case 4 :
-      std::cout << "Ising2D not yet available.\n";
+      physical_system = new Ising2D(simInfo);
       break;
 
     default :
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";
-
+      exit(10);
   }
 
 }

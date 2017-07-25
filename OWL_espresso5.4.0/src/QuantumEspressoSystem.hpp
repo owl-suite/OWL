@@ -1,15 +1,17 @@
 #ifndef QUANTUM_ESPRESSO_SYSTEM_HPP
 #define QUANTUM_ESPRESSO_SYSTEM_HPP
 
+#include "mpi.h"
 #include "PhysicalSystemBase.hpp"
 #include "Matrix.hpp"
 #include "Globals.hpp"
 
+//class QuantumEspressoSystem : public PhysicalSystem<double> {
 class QuantumEspressoSystem : public PhysicalSystem {
 
 public:
 
-  QuantumEspressoSystem(SimulationInfo& sim_info);
+  QuantumEspressoSystem(SimulationInfo& sim_info, MPICommunicator PhysicalSystemComm);
   ~QuantumEspressoSystem();
 
   void readCommandLineOptions(SimulationInfo& sim_info);

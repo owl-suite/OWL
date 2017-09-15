@@ -8,7 +8,8 @@
 
 
 // To DO: make it a template class to allow for int / double observables  (July 15, 2017)
-// Got the following compiling error when adding template 
+//typedef int ObservableType;
+typedef double ObservableType;
 
 
 class PhysicalSystem {
@@ -35,10 +36,10 @@ public:
 
   // Parameters common to (needed by) all models:
   int numObservables;
-  double* observables;
-  double* oldObservables;
-  //int* observables;
-  //int* oldObservables;
+  ObservableType* observables;
+  ObservableType* oldObservables;
+  //double* observables;
+  //double* oldObservables;
 
 
 protected:
@@ -46,10 +47,10 @@ protected:
   void initializeObservables(int n) {
     numObservables = n;
     if (numObservables > 0) {
-      observables    = new double[numObservables];
-      oldObservables = new double[numObservables];
-      //observables    = new int[numObservables];
-      //oldObservables = new int[numObservables];
+      observables    = new ObservableType[numObservables];
+      oldObservables = new ObservableType[numObservables];
+      //observables    = new double[numObservables];
+      //oldObservables = new double[numObservables];
       for (int i=0; i<numObservables; i++) {
         observables[i]    = 0;
         oldObservables[i] = 0;

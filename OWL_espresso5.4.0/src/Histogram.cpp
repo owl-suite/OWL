@@ -3,10 +3,8 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 #include "Histogram.hpp"
-//#include <fstream>
-//#include <string>             // std::string
-//#include <sstream>            // std::istringstream
 
 // Constructor
 Histogram::Histogram(int restart, const char* inputFile)
@@ -16,8 +14,8 @@ Histogram::Histogram(int restart, const char* inputFile)
   if (restart)
     readHistogramDOSFile("hist_dos_checkpoint.dat");
   else {
-    Emax = std::numeric_limits<double>::max();
-    Emin = -std::numeric_limits<double>::max();
+    Emax = std::numeric_limits<ObservableType>::max();
+    Emin = -std::numeric_limits<ObservableType>::max();
     //Emin = std::numeric_limits<double>::lowest();    // C++11
     if (inputFile != NULL)
       readWangLandauInputFile(inputFile);
@@ -25,6 +23,11 @@ Histogram::Histogram(int restart, const char* inputFile)
       std::cout << "Error: No input file for Wang-Landau sampling. Quiting... \n";
       exit(7);
     }
+
+    // MUCA statistics:
+    KullbackLeiblerDivergence = 0.0;
+    KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
+
     //dim                    = 1;
     //flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
     //modFactor              = 1.0;         
@@ -33,13 +36,14 @@ Histogram::Histogram(int restart, const char* inputFile)
     //Emin                   = -333.775;      // need to change
     //Emax                   = -333.695;      // need to change
     //binSize                = 0.001;         // need to change
-    numBins                = ceil((Emax - Emin) / binSize);
+    numBins                = ceil((Emax - Emin) / binSize) + 1;
     //histogramCheckInterval = 500;
     //histogramCheckInterval = numBins * 10;
 
     hist.assign(numBins, 0);
     dos.assign(numBins, 0.0);
     visited.assign(numBins, 0);
+    probDistribution.assign(numBins, 0.0);
 
     totalMCsteps            = 0;
     acceptedMoves           = 0;
@@ -72,17 +76,19 @@ Histogram::~Histogram()
 
 
 // Public member functions
-double Histogram::getBinSize()
+ObservableType Histogram::getBinSize()
 {
   return binSize;
 }
+
 
 int Histogram::getNumberOfBins()
 {
   return numBins;
 }
 
-double Histogram::getDOS(double energy)
+
+double Histogram::getDOS(ObservableType energy)
 {
   idx = getIndex(energy);
   if (idx >= 0)
@@ -94,16 +100,19 @@ double Histogram::getDOS(double energy)
   
 }
 
-void Histogram::setEnergyRange(double E1, double E2)
+
+void Histogram::setEnergyRange(ObservableType E1, ObservableType E2)
 {
   Emin = E1;
   Emax = E2;
 }
 
-void Histogram::setBinSize(double dE)
+
+void Histogram::setBinSize(ObservableType dE)
 {
   binSize = dE;
 }
+
 
 void Histogram::setNumberOfBins(long int n)
 {
@@ -111,35 +120,42 @@ void Histogram::setNumberOfBins(long int n)
   // need to resize hist and dos accordingly
 }
 
+
 void Histogram::resetHistogram()
 {
-  for (unsigned int i=0; i<numBins; i++)
+  for (unsigned int i=0; i<numBins; i++) {
     hist[i] = 0;
-  //std::fill(hist.begin(), hist.end(), 0);      // Intel compiler has problem with it!
-
+    //std::fill(hist.begin(), hist.end(), 0);      // Intel compiler has problem with it!
+    probDistribution[i] = 0.0;
+  }
   numHistogramNotImproved = 0;
   numBinsFailingCriterion = numBins;
   numHistogramRefreshed = 0;
 }
 
+
 void Histogram::refreshHistogram()
 {
-  for (unsigned int i=0; i<numBins; i++)
+  for (unsigned int i=0; i<numBins; i++) {
     hist[i] = 0;
+    probDistribution[i] = 0.0;
+  }
 
   numHistogramNotImproved = 0;
   numBinsFailingCriterion = numBins;
   numHistogramRefreshed++;
 }
 
+
 void Histogram::resetDOS()
 {
   for (unsigned int i=0; i<numBins; i++)
     dos[i] = 0.0;
-  //std::fill(dos.begin(), dos.end(), 0.0);      // Intel compiler has problem with it!
+    //std::fill(dos.begin(), dos.end(), 0.0);      // Intel compiler has problem with it!
 }
 
-void Histogram::updateHistogramDOS(double energy)
+
+void Histogram::updateHistogramDOS(ObservableType energy)
 {
   idx = getIndex(energy);
 
@@ -149,9 +165,9 @@ void Histogram::updateHistogramDOS(double energy)
     //   2. reset Histogram and start over
     if ( visited[idx] == 0 ) {
       int refIdx = idx;
-      if ( (unsigned)idx == 0 )
+      if ( static_cast<unsigned>(idx) == 0 )
         refIdx = 1;
-      else if ( (unsigned)idx == (numBins-1) )
+      else if ( static_cast<unsigned>(idx) == (numBins-1) )
         refIdx = idx - 1;
       else {
         if ( (visited[idx-1] > 0) && (visited[idx+1] > 0) )
@@ -183,16 +199,16 @@ void Histogram::updateHistogramDOS(double energy)
   //std::cerr << "hist[idx] = " << hist[idx] << std::endl;
 }
 
-void Histogram::updateHistogram(double energy)
+void Histogram::updateHistogram(ObservableType energy)
 {
   idx = getIndex(energy);
-  hist[idx] ++;
+  hist[idx]++;
   visited[idx] = 1;
   //std::cerr << "idx = " << idx << std::endl;
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
-void Histogram::updateDOS(double energy)
+void Histogram::updateDOS(ObservableType energy)
 {
   idx = getIndex(energy);
   dos[idx] += modFactor;
@@ -201,7 +217,14 @@ void Histogram::updateDOS(double energy)
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
-bool Histogram::checkEnergyInRange(double energy)
+void Histogram::updateDOSwithHistogram()
+{
+  for (unsigned int i=0; i<numBins; i++)
+    if ((visited[i] == 1) && (hist[i] != 0))
+      dos[i] += log(hist[i]);
+}
+
+bool Histogram::checkEnergyInRange(ObservableType energy)
 {
   bool isWithinRange {false};
   if (energy < Emin) {
@@ -257,7 +280,40 @@ bool Histogram::checkHistogramFlatness()
 }
 
 
-void Histogram::writeHistogramDOSFile(char const fileName[])
+// Ref: S. Kullback and R.A. Leibler, Ann.Math. Stat. 22, 79 (1951).
+// It measures the similarity of two probability distributions, P(x) and Q(x).
+// Here, it is used to measure the deviation from ideal sampling.
+bool Histogram::checkKullbackLeiblerDivergence()
+{
+  int numVisitedBins = std::count(visited.begin(), visited.end(), 1); 
+  //int numVisitedBins = 0;
+  //for (unsigned int i=0; i<numBins; i++) {
+  //  if (visited[i] == 1)
+  //    numVisitedBins++;
+  //}
+
+  double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins,10) );
+
+  KullbackLeiblerDivergence = 0.0;
+  for (unsigned int i=0; i<numBins; i++) {
+    if (visited[i] == 1) {
+      probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(histogramCheckInterval);
+      std::cout << probDistribution[i] << std::endl;
+      KullbackLeiblerDivergence += probDistribution[i] * log(probDistribution[i]/flatnessReference);
+    }
+  }
+
+  std::cout << "KullbackLeiblerDivergence = " << KullbackLeiblerDivergence << std::endl;
+
+  if (KullbackLeiblerDivergence <= KullbackLeiblerDivergenceThreshold)
+    return true;
+  else  
+    return false;
+
+}
+
+
+void Histogram::writeHistogramDOSFile(const char* fileName)
 {
   FILE *histdos_file;
   histdos_file = fopen(fileName, "w");
@@ -307,20 +363,20 @@ bool Histogram::checkIntegrity()
 
 
 // Private member functions
-int Histogram::getIndex(double energy)
+int Histogram::getIndex(ObservableType energy)
 {
-  return floor((energy - Emin) / double(binSize));
+  return floor(static_cast<double>(energy - Emin) / static_cast<double>(binSize));
 }
 
 
-void Histogram::readHistogramDOSFile(char const* FileName)
+void Histogram::readHistogramDOSFile(const char* fileName)
 {
 
-  std::cout << "Reading restart file for Wang-Landau sampling: " << FileName << std::endl;
+  std::cout << "Reading restart file for Wang-Landau sampling: " << fileName << std::endl;
 
-  FILE *histdos_file = fopen(FileName, "r");
+  FILE *histdos_file = fopen(fileName, "r");
   if (histdos_file == NULL) {
-    std::cerr << "Error: cannot open restart file for Wang-Landau sampling"  << FileName << std::endl;
+    std::cerr << "Error: cannot open restart file for Wang-Landau sampling"  << fileName << std::endl;
     exit(7);    // perhaps can start from wl.input?
   }
 
@@ -389,6 +445,7 @@ void Histogram::readHistogramDOSFile(char const* FileName)
   hist.assign(numBins, 0);
   dos.assign(numBins, 0.0);
   visited.assign(numBins, 0);
+  probDistribution.assign(numBins, 0);
 
   // Continue reading the histogram and DOS from file
   unsigned int dummy = 0;
@@ -409,7 +466,7 @@ void Histogram::readHistogramDOSFile(char const* FileName)
 //YingWai's note:  (Sep 20, 16)
 //The following works, but it gives a warning that dos[i] is an unsigned long int type... (!)
 
-  std::ifstream HistDOSFile(FileName);
+  std::ifstream HistDOSFile(fileName);
   std::string line, key;
   unsigned int i = 0;
 

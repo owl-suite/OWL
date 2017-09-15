@@ -11,7 +11,7 @@ public :
   MulticanonicalSampling(int restart, const char* inputFile);
   ~MulticanonicalSampling();
 
-  void run(PhysicalSystem*);
+  void run(PhysicalSystem* physical_system);
 
 private :
 

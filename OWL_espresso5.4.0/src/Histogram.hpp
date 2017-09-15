@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <vector>
 
+//typedef int ObservableType;
+typedef double ObservableType;
+
 
 // TO DO: make it a template class to allow for int / double histogram
 class Histogram {
@@ -12,12 +15,17 @@ class Histogram {
 public:
 
   // These should be moved to the WL-MC class (when they are implemented...)
+  // ... or should it be a derived WL histogram class?   (July 24, 2017)
   double       flatnessCriterion;               // flatness criterion  
   double       modFactor;                       // natural log of modification factor, f
   double       modFactorFinal;                  // predefined log(f) to terminate simulation
   double       modFactorReducer;                // a factor to reduce log(f)
   unsigned int histogramCheckInterval;          // number of MC steps between every histogram flatness check
   int          histogramRefreshInterval;        // refresh histogram every certain number of histogram checks
+
+  // MUCA statistics:
+  double       KullbackLeiblerDivergence;
+  double       KullbackLeiblerDivergenceThreshold;
 
   // WL sampling statistics:
   unsigned long int totalMCsteps;
@@ -36,36 +44,41 @@ public:
   ~Histogram();
   
   // Public member functions:
-  double getBinSize();
-  int    getNumberOfBins();
-  double getDOS(double);
+  ObservableType getBinSize();
+  int            getNumberOfBins();
+  double         getDOS(ObservableType energy);
 
-  void setEnergyRange (double, double);
-  void setBinSize (double);
-  void setNumberOfBins (long int);
+  void setEnergyRange (ObservableType E1, ObservableType E2);
+  void setBinSize (ObservableType dE);
+  void setNumberOfBins (long int n);
   void resetHistogram();
   void refreshHistogram();
   void resetDOS();
-  void updateHistogramDOS(double);
-  void updateHistogram(double);
-  void updateDOS(double);
+  void updateHistogramDOS(ObservableType energy);
+  void updateHistogram(ObservableType energy);
+  void updateDOS(ObservableType energy);
+  void updateDOSwithHistogram();
 
-  void writeHistogramDOSFile(const char*);
-  void writeNormDOSFile(const char*);
+  void writeHistogramDOSFile(const char* fileName);
+  void writeNormDOSFile(const char* fileName);
 
-  bool checkEnergyInRange(double energy);
-  bool checkHistogramFlatness();
-  bool checkIntegrity();          // check if histogram or DOS have correct bin size,
-                                  // number of bins, etc. with respect to the energy range
+  bool checkEnergyInRange(ObservableType energy);
+  bool checkHistogramFlatness();             // for WL
+  bool checkKullbackLeiblerDivergence();     // for MUCA
+  bool checkIntegrity();                     // check if histogram or DOS have correct bin size,
+                                             // number of bins, etc. with respect to the energy range
 
 
 private:
  
   int dim;                                   // dimension of the histogram
 
-  double Emin;                               // energy range for WL sampling (should they be here?)
+  //ObservableType Emin;                     // energy range for WL sampling (should they be here?)
+  double Emin;
+  //ObservableType Emax;
   double Emax;
-  double binSize;                            // energy bin size
+  //ObservableType binSize;                  // energy bin size
+  double binSize;
   unsigned int numBins;                      // total number of bins
   unsigned int numBinsFailingCriterion;
 
@@ -77,10 +90,12 @@ private:
   std::vector<int> visited;                  // an array to mark if a bin is visited
   int idx;                                   // index of a bin in the histogram and DOS
 
+  std::vector<double> probDistribution;      // an array to store the probablity distribution constructed from a histogram  (MUCA only)
+
   // Private member functions:
-  int getIndex(double);                      // Calculate the bin index from an energy
-  void readHistogramDOSFile(char const[]);
-  void readWangLandauInputFile(char const[]);
+  int getIndex(ObservableType energy);       // Calculate the bin index from an energy
+  void readHistogramDOSFile(const char* fileName);
+  void readWangLandauInputFile(const char* fileName);
 
 };
 

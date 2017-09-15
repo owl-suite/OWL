@@ -43,126 +43,89 @@ void DiscreteHistogramFreeMUCA::run(PhysicalSystem* physical_system)
     acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
   }
 
-  // Always accept the first energy if it is within range
-  
-
-
-  h.updateHistogramDOS(physical_system -> observables[0]);
-  //physical_system -> acceptMCMove();
+  // Always count the first energy if it is within range
+  h.updateHistogram(physical_system -> observables[0]);
 
   // Write out the energy
-  if (GlobalComm.thisMPIrank == 0) 
+  if (GlobalComm.thisMPIrank == 0)
     physical_system -> writeConfiguration(0, "energyLatticePos.dat");
     //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
 
 //-------------- End initialization --------------//
 
-// WL procedure starts here
-  while (h.modFactor > h.modFactorFinal) {
-    h.histogramFlat = false;
+// MUCA procedure starts here
 
-    while (!(h.histogramFlat)) {
-      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
-      {
+  for (int yw=0; yw<10; yw++) {
+  //while (!(h.histogramFlat)) {
 
-        physical_system -> doMCMove();
-        physical_system -> getObservables();
-        //proposeMCmoves(trialPos, trialLatticeVec);
-        //pass_pos_array(&trialPos(0,0));          // Update the atomic positions
-        //pass_cell_array(&trialLatticeVec(0,0));  // Update the lattice cell vector
+    for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
 
-        //owl_do_pwscf(&exit_status);               // Run the subsequent PWscf calculation 
-        //get_natom_ener(&natom, &trialEnergy);
+      physical_system -> doMCMove();
+      physical_system -> getObservables();
 
-        // check if the energy falls within the energy range
-        if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
+      // check if the energy falls within the energy range
+      if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
+        acceptMove = false;
+      else {
+        // determine WL acceptance
+        if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
+                 h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
+          acceptMove = true;
+        else
           acceptMove = false;
-        else {
-          // determine WL acceptance
-          if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
-                   h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
-            acceptMove = true;
-          else
-            acceptMove = false;
-        }
+      }
 
-        if (acceptMove) {
-           // Update histogram and DOS with trialEnergy
-           h.updateHistogramDOS(physical_system -> observables[0]);
-           h.acceptedMoves++;        
- 
-           physical_system -> acceptMCMove();
-           // Store trialPos, trialLatticeVec, trialEnergy
-           // oldPos = trialPos;
-           // oldLatticeVec = trialLatticeVec;
-           // oldEnergy = trialEnergy;
-/*
-           if (GlobalComm.thisMPIrank == 0) {
-             physical_system -> writeConfiguration(0, "energyLatticePos.dat");
-             //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
-             std::cerr << "trial move accepted: Energy = " << physical_system -> observables[0] << "\n";
-           }
-*/
-        }
-        else {
-/*
-           if (GlobalComm.thisMPIrank == 0) {
-             std::cerr << "trial move rejected: Energy = " << physical_system -> observables[0] << "\n";
-             std::cerr << "Update with energy = " << physical_system -> oldObservables[0] << "\n";
-           }
-*/
-           physical_system -> rejectMCMove();
-           // Restore trialPos and trialLatticeVec
-           //trialPos = oldPos;
-           //trialLatticeVec = oldLatticeVec;
+      if (acceptMove) {
+         // Update histogram with trialEnergy
+         h.updateHistogram(physical_system -> observables[0]);
+         h.acceptedMoves++;        
 
-           // Update histogram and DOS with oldEnergy
-           h.updateHistogramDOS(physical_system -> oldObservables[0]);
-           h.rejectedMoves++;
-        }
-        h.totalMCsteps++;
-     
-        //owl_stop_run(&exit_status);              // Clean up the PWscf run
+         physical_system -> acceptMCMove();
+      }
+      else {
+         physical_system -> rejectMCMove();
 
-        // Write restart files at interval
-        currentTime = MPI_Wtime();
-        if (GlobalComm.thisMPIrank == 0) {
-          if (currentTime - lastBackUpTime > 300) {
-            h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
-            //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
-            lastBackUpTime = currentTime;
-          }
+         // Update histogram with oldEnergy
+         h.updateHistogram(physical_system -> oldObservables[0]);
+         h.rejectedMoves++;
+      }
+      h.totalMCsteps++;
+   
+      // Write restart files at interval
+      currentTime = MPI_Wtime();
+      if (GlobalComm.thisMPIrank == 0) {
+        if (currentTime - lastBackUpTime > 300) {
+          h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+          physical_system -> writeConfiguration(1, "OWL_restart_input");
+          //writeQErestartFile("OWL_restart_input", trialPos, trialLatticeVec);
+          lastBackUpTime = currentTime;
         }
       }
-      //h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-
-      // Check histogram flatness
-      h.histogramFlat = h.checkHistogramFlatness();
-      if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
-        h.refreshHistogram();
     }
 
+    // Update DOS with the histogram
+    h.updateDOSwithHistogram();
+    // check flatness of histogram using Kullback-Leibler divergence
+    h.histogramFlat = h.checkKullbackLeiblerDivergence();
+      
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);
     
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
-      //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+      physical_system -> writeConfiguration(1, "OWL_restart_input");
     }
 
     // Go to next iteration
-    h.modFactor /= h.modFactorReducer;
     h.resetHistogram();
     h.iterations++;
+    std::cout << "Iteration " << yw << " finished.\n";
   }
 
   // Write out data at the end of the simulation
   h.writeNormDOSFile("dos.dat");
   h.writeHistogramDOSFile("hist_dos_final.dat");
-  //wl_qe_stop_(&exit_status);  // Finish the PWscf calculation
 
 }
 

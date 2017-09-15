@@ -112,7 +112,8 @@ void Ising2D::writeConfiguration(int format, const char* filename)
     fprintf(f, "2D Ising Model : %d x %d (%ld)\n", Size, Size, LatticeSize);
     fprintf(f, "Measures:");
     for (i = 0; i < numObservables; i++)
-      fprintf(f, " %10d", observables[i]);
+      fprintf(f, " %10.5f", observables[i]);
+      //fprintf(f, " %10d", observables[i]);
     fprintf(f, "\n");
     for (y = Size - 1; y >= 0; y--) {
       for (x = 0; x < Size; x++) 
@@ -155,8 +156,8 @@ void Ising2D::GetMeasuresBruteForce()
   }
   tempE = -tempE;   // ferromagnetic interactions
 
-  if (tempE != observables[0]) printf("Problem! tempE = %8d, observables[0] = %8d\n", tempE, observables[0]);
-  if (tempM != observables[1]) printf("Problem! tempM = %8d, observables[1] = %8d\n", tempM, observables[1]);
+  if (tempE != observables[0]) printf("Problem! tempE = %8d, observables[0] = %8.5f\n", tempE, observables[0]);
+  if (tempM != observables[1]) printf("Problem! tempM = %8d, observables[1] = %8.5f\n", tempM, observables[1]);
 
 }
 

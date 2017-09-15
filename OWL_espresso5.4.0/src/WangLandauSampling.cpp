@@ -60,8 +60,7 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
     h.histogramFlat = false;
 
     while (!(h.histogramFlat)) {
-      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++)
-      {
+      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
 
         physical_system -> doMCMove();
         physical_system -> getObservables();
@@ -127,8 +126,8 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
         if (GlobalComm.thisMPIrank == 0) {
           if (currentTime - lastBackUpTime > 300) {
             h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
-            //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+            physical_system -> writeConfiguration(1, "OWL_restart_input");
+            //writeQErestartFile("OWL_restart_input", trialPos, trialLatticeVec);
             lastBackUpTime = currentTime;
           }
         }
@@ -137,8 +136,8 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
 
       // Check histogram flatness
       h.histogramFlat = h.checkHistogramFlatness();
-      if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
-        h.refreshHistogram();
+      //if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
+      //  h.refreshHistogram();
     }
 
     if (GlobalComm.thisMPIrank == 0) {
@@ -147,8 +146,8 @@ void WangLandauSampling::run(PhysicalSystem* physical_system)
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      physical_system -> writeConfiguration(1, "OWL_QE_restart_input");
-      //writeQErestartFile("OWL_QE_restart_input", trialPos, trialLatticeVec);
+      physical_system -> writeConfiguration(1, "OWL_restart_input");
+      //writeQErestartFile("OWL_restart_input", trialPos, trialLatticeVec);
     }
 
     // Go to next iteration

@@ -11,7 +11,7 @@ public :
   WangLandauSampling(int restart, const char* inputFile);
   ~WangLandauSampling();
 
-  void run(PhysicalSystem*);
+  void run(PhysicalSystem* physical_system);
 
 private :
 

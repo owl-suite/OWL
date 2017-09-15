@@ -4,8 +4,6 @@
 #include <mpi.h>
 #include "PhysicalSystemBase.hpp"
 #include "Globals.hpp"
-//#include "Histogram.hpp"
-//#include "Communications.hpp"
 
 
 // Base class for all Monte Carlo algorithms

@@ -5,6 +5,8 @@
 #define GLOBALS_HPP
 
 
+//enum type_name {integer = 1, single_precision = 2, double_precision = 3};
+
 struct SimulationInfo
 {
 

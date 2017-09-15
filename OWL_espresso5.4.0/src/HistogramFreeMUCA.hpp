@@ -14,7 +14,7 @@ public :
   DiscreteHistogramFreeMUCA(int restart, const char* inputFile);
   ~DiscreteHistogramFreeMUCA();
 
-  void run(PhysicalSystem*);
+  void run(PhysicalSystem* physical_system);
 
 private :
 

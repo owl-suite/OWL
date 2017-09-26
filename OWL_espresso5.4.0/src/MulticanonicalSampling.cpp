@@ -3,21 +3,21 @@
 #include "MulticanonicalSampling.hpp"
 #include "RandomNumberGenerator.hpp"
 
-// Constructor
-MulticanonicalSampling::MulticanonicalSampling(int restart, const char* inputFile) : h(restart, inputFile)    // call Histgoram h's constructor here
-{
-  printf("Simulation method: Multicanonical (MUDA) sampling\n");
-  restartFlag = restart;
 
-//  physical_system = ps;
+// Constructor
+MulticanonicalSampling::MulticanonicalSampling() : h(simInfo.restartFlag, simInfo.MCInputFile)   
+{
+
+  printf("Simulation method: Multicanonical (MUDA) sampling\n");
 
 }
 
 
+// Destructor
 MulticanonicalSampling::~MulticanonicalSampling()
 {
+
   printf("Exiting MulticanonicalSampling class... \n");
-//  delete physical_system;
 
 }
 

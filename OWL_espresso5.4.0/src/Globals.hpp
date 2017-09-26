@@ -4,8 +4,10 @@
 #ifndef GLOBALS_HPP
 #define GLOBALS_HPP
 
-
+/// Global data types
 //enum type_name {integer = 1, single_precision = 2, double_precision = 3};
+//typedef int ObservableType;
+typedef double ObservableType;
 
 struct SimulationInfo
 {
@@ -29,6 +31,8 @@ struct SimulationInfo
   int  numAtoms              {3};   // it should exit if not specified in input file (Jun 24, 17)
 
 };
+
+extern SimulationInfo simInfo;
 
 
 #endif

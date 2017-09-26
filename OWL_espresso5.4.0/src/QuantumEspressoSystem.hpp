@@ -11,10 +11,10 @@ class QuantumEspressoSystem : public PhysicalSystem {
 
 public:
 
-  QuantumEspressoSystem(SimulationInfo& sim_info, MPICommunicator PhysicalSystemComm);
+  QuantumEspressoSystem(MPICommunicator PhysicalSystemComm);
   ~QuantumEspressoSystem();
 
-  void readCommandLineOptions(SimulationInfo& sim_info);
+  void readCommandLineOptions();
   void writeConfiguration(int = 0, const char* = NULL);
   void getObservables();
   void doMCMove();

@@ -50,7 +50,7 @@ class Metropolis : public MonteCarloAlgorithm {
 
 public :
 
-  Metropolis(int, const char*) {}
+  Metropolis() {}
   ~Metropolis() {}
 
   void run(PhysicalSystem*) {}

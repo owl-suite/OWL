@@ -4,16 +4,17 @@
 #include "Heisenberg2D.hpp"
 #include "RandomNumberGenerator.hpp"
 
-Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
+//Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
+Heisenberg2D::Heisenberg2D(const char* filename, int initial)
 {
 
-  printf("Simulation for 2D Heisenberg model: %dx%d \n", sim_info.spinModelLatticeSize, sim_info.spinModelLatticeSize);
+  printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   int i, j;
   char c;
   double r1, r2, rr;
 
-  Size = sim_info.spinModelLatticeSize;
+  Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
 
   spin = new SpinDirection*[Size];
@@ -124,7 +125,7 @@ Heisenberg2D::~Heisenberg2D()
 }
 
 
-void Heisenberg2D::readCommandLineOptions(SimulationInfo& sim_info)
+void Heisenberg2D::readCommandLineOptions()
 { };
 
 

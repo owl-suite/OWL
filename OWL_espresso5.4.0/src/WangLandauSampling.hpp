@@ -8,7 +8,7 @@ class WangLandauSampling : public MonteCarloAlgorithm {
 
 public :
 
-  WangLandauSampling(int restart, const char* inputFile);
+  WangLandauSampling();
   ~WangLandauSampling();
 
   void run(PhysicalSystem* physical_system);

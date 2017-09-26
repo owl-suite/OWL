@@ -4,10 +4,7 @@
 
 #include <cstdio>
 #include <vector>
-
-//typedef int ObservableType;
-typedef double ObservableType;
-
+#include "Globals.hpp"
 
 // TO DO: make it a template class to allow for int / double histogram
 class Histogram {
@@ -27,7 +24,7 @@ public:
   double       KullbackLeiblerDivergence;
   double       KullbackLeiblerDivergenceThreshold;
 
-  // WL sampling statistics:
+  // WL sampling statistics:  (TO DO: these are repeated in MCAlgorithm base class. Revision needed.)
   unsigned long int totalMCsteps;
   unsigned long int acceptedMoves;
   unsigned long int rejectedMoves;
@@ -59,8 +56,8 @@ public:
   void updateDOS(ObservableType energy);
   void updateDOSwithHistogram();
 
-  void writeHistogramDOSFile(const char* fileName);
-  void writeNormDOSFile(const char* fileName);
+  void writeHistogramDOSFile(const char* fileName, int iteration = -1, int walkerID = 0);
+  void writeNormDOSFile(const char* fileName, int walkerID = 0);
 
   bool checkEnergyInRange(ObservableType energy);
   bool checkHistogramFlatness();             // for WL
@@ -90,12 +87,20 @@ private:
   std::vector<int> visited;                  // an array to mark if a bin is visited
   int idx;                                   // index of a bin in the histogram and DOS
 
-  std::vector<double> probDistribution;      // an array to store the probablity distribution constructed from a histogram  (MUCA only)
+  // MUCA only:
+  std::vector<double> probDistribution;      // an array to store the probablity distribution constructed from a histogram 
+
+  // REWL only:
+  int numberOfWindows;                       // number of energy sub-windows 
+  int numberOfWalkersPerWindow;              // number of MC walkers having the same energy sub-windows 
+  double overlap;                            // overlapping factor between consecutive energy windows 
+  int walkerID;
+  int myWindow;
 
   // Private member functions:
   int getIndex(ObservableType energy);       // Calculate the bin index from an energy
   void readHistogramDOSFile(const char* fileName);
-  void readWangLandauInputFile(const char* fileName);
+  void readMCInputFile(const char* fileName);
 
 };
 

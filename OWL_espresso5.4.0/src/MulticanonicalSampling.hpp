@@ -8,7 +8,7 @@ class MulticanonicalSampling : public MonteCarloAlgorithm {
 
 public :
 
-  MulticanonicalSampling(int restart, const char* inputFile);
+  MulticanonicalSampling();
   ~MulticanonicalSampling();
 
   void run(PhysicalSystem* physical_system);

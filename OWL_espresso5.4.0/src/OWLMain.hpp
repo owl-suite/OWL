@@ -5,6 +5,7 @@
 #include "Globals.hpp"
 #include "MCAlgorithms.hpp"
 #include "WangLandauSampling.hpp"
+#include "ReplicaExchangeWangLandau.hpp"
 #include "MulticanonicalSampling.hpp"
 #include "HistogramFreeMUCA.hpp"
 #include "Heisenberg2D.hpp"
@@ -44,8 +45,7 @@ void readCommandLineArguments(int argc, char* argv[]) {
 */
 }
 
-void setSimulation(SimulationInfo       simInfo,
-                   PhysicalSystem*      &physical_system,
+void setSimulation(PhysicalSystem*      &physical_system,
                    MonteCarloAlgorithm* &MC,
                    MPICommunicator      physicalSystemComm,
                    MPICommunicator      mcAlgorithmComm)
@@ -60,15 +60,16 @@ void setSimulation(SimulationInfo       simInfo,
   // 6. Histogram-free Multicanonical sampling (discrete energy version)
   switch (simInfo.algorithm) {
     case 1 :
-      MC = new Metropolis( simInfo.restartFlag, simInfo.MCInputFile );
+      MC = new Metropolis();
       break;
 
     case 2 :
-      MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
+      //MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
+      MC = new WangLandauSampling();
       break;
 
     case 3 :
-      MC = new MulticanonicalSampling( simInfo.restartFlag, simInfo.MCInputFile );
+      MC = new MulticanonicalSampling();
       break;
 
     case 4 :
@@ -77,12 +78,11 @@ void setSimulation(SimulationInfo       simInfo,
       break;
 
     case 5 :
-      std::cout << "Replica-Exchange Wang-Landau (REWL) not yet implemented\n";
-      exit(10);
+      MC = new ReplicaExchangeWangLandau( physicalSystemComm, mcAlgorithmComm );
       break;
       
     case 6 :
-      MC = new DiscreteHistogramFreeMUCA( simInfo.restartFlag, simInfo.MCInputFile );
+      MC = new DiscreteHistogramFreeMUCA();
       break;
       
     default :
@@ -97,7 +97,7 @@ void setSimulation(SimulationInfo       simInfo,
   //  5: ...
   switch (simInfo.system) {
     case 1 :
-      physical_system = new QuantumEspressoSystem(simInfo, physicalSystemComm);
+      physical_system = new QuantumEspressoSystem(physicalSystemComm);
       break;
 
     case 2 :
@@ -105,11 +105,11 @@ void setSimulation(SimulationInfo       simInfo,
       break;
 
     case 3 :
-      physical_system = new Heisenberg2D(simInfo);
+      physical_system = new Heisenberg2D();
       break;
 
     case 4 :
-      physical_system = new Ising2D(simInfo);
+      physical_system = new Ising2D();
       break;
 
     default :

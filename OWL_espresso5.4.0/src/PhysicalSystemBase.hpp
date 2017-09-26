@@ -8,10 +8,6 @@
 
 
 // To DO: make it a template class to allow for int / double observables  (July 15, 2017)
-//typedef int ObservableType;
-typedef double ObservableType;
-
-
 class PhysicalSystem {
 
 public:
@@ -23,7 +19,8 @@ public:
   virtual ~PhysicalSystem() {}  
 
   // Functions:
-  virtual void readCommandLineOptions(SimulationInfo&) = 0;
+  //virtual void readCommandLineOptions(SimulationInfo&) = 0;
+  virtual void readCommandLineOptions() = 0;
   virtual void writeConfiguration(int = 0, const char* = NULL) = 0;
   virtual void getObservables() = 0;
   virtual void doMCMove() = 0;

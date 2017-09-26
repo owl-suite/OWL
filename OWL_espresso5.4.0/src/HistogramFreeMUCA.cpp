@@ -3,11 +3,12 @@
 #include "HistogramFreeMUCA.hpp"
 #include "RandomNumberGenerator.hpp"
 
+
 // Constructor
-DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(int restart, const char* inputFile) : h(restart, inputFile)    // call Histgoram h's constructor here
+DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA() : h(simInfo.restartFlag, simInfo.MCInputFile)
 {
+
   printf("Simulation method: Histogram-free multicanonical sampling for discrete energy models\n");
-  restartFlag = restart;
   
   numberOfDataPoints = 1000;                // TO DO: should be set from input file!
   DataSet.assign(numberOfDataPoints, 0);
@@ -20,7 +21,6 @@ DiscreteHistogramFreeMUCA::~DiscreteHistogramFreeMUCA()
  
   DataSet.clear();
   printf("Exiting DiscreteHistogramFreeMUCA class... \n");
-//  delete physical_system;
 
 }
 

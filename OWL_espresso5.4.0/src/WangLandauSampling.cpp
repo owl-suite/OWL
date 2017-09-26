@@ -4,20 +4,21 @@
 #include "RandomNumberGenerator.hpp"
 #include "Communications.hpp"
 
+
 // Constructor
-WangLandauSampling::WangLandauSampling(int restart, const char* inputFile) : h(restart, inputFile)    // call Histgoram h's constructor here
+WangLandauSampling::WangLandauSampling() : h(simInfo.restartFlag, simInfo.MCInputFile)
 {
+
   printf("Simulation method: Wang-Landau sampling\n");
-  restartFlag = restart;
-//  physical_system = ps;
 
 }
 
 
+//Destructor
 WangLandauSampling::~WangLandauSampling()
 {
+
   printf("Exiting WangLandauSampling class... \n");
-//  delete physical_system;
 
 }
 

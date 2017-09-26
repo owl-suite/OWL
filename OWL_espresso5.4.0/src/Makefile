@@ -1,4 +1,5 @@
 # Makefile for OWL
+
 QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 
@@ -8,8 +9,8 @@ EXECUTABLE = owl
 CXX = mpicxx
 #CXX = CC
 ### Compiler Flags:
-#CXXFLAGS = -Wall -std=c++11 -g
-CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
+CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/opt/local/include/openmpi-devel-gcc6/
+#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
 
 ### Linking flags are compiler dependent
 ### For GNU compiler:
@@ -50,12 +51,13 @@ owl_do_pwscf.o            \
 owl_run_QE.o
 
 MCOBJS = \
-Histogram.o               \
-RandomNumberGenerator.o   \
-MCAlgorithms.o            \
-WangLandauSampling.o      \
-MulticanonicalSampling.o  \
-HistogramFreeMUCA.o       \
+Histogram.o                 \
+RandomNumberGenerator.o     \
+MCAlgorithms.o              \
+WangLandauSampling.o        \
+ReplicaExchangeWangLandau.o \
+MulticanonicalSampling.o    \
+HistogramFreeMUCA.o         \
 MCMoves.o
 
 IOOBJS = \

@@ -5,9 +5,10 @@
 #include "OWLMain.hpp"
 
 
+SimulationInfo simInfo;
+
 int main (int argc, char *argv[]) {
 
-  SimulationInfo        simInfo;
   PhysicalSystem*       physical_system;
   MonteCarloAlgorithm*  MC;
   MPICommunicator       physicalSystemComm;
@@ -20,17 +21,17 @@ int main (int argc, char *argv[]) {
   readMainInputFile(argv[1], simInfo);
 
   // Initializations
-  initializeMPICommunication(simInfo, physicalSystemComm, mcAlgorithmComm);
+  initializeMPICommunication(physicalSystemComm, mcAlgorithmComm);
   initializeRandomNumberGenerator(physicalSystemComm, simInfo.rngSeed);
 
   // Determine and setup the PhysicalSystem and MonteCarlo classes
-  setSimulation(simInfo, physical_system, MC, physicalSystemComm, mcAlgorithmComm);
+  setSimulation(physical_system, MC, physicalSystemComm, mcAlgorithmComm);
 
   // Main calculations
   MC -> run(physical_system); 
 
   // Finalize
-  finalizeMPICommunication(simInfo);
+  finalizeMPICommunication();
 
   delete physical_system;
   delete MC;

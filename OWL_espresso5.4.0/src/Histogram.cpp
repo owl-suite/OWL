@@ -4,7 +4,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include <fstream>
+#include <string>             // std::string
+#include <sstream>            // std::istringstream
 #include "Histogram.hpp"
+#include "Communications.hpp"
 
 // Constructor
 Histogram::Histogram(int restart, const char* inputFile)
@@ -15,30 +19,33 @@ Histogram::Histogram(int restart, const char* inputFile)
     readHistogramDOSFile("hist_dos_checkpoint.dat");
   else {
     Emax = std::numeric_limits<ObservableType>::max();
-    Emin = -std::numeric_limits<ObservableType>::max();
-    //Emin = std::numeric_limits<double>::lowest();    // C++11
+    //Emin = -std::numeric_limits<ObservableType>::max();
+    Emin = std::numeric_limits<ObservableType>::lowest();    // C++11
+
+    numberOfWindows          = 1;           // default to =1 if not specified in input file
+    numberOfWalkersPerWindow = 1;
+    overlap  = 1.0;
+    walkerID = 0;
+    myWindow = 0;
+
+    // Read input file
     if (inputFile != NULL)
-      readWangLandauInputFile(inputFile);
+      readMCInputFile(inputFile);
     else {
       std::cout << "Error: No input file for Wang-Landau sampling. Quiting... \n";
       exit(7);
     }
 
-    // MUCA statistics:
-    KullbackLeiblerDivergence = 0.0;
-    KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
+    // Calculate quantities based on the variables read in
+    double energySubwindowWidth = (Emax - Emin) / (1.0 + double(numberOfWindows - 1)*(1.0 - overlap));
+    walkerID = (GlobalComm.thisMPIrank - (GlobalComm.thisMPIrank % simInfo.numMPIranksPerWalker)) / simInfo.numMPIranksPerWalker;
+    myWindow = ( walkerID - (walkerID % numberOfWalkersPerWindow) ) / numberOfWalkersPerWindow;
+    Emin     = Emin + double(myWindow) * (1.0 - overlap) * energySubwindowWidth;
+    Emax     = Emin + energySubwindowWidth;
+    numBins  = ceil((Emax - Emin) / binSize) + 1;
 
-    //dim                    = 1;
-    //flatnessCriterion      = 0.6;         // change to 0.8 for more accuate results
-    //modFactor              = 1.0;         
-    //modFactorFinal         = 0.125;       // should be ~ 10E-6
-    //modFactorReducer       = 2.0;         // don't change
-    //Emin                   = -333.775;      // need to change
-    //Emax                   = -333.695;      // need to change
-    //binSize                = 0.001;         // need to change
-    numBins                = ceil((Emax - Emin) / binSize) + 1;
-    //histogramCheckInterval = 500;
-    //histogramCheckInterval = numBins * 10;
+    // YingWai's check
+    //printf("YingWai's check: Inside Histogram constructor. world_rank = %3d, myWindow = %3d, walkerID = %3d, Emin = %6.3f, Emax = %6.3f \n", GlobalComm.thisMPIrank, myWindow, walkerID, Emin, Emax);
 
     hist.assign(numBins, 0);
     dos.assign(numBins, 0.0);
@@ -54,12 +61,17 @@ Histogram::Histogram(int restart, const char* inputFile)
     numAboveRange           = 0;
     numHistogramNotImproved = 0;
     numHistogramRefreshed   = 0;
+
+    // MUCA statistics:
+    KullbackLeiblerDivergence = 0.0;
+    KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
+
   }
 
   idx           = -1;
   histogramFlat = false;
 
-  printf("Histogram class is created.\n");  
+  //printf("Histogram class is created.\n");  
 }
 
 
@@ -70,7 +82,7 @@ Histogram::~Histogram()
   dos.clear();
   visited.clear();
 
-  printf("Histogram class is destroyed.\n");  
+  //printf("Histogram class is destroyed.\n");  
 
 }
 
@@ -313,8 +325,10 @@ bool Histogram::checkKullbackLeiblerDivergence()
 }
 
 
-void Histogram::writeHistogramDOSFile(const char* fileName)
+// TO DO: construct filename from iteration and walkerID  (Sep 25, 2017)
+void Histogram::writeHistogramDOSFile(const char* fileName, int iteration, int walkerID)
 {
+
   FILE *histdos_file;
   histdos_file = fopen(fileName, "w");
 
@@ -619,7 +633,8 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 }
 
 
-void Histogram::writeNormDOSFile(const char* fileName)
+// TO DO: construct filename from walkerID  (Sep 25, 2017)
+void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
 {
 
   FILE* dosFile;
@@ -644,47 +659,99 @@ void Histogram::writeNormDOSFile(const char* fileName)
 }
 
 
-void Histogram::readWangLandauInputFile(char const* fileName)
+void Histogram::readMCInputFile(char const* fileName)
 {
  
-  FILE *WLinput_file = fopen(fileName, "r");
-  if (WLinput_file == NULL) {
-    std::cerr << "Error: cannot open Wang-Landau input file "  << fileName << std::endl;
-    std::cerr << "Quitting...\n";
-    exit(7);
+  std::cout << "Reading REWL input file: " << fileName << std::endl;
+
+  std::ifstream inputFile(fileName);   // how to check if a file stream is initialized?
+  std::string line, key;
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+        
+        std::istringstream lineStream(line);
+        lineStream >> key;
+
+        if (key.compare(0, 1, "#") != 0) {
+          
+          if (key == "dim") {
+            lineStream >> dim;
+            //std::cout << "WangLandau: dim = " << dim << std::endl;
+            continue;
+          }
+          if (key == "flatnessCriterion") {
+            lineStream >> flatnessCriterion;
+            //std::cout << "WangLandau: flatnessCriterion = " << flatnessCriterion << std::endl;
+            continue;
+          }
+          if (key == "modFactor") {
+            lineStream >> modFactor;
+            //std::cout << "WangLandau: modFactor = " << modFactor << std::endl;
+            continue;
+          }
+          if (key == "modFactorFinal") {
+            lineStream >> modFactorFinal;
+            //std::cout << "WangLandau: modFactorFinal = " << modFactorFinal << std::endl;
+            continue;
+          }
+          if (key == "modFactorReducer") {
+            lineStream >> modFactorReducer;
+            //std::cout << "WangLandau: modFactorReducer = " << modFactorReducer << std::endl;
+            continue;
+          }
+          if (key == "histogramCheckInterval") {
+            lineStream >> histogramCheckInterval;
+            //std::cout << "WangLandau: histogramCheckInterval = " << histogramCheckInterval << std::endl;
+            continue;
+          }
+          if (key == "histogramRefreshInterval") {
+            lineStream >> histogramRefreshInterval;
+            //std::cout << "WangLandau: histogramRefreshInterval = " << histogramRefreshInterval << std::endl;
+            continue;
+          }
+          if (key == "Emin") {
+            lineStream >> Emin;
+            //std::cout << "WangLandau: Emin = " << Emin << std::endl;
+            continue;
+          }
+          if (key == "Emax") {
+            lineStream >> Emax;
+            //std::cout << "WangLandau: Emax = " << Emax << std::endl;
+            continue;
+          }
+          if (key == "binSize") {
+            lineStream >> binSize;
+            //std::cout << "WangLandau: binSize = " << binSize << std::endl;
+            continue;
+          }
+          if (key == "numberOfWindows") {
+            lineStream >> numberOfWindows;
+            //std::cout << "REWL: numberOfWindows = " << numberOfWindows << std::endl;
+            continue;
+          }
+          if (key == "numberOfWalkersPerWindow") {
+            lineStream >> numberOfWalkersPerWindow;
+            //std::cout << "REWL: numberOfWalkersPerWindow = " << numberOfWalkersPerWindow << std::endl;
+            continue;
+          }
+          if (key == "overlap") {
+            lineStream >> overlap;
+            //std::cout << "REWL: overlap = " << overlap << std::endl;
+            continue;
+          }
+
+        }
+
+      }
+
+    }
+    inputFile.close();
+
   }
-
-  if (fscanf(WLinput_file, "%*s %d", &dim) != 1)
-    std::cerr << "Cannot read dim \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &flatnessCriterion) != 1)
-    std::cerr << "Cannot read flatnessCriterion \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &modFactor) != 1)
-    std::cerr << "Cannot read modFactor \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &modFactorFinal) != 1)
-    std::cerr << "Cannot read modFactorFinal \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &modFactorReducer) != 1)
-    std::cerr << "Cannot read modFactorReducer \n";
-
-  if (fscanf(WLinput_file, "%*s %u", &histogramCheckInterval) != 1)
-    std::cerr << "Cannot read histogramCheckInterval \n";
- 
-  if (fscanf(WLinput_file, "%*s %u", &histogramRefreshInterval) != 1)
-    std::cerr << "Cannot read histogramRefreshInterval \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &Emin) != 1)
-    std::cerr << "Cannot read Emin \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &Emax) != 1)
-    std::cerr << "Cannot read Emax \n";
-
-  if (fscanf(WLinput_file, "%*s %lf", &binSize) != 1)
-    std::cerr << "Cannot read binSize \n";
-
-  fclose(WLinput_file);
 
 }
 

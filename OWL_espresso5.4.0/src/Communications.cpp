@@ -1,18 +1,20 @@
 #include <iostream>
+#include <vector>
 #include "Communications.hpp"
-#include "Globals.hpp"
 #include "OWL_DFT_Interface.hpp"
 
-//Global MPI communicator  (this is an extern variable)
+// Global MPI communicator  (this is an extern variable)
 MPICommunicator GlobalComm;
 
 
 void MPICommunicator::initialize(MPI_Comm incomingComm)
 {
+
   communicator = incomingComm;
   MPI_Comm_rank(communicator, &thisMPIrank);
   MPI_Comm_size(communicator, &totalMPIranks);
-  std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << std::endl;
+  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << std::endl;
+
 }
 
 
@@ -23,10 +25,17 @@ void MPICommunicator::finalize()
 }
 
 
+void MPICommunicator::barrier()
+{
+
+  MPI_Barrier(communicator);
+
+}
+
+
 
 /// This function initializes the MPI communicators for global use, physical system, and the MC algorithm
-void initializeMPICommunication(SimulationInfo   simInfo, 
-                                MPICommunicator& PhysicalSystemComm, 
+void initializeMPICommunication(MPICommunicator& PhysicalSystemComm, 
                                 MPICommunicator& MCAlgorithmComm) 
 {
 
@@ -37,15 +46,14 @@ void initializeMPICommunication(SimulationInfo   simInfo,
 
   MPI_Init(NULL, NULL);
   GlobalComm.initialize(MPI_COMM_WORLD);
-  std::cout << "globalMPIrank = " << GlobalComm.thisMPIrank << std::endl;
-
 
   /// 2. Define the MPI communicators for PhysicalSystem
 
-  int* walkerLeadersID;
-  walkerLeadersID = new int[simInfo.numWalkers] {-1};
+  /// YingWai's note: Cannot use std::vector for walkerLeadersID because it does not match MPI_Group_incl's API
   //std::vector<int> walkerLeadersID;
   //walkerLeadersID.assign(simInfo.numWalkers, -1);
+  int* walkerLeadersID;
+  walkerLeadersID = new int[simInfo.numWalkers] {-1};
 
   /// exit if the total number of MPI ranks is not consistent with input info
   if (simInfo.numWalkers * simInfo.numMPIranksPerWalker != GlobalComm.totalMPIranks) { 
@@ -78,14 +86,15 @@ void initializeMPICommunication(SimulationInfo   simInfo,
     MPI_Comm_split(MPI_COMM_WORLD, walkerID, 0, &phys_sys_comm);
     PhysicalSystemComm.initialize(phys_sys_comm);
 
-    if (PhysicalSystemComm.totalMPIranks != simInfo.numMPIranksPerWalker) {
-      std::cout << "ERROR!! Number of MPI ranks in a physical system communicator != number of MPI ranks per walker specified in OWL input file! \n "
-                << "        PhysicalSystemComm (walker) ID: " << walkerID << "\n"
-                << "        Number of MPI ranks assigned : " 
-                << PhysicalSystemComm.totalMPIranks << "\n"
-                << "        OWL aborting...\n";
-      exit(7);
-    }
+    if (PhysicalSystemComm.thisMPIrank == 0)
+      if (PhysicalSystemComm.totalMPIranks != simInfo.numMPIranksPerWalker) {
+        std::cout << "ERROR!! Number of MPI ranks in a physical system communicator != number of MPI ranks per walker specified in OWL input file! \n "
+                  << "        PhysicalSystemComm (walker) ID: " << walkerID << "\n"
+                  << "        Number of MPI ranks assigned : " 
+                  << PhysicalSystemComm.totalMPIranks << "\n"
+                  << "        OWL aborting...\n";
+        exit(7);
+      }
 
   }
 
@@ -103,7 +112,7 @@ void initializeMPICommunication(SimulationInfo   simInfo,
 }
 
 
-void finalizeMPICommunication(SimulationInfo simInfo)
+void finalizeMPICommunication()
 {
 
   MPI_Finalize();

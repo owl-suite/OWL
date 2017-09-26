@@ -4,15 +4,16 @@
 #include "Ising2D.hpp"
 #include "RandomNumberGenerator.hpp"
 
-Ising2D::Ising2D(SimulationInfo& sim_info, const char* filename, int initial)
+//Ising2D::Ising2D(SimulationInfo& sim_info, const char* filename, int initial)
+Ising2D::Ising2D(const char* filename, int initial)
 {
 
-  printf("Simulation for 2D Ising model: %dx%d \n", sim_info.spinModelLatticeSize, sim_info.spinModelLatticeSize);
+  printf("Simulation for 2D Ising model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   int i, j;
   char c;
 
-  Size = sim_info.spinModelLatticeSize;
+  Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
 
   spin = new SpinDirection*[Size];
@@ -90,7 +91,7 @@ Ising2D::~Ising2D()
 }
 
 
-void Ising2D::readCommandLineOptions(SimulationInfo& sim_info)
+void Ising2D::readCommandLineOptions()
 { };
 
 

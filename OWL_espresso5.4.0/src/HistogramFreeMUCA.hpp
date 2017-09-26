@@ -11,7 +11,7 @@ class DiscreteHistogramFreeMUCA : public MonteCarloAlgorithm {
 
 public :
 
-  DiscreteHistogramFreeMUCA(int restart, const char* inputFile);
+  DiscreteHistogramFreeMUCA();
   ~DiscreteHistogramFreeMUCA();
 
   void run(PhysicalSystem* physical_system);

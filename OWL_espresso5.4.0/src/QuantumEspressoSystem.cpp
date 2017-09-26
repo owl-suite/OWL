@@ -6,16 +6,15 @@
 #include "OWL_DFT_Interface.hpp"
 
 //Constructor
-QuantumEspressoSystem::QuantumEspressoSystem(SimulationInfo& sim_info, 
-                                             MPICommunicator PhysicalSystemComm)
+QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)
 {
-  natom       = sim_info.numAtoms;  // TO DO: this should be cross-checked with QE input file!
+  natom       = simInfo.numAtoms;  // TO DO: this should be cross-checked with QE input file!
   oldEnergy   = 0.0;
   trialEnergy = 0.0;
   
   initializeObservables(1); // observable[0] = energy
 
-  readCommandLineOptions(sim_info);
+  readCommandLineOptions();
 
   //initializeQEMPICommunication();
   //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);         // MPI communicator handle for Fortran
@@ -56,13 +55,13 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
 }
 
 
-void QuantumEspressoSystem::readCommandLineOptions(SimulationInfo& sim_info)
+void QuantumEspressoSystem::readCommandLineOptions()
 {
   std::cout << "Reading the following command line for Quantum Espresso: \"" 
-            << sim_info.physicalSystemCommandLine << "\"" << std::endl;
+            << simInfo.physicalSystemCommandLine << "\"" << std::endl;
 
   char* pch;
-  pch = strtok (sim_info.physicalSystemCommandLine, " ");
+  pch = strtok (simInfo.physicalSystemCommandLine, " ");
   while (pch != NULL)
   {
     //printf ("%s\n", pch);

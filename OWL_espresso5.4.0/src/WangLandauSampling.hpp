@@ -8,15 +8,16 @@ class WangLandauSampling : public MonteCarloAlgorithm {
 
 public :
 
-  WangLandauSampling();
+  WangLandauSampling(PhysicalSystem* ps);
   ~WangLandauSampling();
 
-  void run(PhysicalSystem* physical_system);
+  void run();
 
 private :
 
+  PhysicalSystem* physical_system;
   Histogram h;
-
+  
 };
 
 

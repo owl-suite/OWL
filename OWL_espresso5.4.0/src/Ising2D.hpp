@@ -4,7 +4,7 @@
 #include "PhysicalSystemBase.hpp"
 #include "Globals.hpp"
 
-//class Ising2D : public PhysicalSystem<int> {
+
 class Ising2D : public PhysicalSystem {
 
 public :
@@ -16,14 +16,16 @@ public :
   void writeConfiguration(int = 0, const char* = NULL);
   void getObservables();
   void doMCMove();
-  //void undoMCMove();
   void acceptMCMove();
   void rejectMCMove();
 
+  void buildMPIConfigurationType();
 
 private :
 
-  enum SpinDirection {DOWN = -1, UP = +1};
+  // YingWai: too much trouble to MPI_send an enum... (Oct 10, 2017)
+  //enum SpinDirection {DOWN = -1, UP = +1};
+  typedef int SpinDirection;
 
   int Size;
   long LatticeSize;
@@ -34,11 +36,13 @@ private :
   SpinDirection CurType;
 
   // New configuration
-  SpinDirection** spin;          // 2D array because it is a 2D model
+  //SpinDirection** spin;          // 2D array because it is a 2D model
+  SpinDirection* spin;             // make it a flat array for MPI to operate on  (Oct 10, 2017)
   
-  bool firstTimeGetMeasures;
 
-  void GetMeasuresBruteForce();
+  // YingWai: these do not seem to be needed anymore (Oct 10, 2017)
+  //bool firstTimeGetMeasures {true};
+  //void GetMeasuresBruteForce();
 
 };
 

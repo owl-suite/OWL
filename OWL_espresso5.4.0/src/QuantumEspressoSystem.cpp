@@ -317,3 +317,8 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
 }
 
 
+void QuantumEspressoSystem::buildMPIConfigurationType()
+{
+
+}
+

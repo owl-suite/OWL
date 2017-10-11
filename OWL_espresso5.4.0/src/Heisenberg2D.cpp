@@ -320,3 +320,8 @@ void Heisenberg2D::rejectMCMove()
     observables[i] = oldObservables[i];
 }
 
+
+void Heisenberg2D::buildMPIConfigurationType()
+{
+}
+

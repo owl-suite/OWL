@@ -17,7 +17,7 @@ public :
   // Destructor
   virtual ~MonteCarloAlgorithm() {}
 
-  virtual void run(PhysicalSystem*) = 0;
+  virtual void run() = 0;
 
   // Should they be set directly by I/O? (Now set through constructor)
   int restartFlag {0};
@@ -50,10 +50,10 @@ class Metropolis : public MonteCarloAlgorithm {
 
 public :
 
-  Metropolis() {}
+  Metropolis(PhysicalSystem* ps) {}
   ~Metropolis() {}
 
-  void run(PhysicalSystem*) {}
+  void run() {}
 
 };
 

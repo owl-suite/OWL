@@ -6,22 +6,23 @@
 #include "Matrix.hpp"
 #include "Globals.hpp"
 
-//class QuantumEspressoSystem : public PhysicalSystem<double> {
 class QuantumEspressoSystem : public PhysicalSystem {
 
 public:
 
+  // Constructor
   QuantumEspressoSystem(MPICommunicator PhysicalSystemComm);
+  // Destructor
   ~QuantumEspressoSystem();
 
   void readCommandLineOptions();
   void writeConfiguration(int = 0, const char* = NULL);
   void getObservables();
   void doMCMove();
-  //void undoMCMove();
   void acceptMCMove();
   void rejectMCMove();
 
+  void buildMPIConfigurationType();
 
 private:
 

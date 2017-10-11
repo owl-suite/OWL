@@ -28,13 +28,13 @@ int main (int argc, char *argv[]) {
   setSimulation(physical_system, MC, physicalSystemComm, mcAlgorithmComm);
 
   // Main calculations
-  MC -> run(physical_system); 
-
-  // Finalize
-  finalizeMPICommunication();
+  MC -> run(); 
 
   delete physical_system;
   delete MC;
+
+  // Finalize MPI
+  finalizeMPICommunication();
 
   std::cout << "\nSimulation finished :)\n";
   return 0;

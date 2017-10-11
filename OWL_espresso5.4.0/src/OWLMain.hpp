@@ -51,45 +51,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
                    MPICommunicator      mcAlgorithmComm)
 {
   
-  // Determine MC algorithm
-  // 1. Metropolis sampling
-  // 2. Wang-Landau sampling
-  // 3. Multicanonical sampling (MUCA)
-  // 4. Parallel tempering
-  // 5. Replica-Exchange Wang-Landau sampling (REWL)
-  // 6. Histogram-free Multicanonical sampling (discrete energy version)
-  switch (simInfo.algorithm) {
-    case 1 :
-      MC = new Metropolis();
-      break;
-
-    case 2 :
-      //MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
-      MC = new WangLandauSampling();
-      break;
-
-    case 3 :
-      MC = new MulticanonicalSampling();
-      break;
-
-    case 4 :
-      std::cout << "Parallel tempering not yet implemented\n";
-      exit(10);
-      break;
-
-    case 5 :
-      MC = new ReplicaExchangeWangLandau( physicalSystemComm, mcAlgorithmComm );
-      break;
-      
-    case 6 :
-      MC = new DiscreteHistogramFreeMUCA();
-      break;
-      
-    default :
-      std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
-  }
-
-  // Physical System #####
+  // Determine Physical System 
   //  1: QuantumExpresso
   //  2: LSMS  
   //  3: Heisenberg 2D
@@ -116,6 +78,44 @@ void setSimulation(PhysicalSystem*      &physical_system,
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";
       exit(10);
+  }
+
+  // Determine MC algorithm
+  //  1. Metropolis sampling
+  //  2. Wang-Landau sampling
+  //  3. Multicanonical sampling (MUCA)
+  //  4. Parallel tempering
+  //  5. Replica-Exchange Wang-Landau sampling (REWL)
+  //  6. Histogram-free Multicanonical sampling (discrete energy version)
+  switch (simInfo.algorithm) {
+    case 1 :
+      MC = new Metropolis(physical_system);
+      break;
+
+    case 2 :
+      //MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
+      MC = new WangLandauSampling(physical_system);
+      break;
+
+    case 3 :
+      MC = new MulticanonicalSampling(physical_system);
+      break;
+
+    case 4 :
+      std::cout << "Parallel tempering not yet implemented\n";
+      exit(10);
+      break;
+
+    case 5 :
+      MC = new ReplicaExchangeWangLandau( physical_system, physicalSystemComm, mcAlgorithmComm );
+      break;
+      
+    case 6 :
+      MC = new DiscreteHistogramFreeMUCA(physical_system);
+      break;
+      
+    default :
+      std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
   }
 
 }

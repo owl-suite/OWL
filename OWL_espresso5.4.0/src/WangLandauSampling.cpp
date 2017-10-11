@@ -6,10 +6,11 @@
 
 
 // Constructor
-WangLandauSampling::WangLandauSampling() : h(simInfo.restartFlag, simInfo.MCInputFile)
+WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile)
 {
 
   printf("Simulation method: Wang-Landau sampling\n");
+  physical_system = ps;
 
 }
 
@@ -23,7 +24,7 @@ WangLandauSampling::~WangLandauSampling()
 }
 
 
-void WangLandauSampling::run(PhysicalSystem* physical_system)
+void WangLandauSampling::run()
 {
 
   //double currentTime, lastBackUpTime;

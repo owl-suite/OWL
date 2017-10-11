@@ -5,22 +5,31 @@
 #include "Histogram.hpp"
 #include "Communications.hpp"
 
+/*
+  ReplicaExchange class:
 
+  This class implements replica-exchange Wang-Landau sampling (REWL). 
+  Reference: Phys. Rev. Lett. 110, 210603 (2013)
+*/
+
+
+// TO DO: distinguish WalkerType and WindowType
 typedef int WalkerIDType;
-typedef int WindowIDType;
+typedef int WindowIDype;
 
 
 class ReplicaExchangeWangLandau : public MonteCarloAlgorithm {
 
 public :
   
-  ReplicaExchangeWangLandau(MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm);
+  ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm);
   ~ReplicaExchangeWangLandau();
 
-  void run(PhysicalSystem* physical_system);
+  void run();
 
 private :
 
+  PhysicalSystem* physical_system;
   Histogram h;
 
   /// YingWai's note: (Sep 17, 2017)
@@ -40,6 +49,7 @@ private :
   int partnerID;
   int partnerWindow;
 
+  int replicaExchangeInterval;
   int swapDirection;
 
   int upExchanges;
@@ -47,14 +57,30 @@ private :
 
 
   // Private member functions:
+  bool replicaExchange();                                    // Behave like a doMCMove; only propose a new energy and a new configuration
   void assignSwapPartner();
-  void swapEnergy(double &energyForSwap);
-  bool determineAcceptance(double myDOSRatio);
-  void swapConfiguration(double configForSwap[], int numElements);
- 
+  void exchangeEnergy(ObservableType &energyForSwap);        // Swap energy with partner; energyForSwap will be overwritten
+  bool determineAcceptance(double localDOSRatio);
+  
+  //template <typename T>
+  //void exchangeConfiguration(T configForSwap[], int numElements);  
+  void exchangeConfiguration(void* ptrToConfig, int numElements, MPI_Datatype MPI_config_type);
+
   void readREWLInputFile(const char* fileName); 
 
 };
+
+
+/*
+template <typename T>
+void ReplicaExchangeWangLandau::exchangeConfiguration(T configForSwap[], int numElements)
+{
+
+  if (partnerID != -1)
+    REWLComm.swapVector(configForSwap, numElements, partnerID);
+
+}
+*/
 
 
 #endif

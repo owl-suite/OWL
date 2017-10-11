@@ -34,6 +34,16 @@ void MPICommunicator::barrier()
 
 
 
+void MPICommunicator::swapVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int partner)
+{
+ 
+  MPI_Status status;
+  MPI_Sendrecv_replace(data_ptr, nElements, MPI_config_type, partner, 1, partner, 1, communicator, &status);
+
+}
+
+
+
 /// This function initializes the MPI communicators for global use, physical system, and the MC algorithm
 void initializeMPICommunication(MPICommunicator& PhysicalSystemComm, 
                                 MPICommunicator& MCAlgorithmComm) 

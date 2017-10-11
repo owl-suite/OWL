@@ -5,10 +5,11 @@
 
 
 // Constructor
-MulticanonicalSampling::MulticanonicalSampling() : h(simInfo.restartFlag, simInfo.MCInputFile)   
+MulticanonicalSampling::MulticanonicalSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile)   
 {
 
   printf("Simulation method: Multicanonical (MUDA) sampling\n");
+  physical_system = ps;
 
 }
 
@@ -22,7 +23,7 @@ MulticanonicalSampling::~MulticanonicalSampling()
 }
 
 
-void MulticanonicalSampling::run(PhysicalSystem* physical_system)
+void MulticanonicalSampling::run()
 {
 
   //double currentTime, lastBackUpTime;

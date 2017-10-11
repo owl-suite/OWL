@@ -17,10 +17,10 @@ public :
   void writeConfiguration(int = 0, const char* = NULL);
   void getObservables();
   void doMCMove();
-  //void undoMCMove();
   void acceptMCMove();
   void rejectMCMove();
 
+  void buildMPIConfigurationType();
 
 private :
 

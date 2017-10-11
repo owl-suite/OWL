@@ -19,17 +19,14 @@ public:
   virtual ~PhysicalSystem() {}  
 
   // Functions:
-  //virtual void readCommandLineOptions(SimulationInfo&) = 0;
   virtual void readCommandLineOptions() = 0;
   virtual void writeConfiguration(int = 0, const char* = NULL) = 0;
   virtual void getObservables() = 0;
   virtual void doMCMove() = 0;
-  //virtual void undoMCMove() = 0;
   virtual void acceptMCMove() = 0;
-  virtual void rejectMCMove() = 0;
-
-  // MPI Communicator for one energy calculation
-  //MPICommunicator PhysicalSystemCommunicator;
+  virtual void rejectMCMove() = 0;        // restore old observables and old configurations to current ones
+  
+  virtual void buildMPIConfigurationType() = 0;
 
   // Parameters common to (needed by) all models:
   int numObservables;
@@ -37,6 +34,18 @@ public:
   ObservableType* oldObservables;
   //double* observables;
   //double* oldObservables;
+
+  // MPI derived type to store configuration for replica exchange
+  MPI_Datatype MPI_ConfigurationType;
+  void* pointerToConfiguration;
+
+  // For systems where energy is calculated from the difference with the previous configuration, 
+  // this flag will cause the energy to be calculated from scratch again
+  // Useful for initialization and after replica exchange
+  bool getObservablesFromScratch {true};        
+
+  // MPI Communicator for one energy calculation
+  //MPICommunicator PhysicalSystemCommunicator;
 
 
 protected:

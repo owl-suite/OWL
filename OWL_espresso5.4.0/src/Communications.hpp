@@ -26,6 +26,8 @@ public :
   template<typename T> void sendScalar(T &data, int partner);
   template<typename T> void recvScalar(T &data, int partner);
 
+  void swapVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int partner);
+
 };
 
 

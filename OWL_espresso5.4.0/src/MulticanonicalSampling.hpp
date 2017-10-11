@@ -8,13 +8,14 @@ class MulticanonicalSampling : public MonteCarloAlgorithm {
 
 public :
 
-  MulticanonicalSampling();
+  MulticanonicalSampling(PhysicalSystem* ps);
   ~MulticanonicalSampling();
 
-  void run(PhysicalSystem* physical_system);
+  void run();
 
 private :
 
+  PhysicalSystem* physical_system;
   Histogram h;
 
 };

@@ -7,10 +7,12 @@
 #include "RandomNumberGenerator.hpp"
 
 // Constructor
-ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm) : h(simInfo.restartFlag, simInfo.MCInputFile)
+ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm) : h(simInfo.restartFlag, simInfo.MCInputFile)
 {
 
   std::cout << "Simulation method: Replica-Exchange Wang-Landau sampling\n";
+
+  physical_system = ps;
 
   /// Pass MPI communicators from arguments
   PhysicalSystemComm = PhySystemComm;
@@ -44,13 +46,211 @@ ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(MPICommunicator PhySystemCo
 ReplicaExchangeWangLandau::~ReplicaExchangeWangLandau()
 {
 
-  //printf("Exiting ReplicaExchangeWangLandau class... \n");
-  //delete physical_system;
+  if (GlobalComm.thisMPIrank == 0)
+    printf("Exiting ReplicaExchangeWangLandau class... \n");
+
+}
+
+/////////////////////////////
+// Public member functions //
+/////////////////////////////
+
+void ReplicaExchangeWangLandau::run()
+{
+
+  //double currentTime, lastBackUpTime;
+  currentTime = lastBackUpTime = MPI_Wtime();
+  if (GlobalComm.thisMPIrank == 0)
+    printf("Running ReplicaExchangeWangLandau...\n");
+
+  char fileName[51];
+
+  // Find the first energy that falls within the WL energy range    
+  while (!acceptMove) {
+    physical_system -> doMCMove();
+    physical_system -> getObservables();
+    physical_system -> acceptMCMove();    // always accept the move to push the state forward
+    acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
+  }
+
+  // Always accept the first energy if it is within range
+  h.updateHistogramDOS(physical_system -> observables[0]);
+
+  // Write out the energy
+  if (PhysicalSystemComm.thisMPIrank == 0) {
+    sprintf(fileName, "energyLatticePos_walker%05d.dat", REWLComm.thisMPIrank);
+    physical_system -> writeConfiguration(0, fileName);
+    printf("Walker %05d: Start energy = %6.3f\n", REWLComm.thisMPIrank, physical_system -> observables[0]);
+  }
+
+
+//-------------- End initialization --------------//
+
+// WL procedure starts here
+  double MaxModFactor;
+  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator)    ;
+
+  //while (h.modFactor > h.modFactorFinal) {
+  while (MaxModFactor > h.modFactorFinal) {
+    h.histogramFlat = false;
+
+    while (!(h.histogramFlat)) {
+      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
+
+      //========== One MC move update ========== //
+
+        physical_system -> doMCMove();
+        physical_system -> getObservables();
+
+        // check if the energy falls within the energy range
+        if ( h.checkEnergyInRange(physical_system -> observables[0]) ) {
+          // determine WL acceptance
+          if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
+                   h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
+            acceptMove = true;
+          else
+            acceptMove = false;
+        }
+        else        
+          acceptMove = false;
+
+        if (acceptMove) {
+           // Update histogram and DOS with trialEnergy
+           h.updateHistogramDOS(physical_system -> observables[0]);
+           h.acceptedMoves++;
+ 
+           physical_system -> acceptMCMove();
+        }
+        else {
+           physical_system -> rejectMCMove();
+
+           // Update histogram and DOS with oldEnergy
+           h.updateHistogramDOS(physical_system -> oldObservables[0]);
+           h.rejectedMoves++;
+        }
+
+      //========== One MC move update ========== //
+
+      //====== One Replica-exchange update ======//
+
+        if (MCSteps % replicaExchangeInterval == 0) {
+          if (replicaExchange()) {
+            physical_system -> getObservables();
+            h.updateHistogramDOS(physical_system -> observables[0]);
+            h.acceptedMoves++;
+            physical_system -> acceptMCMove();
+          }
+        }
+
+      //====== One Replica-exchange update ======//
+
+        // Write restart files at interval
+        currentTime = MPI_Wtime();
+        if (PhysicalSystemComm.thisMPIrank == 0) {
+          if (currentTime - lastBackUpTime > 300) {
+            sprintf(fileName, "hist_dos_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
+            h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
+            sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
+            physical_system -> writeConfiguration(1, fileName);
+            lastBackUpTime = currentTime;
+          }
+        }
+      }
+      h.totalMCsteps += h.histogramCheckInterval;
+      //h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
+
+      // Check histogram flatness
+      h.histogramFlat = h.checkHistogramFlatness();
+
+      // Refresh histogram if needed
+      //if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
+      //  h.refreshHistogram();
+
+      // Get the maximum ModFactor among all processors
+      MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+    }
+
+    if (GlobalComm.thisMPIrank == 0) 
+      printf("Number of iterations performed = %d\n", h.iterations);
+    
+      // Also write restart file here 
+    if (PhysicalSystemComm.thisMPIrank == 0) {
+      sprintf(fileName, "hist_dos_iteration%02d_walker%05d.dat", h.iterations, REWLComm.thisMPIrank);
+      h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
+      sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
+      physical_system -> writeConfiguration(1, fileName);
+    }
+
+    // Go to next iteration
+    h.modFactor /= h.modFactorReducer;
+    h.resetHistogram();
+    h.iterations++;
+  }
+
+  // Write out data at the end of the simulation
+  sprintf(fileName, "dos_walker%05d.dat", REWLComm.thisMPIrank);
+  h.writeNormDOSFile(fileName, REWLComm.thisMPIrank);
+  sprintf(fileName, "hist_dos_final_walker%05d.dat", REWLComm.thisMPIrank);
+  h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
+
+}
+
+//////////////////////////////
+// Private member functions //
+//////////////////////////////
+
+bool ReplicaExchangeWangLandau::replicaExchange()
+{
+
+  double localDOSRatio             {0.0};
+  bool   replicaExchangeAcceptance {false};
+  ObservableType energyForExchange = physical_system -> observables[0];
+  partnerID = -1;
+
+  // Everyone finds its swap-partner
+  assignSwapPartner();
+  //printf("Walker %05d: partnerID = %05d\n", REWLComm.thisMPIrank, partnerID);
+
+  if (partnerID != -1) {
+    // Exchange energy with partner
+    exchangeEnergy(energyForExchange);
+
+    // If the energy received is within my energy range,
+    // calculate DOS ratio from my histogram
+    if ( h.checkEnergyInRange(energyForExchange) )
+      localDOSRatio = exp( h.getDOS(physical_system -> observables[0]) - h.getDOS(energyForExchange) );
+    else localDOSRatio = 0.0;
+    
+    // Exchange DOS ratios and calculate acceptance probability
+    replicaExchangeAcceptance = determineAcceptance(localDOSRatio);
+
+    // Exchange configurations
+    if (replicaExchangeAcceptance) {
+
+      physical_system -> observables[0] = energyForExchange;
+
+      exchangeConfiguration(physical_system -> pointerToConfiguration, 1, physical_system -> MPI_ConfigurationType );
+
+      // Up to this point, energy = physical_system -> observables[0] and the configuration are new
+      // 1. other observables still need to be calculated, if needed
+      // 2. calculate energy from scratch next time
+
+    }
+    else {
+      //what to do when a replica exchange move is rejected?
+    }
+
+    // Performance statistics
+  
+  }
+
+  //REWLComm.barrier();
+
+  return replicaExchangeAcceptance;
 
 }
 
 
-// Private member functions
 void ReplicaExchangeWangLandau::assignSwapPartner()
 {
 
@@ -99,7 +299,7 @@ void ReplicaExchangeWangLandau::assignSwapPartner()
 }
 
 
-void ReplicaExchangeWangLandau::swapEnergy(double &energyForSwap)
+void ReplicaExchangeWangLandau::exchangeEnergy(ObservableType &energyForSwap)
 {
 
   if (partnerID != -1)       // Swap energy with partner  
@@ -134,123 +334,12 @@ bool ReplicaExchangeWangLandau::determineAcceptance(double myDOSRatio)
 }
 
 
-void ReplicaExchangeWangLandau::swapConfiguration(double evecsForSwap[], int numElements)
+void ReplicaExchangeWangLandau::exchangeConfiguration(void* ptrToConfig, int numElements, MPI_Datatype MPI_config_type)
 {
-  if (partnerID != -1)
-    REWLComm.swapVector(evecsForSwap, numElements, partnerID);
-
-}
-
-
-// Public member functions
-
-void ReplicaExchangeWangLandau::run(PhysicalSystem* physical_system)
-{
-
-  //double currentTime, lastBackUpTime;
-  currentTime = lastBackUpTime = MPI_Wtime();
-  if (GlobalComm.thisMPIrank == 0)
-    printf("Running ReplicaExchangeWangLandau...\n");
-
-  char fileName[51];
-
-  // Find the first energy that falls within the WL energy range    
-  while (!acceptMove) {
-    physical_system -> doMCMove();
-    physical_system -> getObservables();
-    physical_system -> acceptMCMove();    // always accept the move to push the state forward
-    acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
+  if (partnerID != -1) {
+    REWLComm.swapVector(ptrToConfig, numElements, MPI_config_type, partnerID);
+    physical_system -> getObservablesFromScratch = true;
   }
-
-  // Always accept the first energy if it is within range
-  h.updateHistogramDOS(physical_system -> observables[0]);
-
-  // Write out the energy
-  if (GlobalComm.thisMPIrank == 0) 
-    physical_system -> writeConfiguration(0, "energyLatticePos.dat");
-
-//-------------- End initialization --------------//
-
-// WL procedure starts here
-  while (h.modFactor > h.modFactorFinal) {
-    h.histogramFlat = false;
-
-    while (!(h.histogramFlat)) {
-      for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
-
-        physical_system -> doMCMove();
-        physical_system -> getObservables();
-
-        // check if the energy falls within the energy range
-        if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
-          acceptMove = false;
-        else {
-          // determine WL acceptance
-          if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
-                   h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
-            acceptMove = true;
-          else
-            acceptMove = false;
-        }
-
-        if (acceptMove) {
-           // Update histogram and DOS with trialEnergy
-           h.updateHistogramDOS(physical_system -> observables[0]);
-           h.acceptedMoves++;        
- 
-           physical_system -> acceptMCMove();
-        }
-        else {
-           physical_system -> rejectMCMove();
-
-           // Update histogram and DOS with oldEnergy
-           h.updateHistogramDOS(physical_system -> oldObservables[0]);
-           h.rejectedMoves++;
-        }
-        h.totalMCsteps++;
-
-        // Write restart files at interval
-        currentTime = MPI_Wtime();
-        if (PhysicalSystemComm.thisMPIrank == 0) {
-          if (currentTime - lastBackUpTime > 300) {
-            sprintf(fileName, "hist_dos_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
-            h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
-            sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
-            physical_system -> writeConfiguration(1, fileName);
-            lastBackUpTime = currentTime;
-          }
-        }
-      }
-      //h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-
-      // Check histogram flatness
-      h.histogramFlat = h.checkHistogramFlatness();
-      //if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
-      //  h.refreshHistogram();
-    }
-
-    if (GlobalComm.thisMPIrank == 0)
-      printf("Number of iterations performed = %d\n", h.iterations);
-    
-      // Also write restart file here 
-    if (PhysicalSystemComm.thisMPIrank == 0) {
-      sprintf(fileName, "hist_dos_iteration%02d_walker%05d.dat", h.iterations, REWLComm.thisMPIrank);
-      h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
-      sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
-      physical_system -> writeConfiguration(1, fileName);
-    }
-
-    // Go to next iteration
-    h.modFactor /= h.modFactorReducer;
-    h.resetHistogram();
-    h.iterations++;
-  }
-
-  // Write out data at the end of the simulation
-  sprintf(fileName, "dos_walker%05d.dat", REWLComm.thisMPIrank);
-  h.writeNormDOSFile(fileName, REWLComm.thisMPIrank);
-  sprintf(fileName, "hist_dos_final_walker%05d.dat", REWLComm.thisMPIrank);
-  h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
 
 }
 
@@ -287,6 +376,11 @@ void ReplicaExchangeWangLandau::readREWLInputFile(const char* fileName)
           if (key == "overlap") {
             lineStream >> overlap;
             //std::cout << "REWL: overlap = " << overlap << std::endl;
+            continue;
+          }
+          if (key == "replicaExchangeInterval") {
+            lineStream >> replicaExchangeInterval;
+            //std::cout << "REWL: replicaExchangeInterval = " << replicaExchangeInterval << std::endl;
             continue;
           }
   

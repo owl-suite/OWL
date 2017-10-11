@@ -16,35 +16,36 @@ RngSeed  183083
 # 4: Ising 2D
 # 5: ...
 
-PhysicalSystem  1
-PhysicalSystemCommandLine -i input -nk 5
+PhysicalSystem  4
+#PhysicalSystemCommandLine -i input -nk 5
 
 ##### Lattice size for Heisenberg and Ising models #####
 
-#SpinModelLatticeSize  4
+SpinModelLatticeSize  4
 
 ##### Number of atoms in Quantum Espresso #####
 
-QENumberOfAtoms 5
+#QENumberOfAtoms 5
 
 
 ##### Monte Carlo algorithm #####
-# 1. Metropolis sampling
-# 2. Wang-Landau sampling
-# 3. Multicanonical sampling (MUCA)
-# 4. Parallel tempering
+# 1. Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. Parallel Tempering
 # 5. Replica-Exchange Wang-Landau (REWL)
+# 6. Population Annealing
 
-Algorithm  2
+Algorithm  5
 
 
 ##### Input file for Wang-Landau sampling #####
 
-MCInputFile  wl.input
+MCInputFile  rewl.input
 
 
 ##### Information for MPI rank distribution #####
 
-NumberOfRandomWalkers      1
-NumberOfMPIranksPerWalker  5
+NumberOfRandomWalkers      3
+NumberOfMPIranksPerWalker  1
 

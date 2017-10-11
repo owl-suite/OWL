@@ -8,3 +8,7 @@ histogramRefreshInterval  1000000
 Emin  -32
 Emax  32
 binSize   1
+numberOfWindows  3
+numberOfWalkersPerWindow  1
+overlap  0.5
+replicaExchangeInterval  100

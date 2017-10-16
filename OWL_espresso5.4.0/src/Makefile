@@ -7,7 +7,7 @@ EXECUTABLE = owl.x
 
 ### C++ Compiler: (For NERSC, be sure to load hdf5-parallel, instead of darshan)
 CXX = mpicxx  #not compatible with NERSC
-#CXX = CC 
+#CXX = CC # Compatible flag for NERSC
 ### Compiler Flags:
 CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/opt/local/include/openmpi-devel-gcc6/
 #CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/

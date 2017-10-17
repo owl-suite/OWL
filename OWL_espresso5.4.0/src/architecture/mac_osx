@@ -1,0 +1,19 @@
+### Define C++ compiler and flags for different machines
+
+### C++ Compiler:
+CXX = mpicxx
+
+
+### Compiler Flags:
+# For debugging:
+CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/opt/local/include/openmpi-devel-gcc6/
+# For production:
+#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
+
+
+### Linking flags are compiler dependent
+### For GNU compiler:
+LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+
+### For Intel compiler:
+#LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib

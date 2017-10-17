@@ -3,21 +3,12 @@
 QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 
-EXECUTABLE = owl.x
+EXECUTABLE = owl
 
-### C++ Compiler: (For NERSC, be sure to load hdf5-parallel, instead of darshan)
-CXX = mpicxx  #not compatible with NERSC
-#CXX = CC # Compatible flag for NERSC
-### Compiler Flags:
-CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/opt/local/include/openmpi-devel-gcc6/
-#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
-
-### Linking flags are compiler dependent
-### For GNU compiler:
-LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
-
-### For Intel compiler:
-#LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+### Define C++ compiler and flags for different machines
+include architecture/olcf_eos
+#include architecture/nersc
+#include architecture/mac_osx
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90 .cpp

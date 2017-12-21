@@ -6,7 +6,8 @@ include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 EXECUTABLE = owl
 
 ### Define C++ compiler and flags for different machines
-include architecture/olcf_eos
+include architecture/olcf_titan
+#include architecture/olcf_eos
 #include architecture/nersc
 #include architecture/mac_osx
 

@@ -1,15 +1,19 @@
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
 #include "InputOutput.hpp"
-//#include "RandomNumberGenerator.hpp"
 
 
 // Input file should be specified as the first argument in command line
 void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
   
   std::cout << "Reading main input file: " << FileName << std::endl;
+  int length = strlen(FileName);
+  sim_info.MCInputFile = new char[length +1]();
+  strncpy(sim_info.MCInputFile, FileName, length); 
+  //std::cout << "sim_info.MCInputFile set to be: " << sim_info.MCInputFile << std::endl;
 
   std::ifstream inputFile(FileName);
   std::string line, key;
@@ -29,80 +33,54 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
             //std::cout << "Simulation Info: restartFlag = " << sim_info.restartFlag << std::endl;
             continue;
           }
-          if (key == "PhysicalSystem") {
+          else if (key == "PhysicalSystem") {
             lineStream >> sim_info.system;
             //std::cout << "Simulation Info: system = " << sim_info.system << std::endl;
             continue;
           }
-          if (key == "PhysicalSystemCommandLine") {
+          else if (key == "PhysicalSystemCommandLine") {
   //          lineStream >> sim_info.physicalSystemCommandLine;
             lineStream.getline(sim_info.physicalSystemCommandLine, 256);
             //std::cout << "Simulation Info: command line = " << sim_info.physicalSystemCommandLine << std::endl;
             continue;
           }
-          if (key == "Algorithm") {
+          else if (key == "Algorithm") {
             lineStream >> sim_info.algorithm;
             //std::cout << "Simulation Info: algorithm = " << sim_info.algorithm << std::endl;
             continue;
           }
-          if (key == "RngSeed"){
+          else if (key == "RngSeed"){
             lineStream >> sim_info.rngSeed;
             //std::cout << "Random number seed = " << sim_info.rngSeed << std::endl;
             continue;
           }
-          if (key == "SpinModelLatticeSize") {
+          else if (key == "SpinModelLatticeSize") {
             lineStream >> sim_info.spinModelLatticeSize;
             //std::cout << "Simulation Info: lattice size = " << sim_info.spinModelLatticeSize << std::endl;
             continue;
           }
-          if (key == "QENumberOfAtoms") {
+          else if (key == "QENumberOfAtoms") {
             lineStream >> sim_info.numAtoms;
             //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << sim_info.numAtoms << std::endl;
             continue;
           }
-          if (key == "MCInputFile") {
-            lineStream >> sim_info.MCInputFile;
-            //std::cout << "Simulation Info: Input file for MC simulation = " << sim_info.MCInputFile << std::endl;
-            continue;
-          }
-          if (key == "NumberOfRandomWalkers") {
+          else if (key == "NumberOfRandomWalkers") {
             lineStream >> sim_info.numWalkers;
             //std::cout << "Simulation Info: Number of random walkers = " << sim_info.numWalkers << std::endl;
             continue;
           }
-          if (key == "NumberOfMPIranksPerWalker") {
-            lineStream >> sim_info.numMPIranksPerWalker;
+          else if (key == "NumberOfMPIranksPerWalker") {
+            lineStream >> simInfo.numMPIranksPerWalker;
             //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << sim_info.numMPIranksPerWalker << std::endl;
             continue;
           }
-  
-          // The following are inputs specific to different SimulationInfo parameters
-          //switch (sim_info.system) {
-  
-          //  case 1 :
-          //    std::cout << "Now read inputs for Quantum Espresso system." << std::endl;
-          //    // specify QE input files
-          //    break;
-  
-          //  case 2 :
-          //    std::cout << "Now read inputs for LSMS system." << std::endl;
-          //    // specify LSMS input files
-          //    break;
-   
-          //  case 3 :
-          //    std::cout << "Now read inputs for a Heisenberg 2D system." << std::endl;
-          //    break;
-  
-          //  case 4 :
-          //    std::cout << "Now read inputs for an Ising 2D system." << std::endl;
-          //    break;
-  
-          //  default:
-          //    {;}
-          //}
-          //std::cout << "Unknown key: " << key << "  in input file " << FileName << std::endl;
-          
+          else {
+            //std::cout << "Unknown key: " << key << "  in input file " << FileName << std::endl;
+            continue;
+          }
+        
         }
+
       }
     }
   

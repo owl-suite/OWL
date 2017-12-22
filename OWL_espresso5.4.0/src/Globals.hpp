@@ -17,7 +17,8 @@ struct SimulationInfo
   int  algorithm             {2};
   int  system                {2};
   int  rngSeed               {-1};
-  char MCInputFile[255]      {};
+  //char MCInputFile[255]      {};
+  char* MCInputFile = NULL;
 
   // MPI info
   int  numWalkers            {1};

@@ -72,7 +72,7 @@ void displaceAnAtom(Matrix<double> &atom_positions)
 
 
   // Define maximum displacement magnitude in Angstrom  (should be moved to .h later)
-  double dr_max = 0.1;
+  double dr_max = 0.05;
 
   // Displacement
   double dr = 0.0;
@@ -106,7 +106,7 @@ void stretchCrystalCell(Matrix<double> &cell_vectors)
   //  v    a_z b_z c_z
 
   // Define maximum stretching magnitude in Angstrom  (should be moved to .h later)
-  double dL_max = 0.1;
+  double dL_max = 0.05;
 
   // Choose a vector randomly to stretch
   int ranLatticeVector = rng() % cell_vectors.n_row() ;
@@ -160,7 +160,7 @@ void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors
   std::cout << "nRow = " << atom_positions.n_row() << std::endl;
   std::cout << "nCol = " << atom_positions.n_col() << std::endl;
   std::cout << "lDim = " << atom_positions.l_dim() << std::endl;
-  std::cout << " i    atom_positions " << std::endl;
+  //std::cout << " i    atom_positions " << std::endl;
 
   //Choose a MC move to perform
   int r = rng() % 2;

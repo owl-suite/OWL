@@ -1,0 +1,89 @@
+##########################################
+##   New / restarted simulation?        ##
+##########################################
+# 0: New simulation
+# 1: Restarted simulation
+RestartFlag  0
+
+
+##########################################
+##   Seed for random number generator   ##
+##########################################
+
+RngSeed  183083
+
+
+##########################################
+##   Physical System                    ##
+##########################################
+# 1: QuantumExpresso
+# 2: LSMS
+# 3: Heisenberg 2D
+# 4: Ising 2D
+# 5: ATAT
+PhysicalSystem  1
+
+
+##### Inputs for PhysicalSystem=1 (Quantum Espresso) #####
+
+# Command line options for QE
+PhysicalSystemCommandLine -i input -nk 5
+
+# Number of atoms in a unit cell
+QENumberOfAtoms 5
+
+
+##### Inputs for PhysicalSystem=3,4 (Heisenberg and Ising models) #####
+
+# Lattice size for spin models
+#SpinModelLatticeSize  4
+
+
+
+##########################################
+##   Monte Carlo algorithm              ##
+##########################################
+# 1. (TODO) Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. (TODO) Parallel Tempering
+# 5. Replica-Exchange Wang-Landau (REWL)
+# 6. (TODO) Population Annealing 
+Algorithm  2
+
+
+##### Inputs for Wang-Landau sampling #####
+
+dim                       1
+flatnessCriterion         0.6 
+modFactor                 1.000 
+modFactorFinal            1.25000000e-06
+modFactorReducer          2.000 
+histogramCheckInterval    10000 
+histogramRefreshInterval  1000000
+Emin                      -350
+Emax                      -320
+binSize                   1
+
+##### Inputs for Replica-Exchange Wang-Landau sampling #####
+
+#dim                       1
+#flatnessCriterion         0.6 
+#modFactor                 1.000 
+#modFactorFinal            1.25000000e-06
+#modFactorReducer          2.000 
+#histogramCheckInterval    10000 
+#histogramRefreshInterval  1000000
+#Emin                      -350
+#Emax                      -320
+#binSize                   1
+#numberOfWindows           3
+#numberOfWalkersPerWindow  1
+#overlap                   0.5
+#replicaExchangeInterval   100
+
+##### Information for MPI rank distribution #####
+
+NumberOfRandomWalkers      1
+NumberOfMPIranksPerWalker  5
+

@@ -662,7 +662,7 @@ void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
 void Histogram::readMCInputFile(char const* fileName)
 {
  
-  std::cout << "Reading REWL input file: " << fileName << std::endl;
+  std::cout << "Reading Monte Carlo input file: " << fileName << std::endl;
 
   std::ifstream inputFile(fileName);   // how to check if a file stream is initialized?
   std::string line, key;

@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -q batch
+#PBS -A mat020
+#PBS -m abe
+#PBS -N owl
+#PBS -j oe
+#PBS -l walltime=1:00:00,nodes=5
+
+cd $PBS_O_WORKDIR
+echo --- Running in `pwd`
+export NP=5
+export NPPNODE=1
+export OMP_NUM_THREADS=1
+
+#module list
+echo $MODULESHOME
+source $MODULESHOME/init/bash
+
+export owlexe=$HOME/OWL-QE/OWL_espresso5.4.0/src/owl
+#export owlexe=$HOME/OWL-QE/OWL_espresso5.4.0/src/owl_gpu
+
+echo "--- Number of MPI tasks      = ", $NP
+echo "--- Number of tasks per node = ", $NPPNODE
+echo "--- Number of openmp threads = ", $OMP_NUM_THREADS
+echo "--- Using executable ", $owlexe
+echo --- START `date`
+
+aprun -n ${NP} -N ${NPPNODE} -d ${OMP_NUM_THREADS} ${owlexe} owl.input > owl.output
+
+echo --- END `date`
+

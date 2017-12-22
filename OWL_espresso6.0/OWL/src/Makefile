@@ -1,20 +1,21 @@
 # Makefile for OWL
-QUANTUM_ESPRESSO_ROOT=../../
+QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.inc
 
 EXECUTABLE = owl
 
 ### C++ Compiler:
-CXX = CC
+CXX = mpiCC
+#CXX = CC
 ### Compiler Flags:
 CXXFLAGS = -O3 -Wall -std=c++11 -g
 
 ### Linking flags are compiler dependent
 ### For GNU compiler:
-#LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
 
 ### For Intel compiler:
-LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+#LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90 .cpp

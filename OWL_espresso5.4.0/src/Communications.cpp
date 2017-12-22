@@ -69,8 +69,12 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
   if (simInfo.numWalkers * simInfo.numMPIranksPerWalker != GlobalComm.totalMPIranks) { 
 
     std::cout << "ERROR!! Total number of MPI ranks is not consistent with input info.\n"
-              << "        Please check the OWL input file or submission script.\n"
+              << "        numWalkers (" << simInfo.numWalkers << ") x numMPIranksPerWalker (" 
+              << simInfo.numMPIranksPerWalker << ") != totalMPIranks (" 
+              << GlobalComm.totalMPIranks << ") \n";
+    std::cout << "        Please check OWL's input file or submission script.\n"
               << "        OWL aborting...\n";
+
     exit(7);
 
     /// ... or, assign the ranks here automatically

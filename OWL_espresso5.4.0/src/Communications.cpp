@@ -121,7 +121,7 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
   if (PhysicalSystemComm.thisMPIrank == 0)
     MCAlgorithmComm.initialize(mc_alg_comm);
 
-  delete walkerLeadersID;
+  delete[] walkerLeadersID;
 
 }
 

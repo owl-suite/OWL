@@ -9,7 +9,7 @@ CXX = CC
 
 ### Compiler Flags:
 ### For debugging:
-CXXFLAGS = -O3 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
+CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
 
 ### For production:
 #CXXFLAGS = -O3 -Wall -std=c++11 

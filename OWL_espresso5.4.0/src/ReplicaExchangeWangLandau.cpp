@@ -18,6 +18,9 @@ ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPIComm
   PhysicalSystemComm = PhySystemComm;
   REWLComm = MCAlgorithmComm; 
 
+  //if (REWLComm.communicator != MPI_COMM_NULL)
+  //  std::cout << "I am Global ID = " << GlobalComm.thisMPIrank << ", REWLComm ID = " << REWLComm.thisMPIrank << std::endl;
+
   /// Set initial values for private members
   numWalkers = simInfo.numWalkers;
   readREWLInputFile(simInfo.MCInputFile);
@@ -88,7 +91,8 @@ void ReplicaExchangeWangLandau::run()
 
 // WL procedure starts here
   double MaxModFactor;
-  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator)    ;
+  if (PhysicalSystemComm.thisMPIrank == 0)
+    MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
 
   //while (h.modFactor > h.modFactorFinal) {
   while (MaxModFactor > h.modFactorFinal) {
@@ -167,7 +171,9 @@ void ReplicaExchangeWangLandau::run()
       //  h.refreshHistogram();
 
       // Get the maximum ModFactor among all processors
-      MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+      if (PhysicalSystemComm.thisMPIrank == 0)
+        MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+
     }
 
     if (GlobalComm.thisMPIrank == 0) 

@@ -16,6 +16,7 @@ public :
 
   // member functions
   void initialize(MPI_Comm incomingComm);    // this initializes communicator to be the same as the incoming one
+  void initialize();                         // this initializes communicator assuming that the communicator has been created somewhere else
   void finalize();                           // this finalizes communicator
 
   void barrier();                            // calls MPI_Barrier for this communicator

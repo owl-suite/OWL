@@ -1,10 +1,10 @@
-#include <limits>
+#include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <cstdio>
 #include <cstdlib>
-#include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <limits>
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
 #include "Histogram.hpp"

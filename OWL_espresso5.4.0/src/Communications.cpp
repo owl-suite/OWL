@@ -18,10 +18,30 @@ void MPICommunicator::initialize(MPI_Comm incomingComm)
 }
 
 
+// This initialization requires that the communicator has already been created
+void MPICommunicator::initialize()
+{
+
+  if (communicator != MPI_COMM_NULL) {
+    MPI_Comm_rank(communicator, &thisMPIrank);
+    MPI_Comm_size(communicator, &totalMPIranks);
+  }
+  else {
+    thisMPIrank = -1;
+    totalMPIranks = -1;
+  }
+
+  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << std::endl;
+
+}
+
+
 void MPICommunicator::finalize()
 {
   // how to finalize just a Comm but not MPI_COMM_WORLD?
-  // is it even necessary?
+  // YingWai: MPI_Comm_free(MPI_Comm&)      (Dec 25, 17)
+  MPI_Comm_free(&communicator);
+
 }
 
 
@@ -31,7 +51,6 @@ void MPICommunicator::barrier()
   MPI_Barrier(communicator);
 
 }
-
 
 
 void MPICommunicator::swapVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int partner)
@@ -48,9 +67,6 @@ void MPICommunicator::swapVector(void* data_ptr, int nElements, MPI_Datatype MPI
 void initializeMPICommunication(MPICommunicator& PhysicalSystemComm, 
                                 MPICommunicator& MCAlgorithmComm) 
 {
-
-  MPI_Comm phys_sys_comm;
-  MPI_Comm mc_alg_comm;
 
   /// 1. initialize global MPI communicator
 
@@ -97,8 +113,11 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
 
     /// build the physical system communicators
     /// i.e., group the processors having the same walkerID
-    MPI_Comm_split(MPI_COMM_WORLD, walkerID, 0, &phys_sys_comm);
-    PhysicalSystemComm.initialize(phys_sys_comm);
+    MPI_Comm_split(MPI_COMM_WORLD, walkerID, GlobalComm.thisMPIrank, &PhysicalSystemComm.communicator);
+    PhysicalSystemComm.initialize();
+
+    //printf("WORLD RANK/SIZE: %d/%d \t ROW RANK/SIZE: %d/%d\n",
+    //GlobalComm.thisMPIrank, GlobalComm.totalMPIranks, PhysicalSystemComm.thisMPIrank, PhysicalSystemComm.totalMPIranks);
 
     if (PhysicalSystemComm.thisMPIrank == 0)
       if (PhysicalSystemComm.totalMPIranks != simInfo.numMPIranksPerWalker) {
@@ -114,14 +133,22 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
 
   
   /// 3. Define the MPI communicators for MCAlgorithm (this is the no-master (REWL) mode)
+  // YingWai: should the MPI_Groups be put somewhere else to be non-local objects?   (Dec 25, 17)
   MPI_Group MPI_GROUP_WORLD, WalkersGroup;
   MPI_Comm_group (MPI_COMM_WORLD, &MPI_GROUP_WORLD);
   MPI_Group_incl (MPI_GROUP_WORLD, simInfo.numWalkers, walkerLeadersID, &WalkersGroup);
-  MPI_Comm_create (MPI_COMM_WORLD, WalkersGroup, &mc_alg_comm);
-  if (PhysicalSystemComm.thisMPIrank == 0)
-    MCAlgorithmComm.initialize(mc_alg_comm);
+  MPI_Comm_create (MPI_COMM_WORLD, WalkersGroup, &MCAlgorithmComm.communicator);
+
+  MCAlgorithmComm.initialize();
+  
+  //printf("WORLD RANK/SIZE: %d/%d \t MC RANK/SIZE: %d/%d\n",
+  //GlobalComm.thisMPIrank, GlobalComm.totalMPIranks, MCAlgorithmComm.thisMPIrank, MCAlgorithmComm.totalMPIranks);
 
   delete[] walkerLeadersID;
+
+  // YingWai: Is it ok to put them here?  (Dec 25, 17)
+  MPI_Group_free(&MPI_GROUP_WORLD);
+  MPI_Group_free(&WalkersGroup);
 
 }
 

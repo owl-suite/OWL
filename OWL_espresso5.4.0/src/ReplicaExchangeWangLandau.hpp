@@ -55,6 +55,8 @@ private :
   int upExchanges;
   int downExchanges;
 
+  double MaxModFactor;
+
 
   // Private member functions:
   bool replicaExchange();                                    // Behave like a doMCMove; only propose a new energy and a new configuration
@@ -65,6 +67,8 @@ private :
   //template <typename T>
   //void exchangeConfiguration(T configForSwap[], int numElements);  
   void exchangeConfiguration(void* ptrToConfig, int numElements, MPI_Datatype MPI_config_type);
+
+  void getMaxModFactor();
 
   void readREWLInputFile(const char* fileName); 
 

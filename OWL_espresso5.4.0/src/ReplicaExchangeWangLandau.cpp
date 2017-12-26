@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cmath>
 #include <fstream>
+#include <limits>
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
 #include "ReplicaExchangeWangLandau.hpp"
@@ -33,13 +34,15 @@ ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPIComm
   //YingWai's check
   //printf("YingWai's check: Inside REWL constructor. numWalkers = %3d, world_rank = %3d, myWindow = %3d, walkerID = %3d, numWindows = %3d\n", numWalkers, GlobalComm.thisMPIrank, myWindow, walkerID, numWindows);
 
-  partnerID = -1;
+  partnerID     = -1;
   partnerWindow = -1;
 
   swapDirection = 0;
 
-  upExchanges = 0;
+  upExchanges   = 0;
   downExchanges = 0;
+
+  MaxModFactor  = std::numeric_limits<double>::max();
 
   GlobalComm.barrier();
 
@@ -90,9 +93,9 @@ void ReplicaExchangeWangLandau::run()
 //-------------- End initialization --------------//
 
 // WL procedure starts here
-  double MaxModFactor;
-  if (PhysicalSystemComm.thisMPIrank == 0)
-    MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+  //if (PhysicalSystemComm.thisMPIrank == 0)
+  //  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+  getMaxModFactor();
 
   //while (h.modFactor > h.modFactorFinal) {
   while (MaxModFactor > h.modFactorFinal) {
@@ -346,6 +349,17 @@ void ReplicaExchangeWangLandau::exchangeConfiguration(void* ptrToConfig, int num
     REWLComm.swapVector(ptrToConfig, numElements, MPI_config_type, partnerID);
     physical_system -> getObservablesFromScratch = true;
   }
+
+}
+
+
+void ReplicaExchangeWangLandau::getMaxModFactor()
+{
+
+  //YingWai's note: will it be more performant if it is split into two steps?  (Dec 25, 17)
+  // * Asynchronized AllReduce within REWLComm
+  // * Broadcast to group members within PhySystemComm
+  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, GlobalComm.communicator);
 
 }
 

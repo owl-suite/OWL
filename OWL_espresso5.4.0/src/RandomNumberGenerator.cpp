@@ -2,6 +2,7 @@
 #include "RandomNumberGenerator.hpp"
 
 
+// YingWai: should the RNG be placed as a member in MCAlgorithm class?
 std::mt19937 rng;
 //int RngSeed {-1};
 
@@ -24,7 +25,6 @@ void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
   // Broadcast (synchronize) the random number seed within the same walker
   MPI_Bcast(&RngSeed, 1, MPI_INT, 0, phy_sys_comm.communicator);
   std::cout << "Rank: " << GlobalComm.thisMPIrank << " Random number seed supplied: " << RngSeed << std::endl;
-  //std::cout << "Rank: " << phy_sys_comm.thisMPIrank << " Random number seed supplied: " << RngSeed << std::endl;
 
   // Initialize random number generators
   rng.seed(RngSeed);

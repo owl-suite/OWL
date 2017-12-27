@@ -211,6 +211,8 @@ void ReplicaExchangeWangLandau::run()
 bool ReplicaExchangeWangLandau::replicaExchange()
 {
 
+  std::cout << "YingWai's check: Inside replicaExchange\n";
+
   double localDOSRatio             {0.0};
   bool   replicaExchangeAcceptance {false};
   ObservableType energyForExchange = physical_system -> observables[0];

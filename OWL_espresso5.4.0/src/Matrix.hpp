@@ -1,5 +1,5 @@
 // \section{Matrix Class}
-// We use an addapted version of the Matrix class from {\tt psimag}.
+// We use an adapted version of the Matrix class from {\tt psimag}.
 // The memory layout of this matrix class is designed to be the same in {\bf Fortran}.
 
 #ifndef LSMS_MATRIX_H
@@ -13,7 +13,6 @@
 #include <iostream>
 #include <iomanip>
 #include <typeinfo>
-// #include "PSIMAGAssert.h"
 
 #ifdef BUILDKKRMATRIX_GPU
 #include <cuda_runtime.h>
@@ -30,97 +29,134 @@
     typedef T&           reference;
     typedef const T&     const_reference;
 
-    // The basic constructor builds an empty matrix, that needs to be resized before use.
+    // Constructor 1:
+    // Basic constructor that builds an empty matrix. It needs to be resized before use.
     Matrix() : nRow(0), nCol(0), lDim(0), physicalSize(0), owner(true), data(0) {;}
 
-    // We also can construct a matrix with |nRows| rows and |nCols| the leading dimension |ldim| defaults to |nRows|, but can be set to any larger value to get the desired memory alignement.
-    Matrix(size_type nRows,size_type nCols,size_type ldim=0,const T& val=T()) {
-      if(ldim<nRows) 
-	ldim=nRows;
-      if(bool(ldim*nCols)) 
-	{
-	  nRow=nRows; nCol=nCols; lDim=ldim;
-	  owner=true;
-          physicalSize=lDim*nCol;
-	  data = new T[physicalSize];
-	}
+    // Constructor 2:
+    // Construct a matrix with |nRows| rows and |nCols|. The leading dimension |ldim| defaults to |nRows|, but can be set to any larger value to get the desired memory alignement.
+    Matrix(size_type nRows, size_type nCols, size_type ldim=0, const T& val=T()) {
+
+      if (ldim < nRows) 
+	ldim = nRows;
+
+      if (bool(ldim*nCols)) {
+        nRow = nRows; nCol = nCols; lDim = ldim;
+        owner = true;
+        physicalSize = lDim*nCol;
+	data = new T[physicalSize];
+      }
       else { 
-	nRow=0; nCol=0; lDim=0; owner=true; data=0; physicalSize=0;
+	nRow = 0; nCol = 0; lDim = 0; owner = true; data = 0; physicalSize = 0;
       } 
-      if(val==T(0))
+
+      if (val == T(0))
 	memset(data,0,sizeof(T)*lDim*nCol);
       else
-	for(size_type i=0;i<nCol*lDim;i++) 
-	  data[i]=val;
+	for (size_type i=0; i<nCol*lDim; i++) 
+	  data[i] = val;
     }
 
-    // Also a special constructor is provided to map a memory region to this matrix class. The user is responsible for the proper allocation and dealocation of memory and the proper dimensions.
+    // Constructor 3:
+    // A special constructor to map a memory region to this matrix class. The user is responsible for the proper allocation and deallocation of memory and the proper dimensions.
+
     /* matrix that does not own data (user is responsible for proper dim. */
-    Matrix(size_type nRows, size_type nCols, T* dat, size_type ldim=0) 
-      : data(dat) {
-      if(ldim<nRows) ldim=nRows;
-      if(bool(nRows*nCols))
-	{
-	  nRow=nRows; nCol=nCols; lDim=ldim; physicalSize=lDim*nCol;
-	  owner=false;
-	}
-      else { nRow=0; nCol=0; lDim=0; owner=false; physicalSize=0;}
-    }
+    Matrix(size_type nRows, size_type nCols, T* dat, size_type ldim=0) : data(dat) {
 
-// The final constructor makes a deep copy of another matrix.
-    /* makes a deep copy of mat */
-    Matrix(const Matrix<T> & mat) 
-      : nRow(mat.nRow), nCol(mat.nCol), lDim(mat.nRow),owner(true) {
-      if(bool(nRow*nCol)) {
-	owner=true;
-        physicalSize=lDim*nCol;
-	data = new T[physicalSize];
-	memcpy(data,mat.data,sizeof(T)*physicalSize);
-      }
-      else { nRow=0; nCol=0; lDim=0; owner=true; data=0; physicalSize=0;} 
-    }
+      if (ldim < nRows)
+        ldim = nRows;
 
-    // <Resizing a Matrix@>;
-    void resize(size_type m,size_type n,size_type ldim=0) {
-      if(ldim<m) ldim=m;
-      if(!owner && (ldim*n>physicalSize)){std::logic_error("matrix not locally owned in T& Matrix<T>::resize");}
-      if(ldim*n <= physicalSize) {
-        if(bool(ldim*n) && data) {
-          nCol = n; nRow = m; lDim = ldim;
-        }
-        else {
-          nRow=0; nCol=0; lDim=0; if(owner) {delete [] data; data=0; physicalSize=0;}
-        }
+      if (bool(nRows*nCols)) {
+          nRow = nRows; nCol = nCols; lDim = ldim;
+          owner = false;
+          physicalSize = lDim*nCol;
       }
       else {
-        if(owner && data) delete [] data;
-        nCol = n; nRow = m; lDim = ldim; owner=true;
-        physicalSize=lDim*nCol;
+        nRow = 0; nCol = 0; lDim = 0; owner = false; physicalSize = 0;
+      }
+    }
+
+    // Constructor 4:
+    // The final constructor makes a deep copy of another matrix.
+
+    /* makes a deep copy of mat */
+    Matrix(const Matrix<T> & mat) : nRow(mat.nRow), nCol(mat.nCol), lDim(mat.nRow), owner(true) {
+
+      if (bool(nRow*nCol)) {
+	owner = true;
+        physicalSize = lDim*nCol;
+	data = new T[physicalSize];
+	memcpy(data, mat.data, sizeof(T)*physicalSize);
+      }
+      else { 
+        nRow = 0; nCol = 0; lDim = 0; owner = true; data = 0; physicalSize = 0;
+      } 
+    }
+
+
+    // <Resizing a Matrix@>;
+    void resize(size_type m, size_type n, size_type ldim=0) {
+      
+       if (ldim<m) ldim = m;
+
+       if (!owner && (ldim*n > physicalSize))
+         std::logic_error("matrix not locally owned in T& Matrix<T>::resize");
+
+       if (ldim*n <= physicalSize) {
+         if (bool(ldim*n) && data) {
+           nCol = n; nRow = m; lDim = ldim;
+         }
+         else {
+           nRow = 0; nCol = 0; lDim = 0;
+           if(owner) {
+             delete [] data;
+             data = 0;
+             physicalSize = 0;
+           }
+         }
+      }
+      else {
+        if (owner && data)
+          delete[] data;
+        nCol = n; nRow = m; lDim = ldim;
+        owner = true;
+        physicalSize = lDim*nCol;
         data = new T[physicalSize];
       }
     }
 
-  void retarget(size_type nRows, size_type nCols, T* dat, size_type ldim=0) {
-      if(owner && data) delete [] data;
-      data=dat;
-      if(ldim<nRows) ldim=nRows;
-      if(bool(nRows*nCols))
-        {
-          nRow=nRows; nCol=nCols; lDim=ldim; physicalSize=lDim*nCol;
-          owner=false;
-        }
-      else { nRow=0; nCol=0; lDim=0; owner=false; physicalSize=0;}
+
+    void retarget(size_type nRows, size_type nCols, T* dat, size_type ldim=0) {
+
+      if (owner && data)
+        delete[] data;
+      data = dat;
+
+      if (ldim < nRows)
+        ldim = nRows;
+
+      if (bool(nRows*nCols)) {
+        nRow = nRows; nCol = nCols; lDim = ldim;
+        physicalSize = lDim*nCol;
+        owner = false;
+      }
+      else { 
+        nRow = 0; nCol = 0; lDim = 0;
+        owner = false;
+        physicalSize = 0;
+      }
     }
 
 
     // <Matrix Destructor@>;
-    // Finaly we need a destructor to free the memory allocated by the matrix.
+    // Aa destructor to free the memory allocated by the matrix.
     ~Matrix() {
-      if(owner && data) delete [] data;
+      if(owner && data)
+        delete[] data;
     }
 
     // <Matrix Access@>;
-    // We provide two methods to access the lements of a matrix. The most natural one uses |operator()| with row and collumn arguments and looks simimar to a matrix access in {\bf Fortran}.
+    // We provide two methods to access the elements of a matrix. The most natural one uses |operator()| with row and collumn arguments and looks simimar to a matrix access in {\bf Fortran}.
     inline T& operator() (size_type i, size_type j) {
       // ASSERT(i<nRow,
       //        std::range_error("i>=n_row in T& Matrix<T>::operator()(size_type i,size_type j"));
@@ -140,6 +176,8 @@
     size_type n_col() const { return nCol; }
     size_type l_dim() const { return lDim; }
     
+
+
   // \subsection{Operations on Matrices}
 
   // Assignments and copy:

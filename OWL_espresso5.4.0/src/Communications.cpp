@@ -27,7 +27,7 @@ void MPICommunicator::initialize()
     MPI_Comm_size(communicator, &totalMPIranks);
   }
   else {
-    thisMPIrank = -1;
+    thisMPIrank   = -1;
     totalMPIranks = -1;
   }
 
@@ -39,7 +39,6 @@ void MPICommunicator::initialize()
 void MPICommunicator::finalize()
 {
   // how to finalize just a Comm but not MPI_COMM_WORLD?
-  // YingWai: MPI_Comm_free(MPI_Comm&)      (Dec 25, 17)
   MPI_Comm_free(&communicator);
 
 }
@@ -131,7 +130,6 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
 
   }
 
-  
   /// 3. Define the MPI communicators for MCAlgorithm (this is the no-master (REWL) mode)
   // YingWai: should the MPI_Groups be put somewhere else to be non-local objects?   (Dec 25, 17)
   MPI_Group MPI_GROUP_WORLD, WalkersGroup;

@@ -85,7 +85,6 @@ Ising2D::Ising2D(const char* filename, int initial)
   getObservablesFromScratch = true;
 
   buildMPIConfigurationType();
-
   pointerToConfiguration = static_cast<void*>(&spin[0]);
  
 }
@@ -95,13 +94,12 @@ Ising2D::Ising2D(const char* filename, int initial)
 Ising2D::~Ising2D()
 {
 
-  pointerToConfiguration = NULL;
-
   //for (int i = 0; i < Size; i++) 
   //  delete[] spin[i];
   delete[] spin;
 
   // Free MPI datatype
+  pointerToConfiguration = NULL;
   MPI_Type_free(&MPI_ConfigurationType);
 
   deleteObservables();

@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdio>
 #include "QuantumEspressoSystem.hpp"
-#include "MCMoves.hpp"
+#include "QEMCMoves.hpp"
 #include "Communications.hpp"
 #include "OWL_DFT_Interface.hpp"
 
@@ -9,35 +9,37 @@
 QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)
 {
   natom       = simInfo.numAtoms;  // TO DO: this should be cross-checked with QE input file!
-  oldEnergy   = 0.0;
-  trialEnergy = 0.0;
+  //oldEnergy   = 0.0;
+  //trialEnergy = 0.0;
   
   initializeObservables(1); // observable[0] = energy
 
   readCommandLineOptions();
 
   //initializeQEMPICommunication();
-  //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);         // MPI communicator handle for Fortran
-  int comm_help = MPI_Comm_c2f(PhysicalSystemComm.communicator);
+  int comm_help = MPI_Comm_c2f(PhysicalSystemComm.communicator);  // MPI communicator handle for Fortran
   owl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
-  std::cout << "Intialized QE MPI communications..." << std::endl;
+  std::cout << "Initialized QE MPI communications..." << std::endl;
   //std::cout << "myMPIrank = " << myMPIRank << std::endl;
 
-  run_pwscf_(&MPI_exit_status);                 // Execute the PWscf calculation
-  get_natom_ener(&natom, &trialEnergy);         // Extract the number of atoms and energy
-  std::cout << "Here: " << natom << ", " << trialEnergy << std::endl;
-  observables[0] = trialEnergy;
+  run_pwscf_(&MPI_exit_status);                                // Execute the PWscf calculation
+  get_natom_ener(&natom, &observables[0]);                     // Extract the number of atoms and energy
+  //observables[0] = trialEnergy;
+  //std::cout << "Here: " << natom << ", " << trialEnergy << std::endl;
 
-  trialPos.resize(3,natom);                     // Resize position and cell vector arrays
-  oldPos.resize(3,natom);
-  trialLatticeVec.resize(3,3);
-  oldLatticeVec.resize(3,3);
+  trialConfig.atomic_positions.resize(3,natom);                // Resize position and cell vector arrays
+  trialConfig.lattice_vectors.resize(3,3);
+  oldConfig.atomic_positions.resize(3,natom);
+  oldConfig.lattice_vectors.resize(3,3);
+
+  buildMPIConfigurationType();
+  pointerToConfiguration = static_cast<void*>(&trialConfig);   // Is it ok to point to a struct like this? (Dec 26, 17)
 
   // check if the following should be called in here:
-  // yes, because they intialize trialPos and trialLatticeVec
-  get_pos_array(&trialPos(0,0));               // Extract the position array from QE
-  get_cell_array(&trialLatticeVec(0,0));       // Extract the cell array from QE
-  owl_stop_run(&MPI_exit_status);              // Clean up the PWscf run
+  // yes, because they initialize trialConfig.atomic_positions and trialConfig.lattice_vectors
+  get_pos_array(&trialConfig.atomic_positions(0,0));           // Extract the position array from QE
+  get_cell_array(&trialConfig.lattice_vectors(0,0));           // Extract the cell array from QE
+  owl_stop_run(&MPI_exit_status);                              // Clean up the PWscf run
 
 }
 
@@ -48,10 +50,17 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
   // finalizeQEMPICommunication();
   int exit_status;                                // Environmental parameter for QE
   owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
-  std::cout << "Finalized QE MPI communications..." << std::endl;
-  //std::cout << "myMPIrank = " << myMPIRank << std::endl;
+
+  // Free MPI datatype
+  pointerToConfiguration = NULL;
+  MPI_Type_free(&MPI_ConfigurationType);
+
+  std::cout << "Finalized QE MPI communications...\n";
 
   deleteObservables();
+
+  std::cout << "QuantumEspressoSystem finished\n";
+
 }
 
 
@@ -159,8 +168,8 @@ void QuantumEspressoSystem::getObservables()
   // trialEnergy should be changed to observables[0]
 
   owl_do_pwscf(&MPI_exit_status);               // Run the subsequent PWscf calculation
-  get_natom_ener(&natom, &trialEnergy);         // Obtain the # of atoms and energy from QE
-  observables[0] = trialEnergy;
+  get_natom_ener(&natom, &observables[0]);      // Obtain the # of atoms and energy from QE
+  //observables[0] = trialEnergy;
   owl_stop_run(&MPI_exit_status);               // Clean up the PWscf run
 
 }
@@ -169,9 +178,9 @@ void QuantumEspressoSystem::getObservables()
 void QuantumEspressoSystem::doMCMove()
 {
 
-  proposeMCmoves(trialPos, trialLatticeVec);
-  pass_pos_array(&trialPos(0,0));               // Update the atomic positions
-  pass_cell_array(&trialLatticeVec(0,0));       // Update the lattice cell vector
+  proposeMCmoves(trialConfig.atomic_positions, trialConfig.lattice_vectors);
+  pass_pos_array(&trialConfig.atomic_positions(0,0));               // Update the atomic positions
+  pass_cell_array(&trialConfig.lattice_vectors(0,0));       // Update the lattice cell vector
   
 }
 
@@ -187,16 +196,16 @@ void QuantumEspressoSystem::acceptMCMove()
   // update "old" observables
   for (int i=0; i<numObservables; i++)
     oldObservables[i] = observables[i];
-  oldEnergy      = trialEnergy;
+  //oldEnergy = trialEnergy;
 
   // update "old" configurations
-  oldLatticeVec  = trialLatticeVec;
-  oldPos         = trialPos;
+  oldConfig.lattice_vectors  = trialConfig.lattice_vectors;
+  oldConfig.atomic_positions         = trialConfig.atomic_positions;
   
   // Old implementation of OWL-QE
   //trialEnergy     = oldEnergy;
-  //trialPos        = oldPos;
-  //trialLatticeVec = oldLatticeVec;
+  //trialConfig.atomic_positions        = oldConfig.atomic_positions;
+  //trialConfig.lattice_vectors = oldConfig.lattice_vectors;
 }
 
 
@@ -204,12 +213,12 @@ void QuantumEspressoSystem::acceptMCMove()
 void QuantumEspressoSystem::rejectMCMove()
 {
 
-  // Restore trialPos and trialLatticeVec
+  // Restore trialConfig.atomic_positions and trialConfig.lattice_vectors
   for (int i=0; i<numObservables; i++)
     observables[i] = oldObservables[i];
-  trialEnergy      = oldEnergy;
-  trialLatticeVec  = oldLatticeVec;
-  trialPos         = oldPos;
+  //trialEnergy = oldEnergy;
+  trialConfig.lattice_vectors  = oldConfig.lattice_vectors;
+  trialConfig.atomic_positions         = oldConfig.atomic_positions;
 
 }
  
@@ -220,13 +229,13 @@ void QuantumEspressoSystem::writeSystemFile(const char* fileName)
     system_file = fopen(fileName, "a");
     fprintf(system_file, " %14.9f ", observables[0]);
  
-     for (unsigned int i=0; i<oldLatticeVec.n_col(); i++)
-       for(unsigned int j=0; j<oldLatticeVec.n_row(); j++)
-         fprintf(system_file, " %14.9f ", oldLatticeVec(j,i));
+     for (unsigned int i=0; i<oldConfig.lattice_vectors.n_col(); i++)
+       for(unsigned int j=0; j<oldConfig.lattice_vectors.n_row(); j++)
+         fprintf(system_file, " %14.9f ", oldConfig.lattice_vectors(j,i));
  
-     for (unsigned int i=0; i<oldPos.n_col(); i++)
-       for(unsigned int j=0; j<oldPos.n_row(); j++)
-         fprintf(system_file, " %14.9f ", oldPos(j,i));
+     for (unsigned int i=0; i<oldConfig.atomic_positions.n_col(); i++)
+       for(unsigned int j=0; j<oldConfig.atomic_positions.n_row(); j++)
+         fprintf(system_file, " %14.9f ", oldConfig.atomic_positions(j,i));
  
      fprintf(system_file, "\n");
      fclose(system_file);
@@ -286,29 +295,29 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
   fprintf(QE_file, "O   16.00    O_ps.uspp.UPF\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "ATOMIC_POSITIONS {angstrom}\n");
-  fprintf(QE_file, "Pb    %14.9f %14.9f %14.9f\n", oldPos(0,0), 
-                                                   oldPos(1,0), 
-                                                   oldPos(2,0) );
-  fprintf(QE_file, "Ti    %14.9f %14.9f %14.9f\n", oldPos(0,1),
-                                                   oldPos(1,1), 
-                                                   oldPos(2,1) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldPos(0,2),
-                                                   oldPos(1,2), 
-                                                   oldPos(2,2) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldPos(0,3),
-                                                   oldPos(1,3), 
-                                                   oldPos(2,3) );
-  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldPos(0,4),
-                                                   oldPos(1,4), 
-                                                   oldPos(2,4) );
+  fprintf(QE_file, "Pb    %14.9f %14.9f %14.9f\n", oldConfig.atomic_positions(0,0), 
+                                                   oldConfig.atomic_positions(1,0), 
+                                                   oldConfig.atomic_positions(2,0) );
+  fprintf(QE_file, "Ti    %14.9f %14.9f %14.9f\n", oldConfig.atomic_positions(0,1),
+                                                   oldConfig.atomic_positions(1,1), 
+                                                   oldConfig.atomic_positions(2,1) );
+  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldConfig.atomic_positions(0,2),
+                                                   oldConfig.atomic_positions(1,2), 
+                                                   oldConfig.atomic_positions(2,2) );
+  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldConfig.atomic_positions(0,3),
+                                                   oldConfig.atomic_positions(1,3), 
+                                                   oldConfig.atomic_positions(2,3) );
+  fprintf(QE_file, "O     %14.9f %14.9f %14.9f\n", oldConfig.atomic_positions(0,4),
+                                                   oldConfig.atomic_positions(1,4), 
+                                                   oldConfig.atomic_positions(2,4) );
   fprintf(QE_file, "\n");
   fprintf(QE_file, "K_POINTS automatic\n");
   fprintf(QE_file, "8 8 8 0 0 0\n");
   fprintf(QE_file, "\n");
   fprintf(QE_file, "CELL_PARAMETERS {angstrom}\n");
-  for (unsigned int i=0; i<oldLatticeVec.n_col(); i++) {
-    for(unsigned int j=0; j<oldLatticeVec.n_row(); j++)
-      fprintf(QE_file, " %14.9f ", oldLatticeVec(j,i));
+  for (unsigned int i=0; i<oldConfig.lattice_vectors.n_col(); i++) {
+    for(unsigned int j=0; j<oldConfig.lattice_vectors.n_row(); j++)
+      fprintf(QE_file, " %14.9f ", oldConfig.lattice_vectors(j,i));
     fprintf(QE_file, "\n");
   }
 
@@ -319,6 +328,31 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
 
 void QuantumEspressoSystem::buildMPIConfigurationType()
 {
+
+  int          count {2};
+  int          numElements[count];
+  MPI_Aint     address_displacements[count];
+  MPI_Datatype types[count];
+
+  MPI_Aint start_address;
+  MPI_Aint address;
+
+  // Number of elements in each array
+  numElements[0] = trialConfig.atomic_positions.size();
+  numElements[1] = trialConfig.lattice_vectors.size();
+  //std::cout << "YingWai's check: numElements[0]/[1] = " << numElements[0] << " , " << numElements[1] << std::endl;
+
+  // The derived datatype consists of two arrays of MPI_DOUBLE
+  types[0] = types[1] = MPI_DOUBLE;
+
+  // Calculate the relative addresses for each array
+  MPI_Address(&trialConfig.atomic_positions[0], &start_address);
+  MPI_Address(&trialConfig.lattice_vectors[0], &address);
+  address_displacements[0] = 0;
+  address_displacements[1] = address - start_address; 
+
+  MPI_Type_create_struct(count, numElements, address_displacements, types, &MPI_ConfigurationType);
+  MPI_Type_commit(&MPI_ConfigurationType);
 
 }
 

@@ -50,7 +50,7 @@ WangLandauSampling.o        \
 ReplicaExchangeWangLandau.o \
 MulticanonicalSampling.o    \
 HistogramFreeMUCA.o         \
-MCMoves.o
+QEMCMoves.o
 
 IOOBJS = \
 InputOutput.o

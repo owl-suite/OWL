@@ -1,10 +1,20 @@
 #ifndef QUANTUM_ESPRESSO_SYSTEM_HPP
 #define QUANTUM_ESPRESSO_SYSTEM_HPP
 
-#include "mpi.h"
+#include <mpi.h>
 #include "PhysicalSystemBase.hpp"
 #include "Matrix.hpp"
 #include "Globals.hpp"
+
+
+// YingWai's Note:  (Dec 26, 17)
+// If this is changed, the MPI derived type (MPIConfigurationType) built by buildMPIConfigurationType() needs to be modified too.
+struct QEConfiguration
+{
+  Matrix<double> atomic_positions;            // Atomic positions (in Angstrom)
+  Matrix<double> lattice_vectors;             // Unit cell vectors (in Angstrom)
+};
+
 
 class QuantumEspressoSystem : public PhysicalSystem {
 
@@ -35,18 +45,12 @@ private:
   char  QEInputFile[81]   = { ' ', '\0' };     // QE input file
 
   // System information
-  int natom;                       // Total number of atoms in system
+  int natom;                                   // Total number of atoms in system
+                                               // (total energy measured in Ry)
+  QEConfiguration trialConfig;                 // Trial configuration
+  QEConfiguration oldConfig;                   // Old configuration for restoration after a rejected MC move
 
-  // The following two might not be needed, since they should be the same as observables[0] and trialObservables[0]
-  double trialEnergy;              // Trial total energy of system (in Ry)
-  double oldEnergy;                // Old total energy of the system (in Ry)
-
-  Matrix<double> trialPos;         // Trial atom position    (in angstrom)
-  Matrix<double> oldPos;           // Old atom position for restoration after a rejected MC move      (in angstrom)
-
-  Matrix<double> trialLatticeVec;  // Trial cell vector   (in angstrom)
-  Matrix<double> oldLatticeVec;    // Old cell vector for restoration after a rejected MC move (i    n angstrom)
-
+  // I/O
   void writeSystemFile(const char* = NULL);
   void writeQErestartFile(const char* = NULL);
 

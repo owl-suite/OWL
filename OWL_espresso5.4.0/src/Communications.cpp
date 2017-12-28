@@ -56,7 +56,8 @@ void MPICommunicator::swapVector(void* data_ptr, int nElements, MPI_Datatype MPI
 {
  
   MPI_Status status;
-  MPI_Sendrecv_replace(data_ptr, nElements, MPI_config_type, partner, 1, partner, 1, communicator, &status);
+  if (communicator != MPI_COMM_NULL)
+    MPI_Sendrecv_replace(data_ptr, nElements, MPI_config_type, partner, 1, partner, 1, communicator, &status);
 
 }
 
@@ -167,7 +168,7 @@ void initializeQEMPICommunication()
   //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
   //owl_qe_startup(&comm_help);                     // Set up the PWscf calculation
   
-  std::cout << "Intialized QE MPI communications..." << std::endl;
+  std::cout << "Initialized QE MPI communications..." << std::endl;
 }
 
 

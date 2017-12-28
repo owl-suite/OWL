@@ -38,7 +38,8 @@ template <typename T>
 void MPICommunicator::swapScalar(T &data, int partner) {
 
   MPI_Status status;
-  MPI_Sendrecv_replace(&data, 1, TypeTraits<T>::MPItype(), partner, 1, partner, 1, communicator, &status);
+  if (communicator != MPI_COMM_NULL)
+    MPI_Sendrecv_replace(&data, 1, TypeTraits<T>::MPItype(), partner, 1, partner, 1, communicator, &status);
 
 }
 
@@ -46,14 +47,16 @@ template <typename T>
 void MPICommunicator::swapVector(T data[], int nElements, int partner) {
 
   MPI_Status status;
-  MPI_Sendrecv_replace(&data[0], nElements, TypeTraits<T>::MPItype(), partner, 1, partner, 1, communicator, &status);
+  if (communicator != MPI_COMM_NULL)
+    MPI_Sendrecv_replace(&data[0], nElements, TypeTraits<T>::MPItype(), partner, 1, partner, 1, communicator, &status);
 
 }
 
 template <typename T>
 void MPICommunicator::sendScalar(T &data, int partner) {
 
-  MPI_Send(&data, 1, TypeTraits<T>::MPItype(), partner, 3, communicator);
+  if (communicator != MPI_COMM_NULL)
+    MPI_Send(&data, 1, TypeTraits<T>::MPItype(), partner, 3, communicator);
 
 }
 
@@ -61,7 +64,8 @@ template <typename T>
 void MPICommunicator::recvScalar(T &data, int partner) {
 
   MPI_Status status;
-  MPI_Recv(&data, 1, TypeTraits<T>::MPItype(), partner, 3, communicator, &status);
+  if (communicator != MPI_COMM_NULL)
+    MPI_Recv(&data, 1, TypeTraits<T>::MPItype(), partner, 3, communicator, &status);
 
 }
 

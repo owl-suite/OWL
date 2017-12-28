@@ -64,12 +64,14 @@ ReplicaExchangeWangLandau::~ReplicaExchangeWangLandau()
 void ReplicaExchangeWangLandau::run()
 {
 
+  char fileName[51];
+
   //double currentTime, lastBackUpTime;
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
     printf("Running ReplicaExchangeWangLandau...\n");
 
-  char fileName[51];
+  acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
 
   // Find the first energy that falls within the WL energy range    
   while (!acceptMove) {
@@ -220,9 +222,9 @@ bool ReplicaExchangeWangLandau::replicaExchange()
 
   // Everyone finds its swap-partner
   assignSwapPartner();
-  //printf("Walker %05d: partnerID = %05d\n", REWLComm.thisMPIrank, partnerID);
+  printf("GlobalID %05d, Walker %05d: partnerID = %05d\n", GlobalComm.thisMPIrank, REWLComm.thisMPIrank, partnerID);
 
-  if (partnerID != -1) {
+  if ((partnerID != -1) && (PhysicalSystemComm.thisMPIrank == 0)) {
     // Exchange energy with partner
     exchangeEnergy(energyForExchange);
 
@@ -239,7 +241,6 @@ bool ReplicaExchangeWangLandau::replicaExchange()
     if (replicaExchangeAcceptance) {
 
       physical_system -> observables[0] = energyForExchange;
-
       exchangeConfiguration(physical_system -> pointerToConfiguration, 1, physical_system -> MPI_ConfigurationType );
 
       // Up to this point, energy = physical_system -> observables[0] and the configuration are new

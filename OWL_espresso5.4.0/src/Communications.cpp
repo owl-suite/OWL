@@ -62,6 +62,14 @@ void MPICommunicator::swapVector(void* data_ptr, int nElements, MPI_Datatype MPI
 }
 
 
+void MPICommunicator::broadcastVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int source)
+{
+
+  if (communicator != MPI_COMM_NULL)
+    MPI_Bcast(data_ptr, nElements, MPI_config_type, source, communicator);
+
+}
+
 
 /// This function initializes the MPI communicators for global use, physical system, and the MC algorithm
 void initializeMPICommunication(MPICommunicator& PhysicalSystemComm, 

@@ -27,7 +27,11 @@ public :
   template<typename T> void sendScalar(T &data, int partner);
   template<typename T> void recvScalar(T &data, int partner);
 
+  template<typename T> void broadcastScalar(T &data, int source);
+  template<typename T> void broadcastVector(T data[], int nElements, int source);
+
   void swapVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int partner);
+  void broadcastVector(void* data_ptr, int nElements, MPI_Datatype MPI_config_type, int source);
 
 };
 
@@ -69,6 +73,21 @@ void MPICommunicator::recvScalar(T &data, int partner) {
 
 }
 
+template<typename T>
+void MPICommunicator::broadcastScalar(T &data, int source) {
+
+  if (communicator != MPI_COMM_NULL)
+    MPI_Bcast(&data, 1, TypeTraits<T>::MPItype(), source, communicator);
+
+}
+
+template<typename T>
+void MPICommunicator::broadcastVector(T data[], int nElements, int source) {
+
+  if (communicator != MPI_COMM_NULL)
+    MPI_Bcast(&data, nElements, TypeTraits<T>::MPItype(), source, communicator);
+
+}
 
 
 //////////////////////////////////////////////////////////////////////////

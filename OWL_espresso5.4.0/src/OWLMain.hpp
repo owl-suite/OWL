@@ -59,7 +59,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  5: ...
   switch (simInfo.system) {
     case 1 :
-      physical_system = new QuantumEspressoSystem(physicalSystemComm);
+      physical_system = new QuantumEspressoSystem( physicalSystemComm );
       break;
 
     case 2 :
@@ -89,16 +89,16 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  6. Histogram-free Multicanonical sampling (discrete energy version)
   switch (simInfo.algorithm) {
     case 1 :
-      MC = new Metropolis(physical_system);
+      MC = new Metropolis( physical_system );
       break;
 
     case 2 :
       //MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
-      MC = new WangLandauSampling(physical_system);
+      MC = new WangLandauSampling( physical_system );
       break;
 
     case 3 :
-      MC = new MulticanonicalSampling(physical_system);
+      MC = new MulticanonicalSampling( physical_system );
       break;
 
     case 4 :
@@ -111,12 +111,22 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
       
     case 6 :
-      MC = new DiscreteHistogramFreeMUCA(physical_system);
+      MC = new DiscreteHistogramFreeMUCA( physical_system );
       break;
       
     default :
       std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
   }
+
+}
+
+
+void finalizeSimulation(PhysicalSystem*      &physical_system,
+                        MonteCarloAlgorithm* &MC)
+{
+  
+  delete physical_system;
+  delete MC;
 
 }
 

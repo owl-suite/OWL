@@ -21,19 +21,17 @@ int main (int argc, char *argv[]) {
   readMainInputFile(argv[1], simInfo);
 
   // Initializations
-  initializeMPICommunication(physicalSystemComm, mcAlgorithmComm);
-  initializeRandomNumberGenerator(physicalSystemComm, simInfo.rngSeed);
+  initializeMPICommunication( physicalSystemComm, mcAlgorithmComm );
+  initializeRandomNumberGenerator( physicalSystemComm, simInfo.rngSeed );
 
   // Determine and setup the PhysicalSystem and MonteCarlo classes
-  setSimulation(physical_system, MC, physicalSystemComm, mcAlgorithmComm);
+  setSimulation( physical_system, MC, physicalSystemComm, mcAlgorithmComm );
 
   // Main calculations
   MC -> run(); 
 
-  delete physical_system;
-  delete MC;
-
-  // Finalize MPI
+  // Finalize simulation and MPI
+  finalizeSimulation( physical_system, MC );
   finalizeMPICommunication();
 
   std::cout << "\nSimulation finished :)\n";

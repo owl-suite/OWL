@@ -35,5 +35,4 @@ struct SimulationInfo
 
 extern SimulationInfo simInfo;
 
-
 #endif

@@ -10,8 +10,10 @@
 #include "HistogramFreeMUCA.hpp"
 #include "Heisenberg2D.hpp"
 #include "Ising2D.hpp"
-#include "QuantumEspressoSystem.hpp"
 
+#ifdef DRIVER_MODE_QE
+#include "QuantumEspressoSystem.hpp"
+#endif
 
 void readCommandLineArguments(int argc, char* argv[]) {
 
@@ -59,7 +61,12 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  5: ...
   switch (simInfo.system) {
     case 1 :
+#ifdef DRIVER_MODE_QE
       physical_system = new QuantumEspressoSystem( physicalSystemComm );
+#else
+      std::cerr << "In standalone mode, using Quantum Espresso is not supported.\n"
+                << "Please recompile OWL with \'make owl-qe\'.\n";
+#endif
       break;
 
     case 2 :

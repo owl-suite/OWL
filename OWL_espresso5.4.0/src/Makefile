@@ -1,48 +1,7 @@
-# Makefile for OWL
-
-QUANTUM_ESPRESSO_ROOT=./qe
-include $(QUANTUM_ESPRESSO_ROOT)/make.sys
-
-EXECUTABLE = owl
-
-### Define C++ compiler and flags for different machines
-include architecture/olcf_titan
-#include architecture/olcf_eos
-#include architecture/nersc
-#include architecture/mac_osx
-
-.SUFFIXES :
-.SUFFIXES : .o .c .f .f90 .cpp
-
-.cpp.o:
-	$(CXX) $(CXXFLAGS)  -c $<
-
-# location of needed modules and included files (if any)
-MODFLAGS= $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/iotk/src \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/FFTXlib  \
-          $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/LAXlib   \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/Modules  \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/PW/src $(MOD_FLAG).
-IFLAGS=
-
-#location of needed libraries
-LIBOBJS= $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/clib/clib.a
-
-COMMLIBS = \
-Communications.o
-
-OWLOBJS = \
-QuantumEspressoSystem.o   \
-Heisenberg2D.o            \
-Ising2D.o                 \
-OWLMain.o
-
-OWLLIBS = \
-owl_getInfo_pwscf.o       \
-owl_do_pwscf.o            \
-owl_run_QE.o
-
-MCOBJS = \
+BASIC_OWL_OBJS =            \
+Communications.o            \
+Heisenberg2D.o              \
+Ising2D.o                   \
 Histogram.o                 \
 RandomNumberGenerator.o     \
 MCAlgorithms.o              \
@@ -50,40 +9,36 @@ WangLandauSampling.o        \
 ReplicaExchangeWangLandau.o \
 MulticanonicalSampling.o    \
 HistogramFreeMUCA.o         \
-QEMCMoves.o
-
-IOOBJS = \
 InputOutput.o
 
-QEMODS=$(QUANTUM_ESPRESSO_ROOT)/Modules/libqemod.a $(QUANTUM_ESPRESSO_ROOT)/FFTXlib/libqefft.a $(QUANTUM_ESPRESSO_ROOT)/LAXlib/libqela.a
-PWOBJS= $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
+QE_OBJS =                   \
+QuantumEspressoSystem.o     \
+QEMCMoves.o                 \
+owl_getInfo_pwscf.o         \
+owl_do_pwscf.o              \
+owl_run_QE.o
 
-TLDEPS=bindir mods libs liblapack libblas pw
 
-all : tldeps $(EXECUTABLE)
+default : owl
 
-$(EXECUTABLE) : libcomm.a $(OWLOBJS) $(MCOBJS) libowl.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
-	$(LD) $(LDFLAGS) $(LINKFLAGS) -o $@ \
-	$(OWLOBJS) $(MCOBJS) libowl.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
-	- ( cd $(QUANTUM_ESPRESSO_ROOT)/bin; ln -fs $(CURDIR)/$@ . )
+all : owl owl-qe
 
-libcomm.a : $(COMMLIBS) 
-	$(AR) $(ARFLAGS) $@ $?
+owl : OWLMain.cpp $(BASIC_OWL_OBJS)
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -o owl OWLMain.cpp $(BASIC_OWL_OBJS)
 
-libowl.a : $(OWLLIBS)
-	$(AR) $(ARFLAGS) $@ $?
-	$(RANLIB) $@
+owl-qe : OWLMain.cpp $(BASIC_OWL_OBJS) $(QE_OBJS)
+	if test -d qe_tmp ; then     \
+	    cd qe_tmp && $(MAKE) ;   \
+	fi
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -DDRIVER_MODE_QE -o owl-qe OWLMain.cpp $(BASIC_OWL_OBJS) $(QE_OBJS)
 
-tldeps :
-	if test -n "$(TLDEPS)" ; then \
-	( cd $(QUANTUM_ESPRESSO_ROOT) ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi
+clean:
+	rm -rf *.o *.dSYM
+	@for exe in owl owl-qe owl-feram owl-lsms; \
+	do \
+	    if test -f $$exe ; then rm $$exe; fi \
+	done
 
-clean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L $(EXECUTABLE)
-	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
-
-veryclean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L *.cpp *.hpp $(EXECUTABLE)
-	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
-
-include make.depend
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
+#	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c $*.cpp 

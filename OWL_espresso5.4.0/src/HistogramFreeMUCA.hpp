@@ -21,7 +21,7 @@ private :
   PhysicalSystem* physical_system;
   Histogram h;                        // ironically a histogram is still needed for the discrete case
   int numberOfDataPoints;             // number of data points in each data set
-  std::vector<int> DataSet;           // The list of energy (data set) in each iteration
+  std::vector<int> DataSet;           // The list of energies (data set) in each iteration
 
   void resetDataSet();
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "Communications.hpp"
-#include "OWL_DFT_Interface.hpp"
+//#include "OWL_DFT_Interface.hpp"
 
 // Global MPI communicator  (this is an extern variable)
 MPICommunicator GlobalComm;

@@ -6,9 +6,9 @@ CXX = mpicxx
 
 ### Compiler Flags:
 # For debugging:
-CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/opt/local/include/openmpi-devel-gcc6/
+CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/usr/local/include
 # For production:
-#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/opt/local/include/openmpi-devel-gcc6/
+#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/usr/local/include
 
 
 ### Linking flags are compiler dependent

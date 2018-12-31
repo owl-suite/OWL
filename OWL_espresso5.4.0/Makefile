@@ -1,5 +1,5 @@
 #####################################################################
-# Makefile for Oak-ridge Wang-Landau (OWL)
+# Makefile for Oak-Ridge Wang-Landau (OWL)
 # 
 # Copyright (C) 2015-2018 Ying Wai Li, Oak Ridge National Laboratory
 #
@@ -19,7 +19,7 @@ export LIBRARY_PATH =
 
 default :
 	@echo ' '
-	@echo 'Please choose an option to compile the Oak-ridge Wang-Landau (OWL) code with:'
+	@echo 'Please choose an option to compile the Oak-Ridge Wang-Landau (OWL) code with:'
 	@echo 'make [options]'
 	@echo ' '
 	@echo 'Available package options:'
@@ -42,7 +42,7 @@ owl :
 
 owl-qe :
 	@if test -d src ; then                            \
-	    cd src && $(MAKE) owl-qe DRIVER_MODE_QE=1     \
+	    cd src && $(MAKE) owl-qe DRIVER_MODE_QE=1;    \
 	 fi
 
 all : owl

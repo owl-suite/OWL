@@ -2,6 +2,9 @@
 # $(LD) $(LDFLAGS) $(IFLAGS) $(LIBS) are in QE's make.sys
 # $(LINKFLAGS) is in OWL's architecture file
 
+###############################################################
+
+# Quantum Espresso related stuff
 
 QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
@@ -24,15 +27,16 @@ PWOBJS= $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
 #TLDEPS=bindir mods libs liblapack libblas pw
 
 
+###############################################################
+
 QE_OBJS =                   \
 QuantumEspressoSystem.o     \
 QEMCMoves.o
 
-OWLLIBS = \
+OWLLIBS =                   \
 owl_getInfo_pwscf.o         \
 owl_do_pwscf.o              \
 owl_run_QE.o
-
 
 
 
@@ -52,8 +56,11 @@ clean:
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
 
+#YingWai's note:
+# $(F90FLAGS) is in make.sys of QE 
+
 #%.o: %.f
-#       $(F77) $(FFLAGS) -c $< -o $@
+#       $(F90) $(F90FLAGS) -c $< -o $@
 libowl.a : $(OWLLIBS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@

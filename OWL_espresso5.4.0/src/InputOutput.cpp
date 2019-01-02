@@ -11,8 +11,8 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
   
   std::cout << "Reading main input file: " << FileName << std::endl;
   int length = strlen(FileName);
-  sim_info.MCInputFile = new char[length +1]();
-  strncpy(sim_info.MCInputFile, FileName, length); 
+  sim_info.MCInputFile = new char[length+1]();
+  strncpy(sim_info.MCInputFile, FileName, length+1);
   //std::cout << "sim_info.MCInputFile set to be: " << sim_info.MCInputFile << std::endl;
 
   std::ifstream inputFile(FileName);

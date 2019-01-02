@@ -12,7 +12,7 @@
 #include "Ising2D.hpp"
 
 #ifdef DRIVER_MODE_QE
-#include "QuantumEspressoSystem.hpp"
+#include "QuantumEspresso/QuantumEspressoSystem.hpp"
 #endif
 
 void readCommandLineArguments(int argc, char* argv[]) {

@@ -6,16 +6,19 @@
 #####################################################################
 
 ### Define C++ compiler and flags for different machines
-#include architecture/mac_osx
+include architecture/mac_osx
 #include architecture/olcf_titan
-include architecture/olcf_eos
+#include architecture/olcf_eos
 #include architecture/nersc
 
-### Directory of Include-files:
-export INCLUDE_PATH = -I. 
+### Define directories
+export MASTER_DIR = $(shell pwd)
+export INCLUDE_PATH = 
 export LIBRARY_PATH = 
 
 ################################################
+
+.PHONY : default all owl owl-qe clean
 
 default :
 	@echo ' '
@@ -35,6 +38,8 @@ default :
 	@echo '  cleanall (tentative)  Remove executables and objects for OWL and external codes'
 	@echo ' '
 
+all : owl owl-qe
+
 owl :
 	@if test -d src ; then           \
 	    cd src && $(MAKE) owl;       \
@@ -45,10 +50,11 @@ owl-qe :
 	    cd src && $(MAKE) owl-qe DRIVER_MODE_QE=1;    \
 	 fi
 
-all : owl
-
 clean :
 	@if test -d src ; then           \
 	    cd src && $(MAKE) clean;     \
+	 fi
+	@if test -d bin ; then           \
+	    cd bin && rm *;              \
 	 fi
 

@@ -1,8 +1,8 @@
 #include <cmath>
 #include <limits>
+#include "../Communications.hpp"
+#include "../RandomNumberGenerator.hpp"
 #include "QEMCMoves.hpp"
-#include "Communications.hpp"
-#include "RandomNumberGenerator.hpp"
 
 
 void writeAtomicPositions(Matrix<double> atom_positions)

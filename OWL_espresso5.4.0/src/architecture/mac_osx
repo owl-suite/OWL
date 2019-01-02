@@ -1,19 +1,19 @@
 ### Define C++ compiler and flags for different machines
 
 ### C++ Compiler:
-CXX = mpicxx
+export CXX = mpicxx
 
 
 ### Compiler Flags:
 # For debugging:
-CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/usr/local/include
+export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/usr/local/include
 # For production:
-#CXXFLAGS = -O3 -Wall -std=c++11 -g -I/usr/local/include
+#export CXXFLAGS = -O3 -Wall -std=c++11 -g -I/usr/local/include
 
 
 ### Linking flags are compiler dependent
 ### For GNU compiler:
-LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+export LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
 
 ### For Intel compiler:
-#LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+#export LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib

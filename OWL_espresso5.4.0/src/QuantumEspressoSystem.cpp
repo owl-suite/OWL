@@ -346,8 +346,8 @@ void QuantumEspressoSystem::buildMPIConfigurationType()
   types[0] = types[1] = MPI_DOUBLE;
 
   // Calculate the relative addresses for each array
-  MPI_Address(&trialConfig.atomic_positions[0], &start_address);
-  MPI_Address(&trialConfig.lattice_vectors[0], &address);
+  MPI_Get_address(&trialConfig.atomic_positions[0], &start_address);
+  MPI_Get_address(&trialConfig.lattice_vectors[0], &address);
   address_displacements[0] = 0;
   address_displacements[1] = address - start_address; 
 

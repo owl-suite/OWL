@@ -1,4 +1,4 @@
-//  This head file stores all the global variables / data structures
+//  This header file defines a struct "SimulationInfo" that stores all the global variables / data structures
 //  for sharing among different part of the code
 
 #ifndef GLOBALS_HPP
@@ -18,7 +18,7 @@ struct SimulationInfo
   int  system                {2};
   int  rngSeed               {-1};
   //char MCInputFile[255]      {};
-  char* MCInputFile = NULL;
+  char* MCInputFile;
 
   // MPI info
   int  numWalkers            {1};

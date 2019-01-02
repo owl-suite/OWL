@@ -4,8 +4,7 @@
 #include "InputOutput.hpp"
 #include "OWLMain.hpp"
 
-
-SimulationInfo simInfo;
+//SimulationInfo simInfo;
 
 int main (int argc, char *argv[]) {
 

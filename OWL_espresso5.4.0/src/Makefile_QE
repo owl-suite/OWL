@@ -47,7 +47,7 @@ owl-qe : $(QE_OBJS) libowl.a
 # -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin
 
 clean:
-	$(MAKE) -f Makefile_QE clean
+	rm -rf *.o *.a *.dSYM
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<

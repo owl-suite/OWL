@@ -1,4 +1,4 @@
-export BASIC_OWL_OBJS = \
+export BASIC_OWL_OBJS =     \
 Communications.o            \
 Heisenberg2D.o              \
 Ising2D.o                   \

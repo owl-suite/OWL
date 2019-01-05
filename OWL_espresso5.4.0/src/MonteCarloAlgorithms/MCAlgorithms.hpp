@@ -2,8 +2,8 @@
 #define MC_ALGORITHMS_HPP
 
 #include <mpi.h>
-#include "PhysicalSystemBase.hpp"
-#include "Globals.hpp"
+#include "PhysicalSystems/PhysicalSystemBase.hpp"
+#include "Main/Globals.hpp"
 
 
 // Base class for all Monte Carlo algorithms

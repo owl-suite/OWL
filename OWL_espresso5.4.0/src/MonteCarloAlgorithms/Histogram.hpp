@@ -4,7 +4,7 @@
 
 #include <cstdio>
 #include <vector>
-#include "Globals.hpp"
+#include "Main/Globals.hpp"
 
 // TO DO: make it a template class to allow for int / double histogram
 class Histogram {

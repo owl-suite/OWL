@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cmath>
 #include "WangLandauSampling.hpp"
-#include "RandomNumberGenerator.hpp"
-#include "Communications.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
+//#include "Communications.hpp"
 
 
 // Constructor

@@ -2,9 +2,9 @@
 #define QUANTUM_ESPRESSO_SYSTEM_HPP
 
 #include <mpi.h>
-#include "../PhysicalSystemBase.hpp"
-#include "../Matrix.hpp"
-#include "../Globals.hpp"
+#include "PhysicalSystems/PhysicalSystemBase.hpp"
+#include "Utilities/Matrix.hpp"
+#include "Main/Globals.hpp"
 
 
 // YingWai's Note:  (Dec 26, 17)

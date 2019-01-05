@@ -3,9 +3,11 @@
 # $(LD) $(LDFLAGS) $(IFLAGS) $(LIBS) $(MPIF90) $(F90FLAGS) are in QE's make.sys
 # $(LINKFLAGS) is in OWL's architecture file
 
-# Quantum Espresso related stuff
+### Quantum Espresso related stuff
 ###############################################################
 
+# TODO: Test if "qe" links to a valid QE directory
+# TODO: Download and compile QE if it is not there yet
 QUANTUM_ESPRESSO_ROOT=./qe
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 include make.depend
@@ -30,7 +32,7 @@ PWOBJS = $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
 ###############################################################
 
 # Add the source directory to the include path
-export INCLUDE_PATH += -I $(SRC_DIR)
+#export INCLUDE_PATH += -I $(SRC_DIR)
 
 QE_OBJS =                   \
 QuantumEspressoSystem.o     \

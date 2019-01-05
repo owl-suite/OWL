@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cmath>
 #include "Heisenberg2D.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
 
 //Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
 Heisenberg2D::Heisenberg2D(const char* filename, int initial)

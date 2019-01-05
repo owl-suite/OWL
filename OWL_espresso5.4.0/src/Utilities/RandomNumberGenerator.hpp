@@ -2,7 +2,7 @@
 #define RANDOM_NUMBER_GENERATOR_HPP
 
 #include <random>
-#include "Communications.hpp"
+#include "Main/Communications.hpp"
 
 // An RNG for global use
 extern std::mt19937 rng;

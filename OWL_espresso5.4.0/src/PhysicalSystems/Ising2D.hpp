@@ -2,7 +2,7 @@
 #define ISING2D_HPP
 
 #include "PhysicalSystemBase.hpp"
-#include "Globals.hpp"
+#include "Main/Globals.hpp"
 
 
 class Ising2D : public PhysicalSystem {

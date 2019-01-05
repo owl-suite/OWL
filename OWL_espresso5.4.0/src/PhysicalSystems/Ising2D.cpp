@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cmath>
 #include "Ising2D.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
 
 //Ising2D::Ising2D(SimulationInfo& sim_info, const char* filename, int initial)
 Ising2D::Ising2D(const char* filename, int initial)

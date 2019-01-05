@@ -3,13 +3,13 @@
 
 #include <iostream>
 #include "Globals.hpp"
-#include "MCAlgorithms.hpp"
-#include "WangLandauSampling.hpp"
-#include "ReplicaExchangeWangLandau.hpp"
-#include "MulticanonicalSampling.hpp"
-#include "HistogramFreeMUCA.hpp"
-#include "Heisenberg2D.hpp"
-#include "Ising2D.hpp"
+#include "MonteCarloAlgorithms/MCAlgorithms.hpp"
+#include "MonteCarloAlgorithms/WangLandauSampling.hpp"
+#include "MonteCarloAlgorithms/ReplicaExchangeWangLandau.hpp"
+#include "MonteCarloAlgorithms/MulticanonicalSampling.hpp"
+#include "MonteCarloAlgorithms/HistogramFreeMUCA.hpp"
+#include "PhysicalSystems/Heisenberg2D.hpp"
+#include "PhysicalSystems/Ising2D.hpp"
 
 #ifdef DRIVER_MODE_QE
 #include "QuantumEspresso/QuantumEspressoSystem.hpp"

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include "../Matrix.hpp"
+#include "Utilities/Matrix.hpp"
 
 
 // Moved to RandomNumberGenerator.hpp

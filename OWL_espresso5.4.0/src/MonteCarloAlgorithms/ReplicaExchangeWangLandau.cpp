@@ -5,7 +5,7 @@
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
 #include "ReplicaExchangeWangLandau.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
 
 // Constructor
 ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm) : h(simInfo.restartFlag, simInfo.MCInputFile)

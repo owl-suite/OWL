@@ -3,7 +3,7 @@
 
 #include "mpi.h"
 #include "Globals.hpp"
-#include "TypeTraits.hpp"
+#include "Utilities/TypeTraits.hpp"
 
 
 class MPICommunicator {

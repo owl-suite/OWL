@@ -2,7 +2,7 @@
 #define HEISENBERG2D_HPP
 
 #include "PhysicalSystemBase.hpp"
-#include "Globals.hpp"
+#include "Main/Globals.hpp"
 
 //class Heisenberg2D : public PhysicalSystem<double> {
 class Heisenberg2D : public PhysicalSystem {

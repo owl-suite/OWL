@@ -3,7 +3,7 @@
 
 #include "MCAlgorithms.hpp"
 #include "Histogram.hpp"
-#include "Communications.hpp"
+#include "Main/Communications.hpp"
 
 /*
   ReplicaExchange class:

@@ -1,6 +1,6 @@
 //#include <iostream>
+#include "Utilities/RandomNumberGenerator.hpp"
 #include "Communications.hpp"
-#include "RandomNumberGenerator.hpp"
 #include "InputOutput.hpp"
 #include "OWLMain.hpp"
 

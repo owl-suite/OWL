@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <cstdlib>
-#include "Globals.hpp"
-#include "Communications.hpp"
+#include "Main/Globals.hpp"
+#include "Main/Communications.hpp"
 
 
 // To DO: make it a template class to allow for int / double observables  (July 15, 2017)

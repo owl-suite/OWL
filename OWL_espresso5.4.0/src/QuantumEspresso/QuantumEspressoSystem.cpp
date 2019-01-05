@@ -2,8 +2,8 @@
 #include <cstdio>
 #include "QuantumEspressoSystem.hpp"
 #include "QEMCMoves.hpp"
-#include "Communications.hpp"
 #include "OWL_DFT_Interface.hpp"
+#include "Main/Communications.hpp"
 
 //Constructor
 QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)

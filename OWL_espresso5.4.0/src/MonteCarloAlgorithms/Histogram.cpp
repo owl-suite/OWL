@@ -8,7 +8,7 @@
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
 #include "Histogram.hpp"
-#include "Communications.hpp"
+#include "Main/Communications.hpp"
 
 // Constructor
 Histogram::Histogram(int restart, const char* inputFile)

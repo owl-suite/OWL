@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cmath>
 #include "HistogramFreeMUCA.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
 
 
 // Constructor

@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cmath>
 #include "MulticanonicalSampling.hpp"
-#include "RandomNumberGenerator.hpp"
+#include "Utilities/RandomNumberGenerator.hpp"
 
 
 // Constructor

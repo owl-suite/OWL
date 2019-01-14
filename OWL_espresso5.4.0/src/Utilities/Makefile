@@ -15,3 +15,5 @@ clean :
 
 libUtilities.a : $(UTIL_OBJS)
 	$(AR) -r $@ $(UTIL_OBJS)
+	@echo " "
+	

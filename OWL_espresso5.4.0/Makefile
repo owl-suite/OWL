@@ -45,6 +45,8 @@ owl :
 	    cd src && $(MAKE) owl;       \
 	 fi
 
+# Add "-DDRIVER_MODE_QE" to the CXXFLAGS to compile the QE-related part in those $BASIC_OWL_OBJS code 
+owl-qe : export CXXFLAGS += -DDRIVER_MODE_QE
 owl-qe :
 	@if test -d src ; then                            \
 	    cd src && $(MAKE) owl-qe DRIVER_MODE_QE=1;    \
@@ -55,6 +57,6 @@ clean :
 	    cd src && $(MAKE) clean;     \
 	 fi
 	@if test -d bin ; then           \
-	    cd bin && rm *;              \
+	    cd bin && $(MAKE) clean;     \
 	 fi
 

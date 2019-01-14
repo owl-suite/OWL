@@ -1,4 +1,4 @@
-# Makefile for OWL-QE
+# Makefile for QuantumEspresso/ in OWL
 
 # $(LD) $(LDFLAGS) $(IFLAGS) $(LIBS) $(MPIF90) $(F90FLAGS) are in QE's make.sys
 # $(LINKFLAGS) is in OWL's architecture file
@@ -26,33 +26,33 @@ LIBOBJS = $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/c
 QEMODS = $(QUANTUM_ESPRESSO_ROOT)/Modules/libqemod.a $(QUANTUM_ESPRESSO_ROOT)/FFTXlib/libqefft.a $(QUANTUM_ESPRESSO_ROOT)/LAXlib/libqela.a
 PWOBJS = $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
 
+# TODO: Check why it was introduced here originally
 #TLDEPS=bindir mods libs liblapack libblas pw
 
 
 ###############################################################
 
-# Add the source directory to the include path
-#export INCLUDE_PATH += -I $(SRC_DIR)
 
-QE_OBJS =                   \
-QuantumEspressoSystem.o     \
-QEMCMoves.o                 \
-owl_getInfo_pwscf.o         \
-owl_do_pwscf.o              \
-owl_run_QE.o
+### Define OWL's QuantumEspresso interface objects
+OWL_QE_OBJS = QuantumEspressoSystem.o     \
+              QEMCMoves.o                 \
+              owl_getInfo_pwscf.o         \
+              owl_do_pwscf.o              \
+              owl_run_QE.o
 
-default: owl-qe
+### Add the QuantumEspresso library to link line
+export OWL_LIBS += -L$(SRC_DIR)/QuantumEspresso -lQuantumEspresso
 
-all : owl-qe
+owl-qe : libQuantumEspresso.a
+	$(LD) $(LDFLAGS) $(LINKFLAGS) $(FFLAGS_NOMAIN) -o $@ $(OWL_LIBS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	cp $@ $(MASTER_DIR)/bin
 
 # TODO: Remove the MKL library link
 # -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin
-owl-qe : $(BASIC_OWL_OBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS) $(QE_OBJS) $(OWLLIBS)
-	$(LD) $(LDFLAGS) $(LINKFLAGS) $(FFLAGS_NOMAIN) -o $@ $(BASIC_OWL_OBJS) $(QE_OBJS) $(OWLLIBS) $(PWOBJS) $(QEMODS) $(LIBOBJS) -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin $(LIBS)
-	cp $@ $(MASTER_DIR)/bin
 
 clean:
-	rm -rf *.o *.a *.dSYM owl-qe
+	rm -rf *.o *.a *.dSYM 
+	if test -f owl-qe ; then rm owl-qe; fi
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
@@ -60,3 +60,6 @@ clean:
 %.o: %.f90
 	$(MPIF90) $(F90FLAGS) -c $< -o $@
 
+libQuantumEspresso.a : $(OWL_QE_OBJS) 
+	$(AR) -r $@ $(OWL_QE_OBJS)
+	@echo " "

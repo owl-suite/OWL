@@ -1,8 +1,6 @@
-# Makefile for OWL
+### Makefile for Main/ in OWL
 
-# Add the source directory to the include path
-#export INCLUDE_PATH += -I $(SRC_DIR)
-
+### Define OWL's main objects
 OWL_MAIN_OBJS = Communications.o \
                 InputOutput.o    \
                 Globals.o        \
@@ -10,19 +8,22 @@ OWL_MAIN_OBJS = Communications.o \
 
 default : owl
 
-all : owl owl-qe
+all : libMain.a owl owl-qe
 
-owl : $(OWL_MAIN_OBJS)
-	#$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -o $@ $(OWL_MAIN_OBJS) $(BASIC_OWL_OBJS)
-	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -o $@ $(OWL_MAIN_OBJS) $(OWL_BASIC_LIBS)
+owl : libMain.a
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -o $@ $(OWL_LIBS)
 	cp $@ $(MASTER_DIR)/bin
+
+owl-qe : libMain.a
 
 clean :
 	rm -rf *.o *.a *.dSYM
-	@for exe in owl owl-qe owl-feram owl-lsms; \
-	do \
-	    if test -f $$exe ; then rm $$exe; fi \
-	done
+	if test -f owl ; then rm owl; fi
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
+
+libMain.a : $(OWL_MAIN_OBJS)
+	$(AR) -r $@ $(OWL_MAIN_OBJS)
+	@echo " "
+	

@@ -3,10 +3,10 @@ export SRC_DIR = $(shell pwd)
 export INCLUDE_PATH += -I $(SRC_DIR)
 
 ### Define libraries
-export OWL_LIBS = -L$(SRC_DIR)/Utilities -lUtilities                       \
-                  -L$(SRC_DIR)/PhysicalSystems -lPhysicalSystems           \
+export OWL_LIBS = -L$(SRC_DIR)/Main -lMain                                 \
                   -L$(SRC_DIR)/MonteCarloAlgorithms -lMonteCarloAlgorithms \
-                  -L$(SRC_DIR)/Main -lMain
+                  -L$(SRC_DIR)/PhysicalSystems -lPhysicalSystems           \
+                  -L$(SRC_DIR)/Utilities -lUtilities
 
 ################################################
 
@@ -24,9 +24,6 @@ owl-basics:
 owl : owl-basics
 	cd Main && $(MAKE) owl
 
-# Add "-DDRIVER_MODE_QE" to the CXXFLAGS to compile the QE-related part in those $BASIC_OWL_OBJS code 
-# Might want to move it to the Makefile up a level (the master one)
-#owl-qe : export CXXFLAGS += -DDRIVER_MODE_QE
 owl-qe : owl-basics
 	cd Main && $(MAKE) owl-qe
 	cd QuantumEspresso && $(MAKE) owl-qe

@@ -17,7 +17,7 @@ export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG
 
 ### Linking flags:   (compiler dependent)
 ### For GNU compiler:
-#export LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+#export LINKFLAGS = -lstdc++
 
 ### For Intel compiler:
-export LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+export LINKFLAGS = -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin -cxxlib

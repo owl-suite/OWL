@@ -6,6 +6,8 @@ OWL_MAIN_OBJS = Communications.o \
                 Globals.o        \
                 OWLMain.o
 
+.PHONY : default all owl-qe clean
+
 default : owl
 
 all : libMain.a owl owl-qe

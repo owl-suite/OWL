@@ -1,6 +1,6 @@
 # Makefile for QuantumEspresso/ in OWL
 
-# $(LD) $(LDFLAGS) $(IFLAGS) $(LIBS) $(MPIF90) $(F90FLAGS) are in QE's make.sys
+# $(LD) $(LDFLAGS) $(LIBS) $(MPIF90) $(F90FLAGS) are in QE's make.sys
 # $(LINKFLAGS) is in OWL's architecture file
 
 ### Quantum Espresso related stuff
@@ -18,7 +18,6 @@ MODFLAGS = $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/iotk/src \
            $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/LAXlib   \
            $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/Modules  \
            $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/PW/src $(MOD_FLAG).
-IFLAGS =
 
 #location of needed libraries
 LIBOBJS = $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/clib/clib.a
@@ -27,6 +26,7 @@ QEMODS = $(QUANTUM_ESPRESSO_ROOT)/Modules/libqemod.a $(QUANTUM_ESPRESSO_ROOT)/FF
 PWOBJS = $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
 
 # TODO: Check why it was introduced here originally
+# YingWai: this might be a good starting point to compile QE if not present
 #TLDEPS=bindir mods libs liblapack libblas pw
 
 
@@ -43,12 +43,10 @@ OWL_QE_OBJS = QuantumEspressoSystem.o     \
 ### Add the QuantumEspresso library to link line
 export OWL_LIBS += -L$(SRC_DIR)/QuantumEspresso -lQuantumEspresso
 
+#owl-qe : tldeps libQuantumEspresso.a
 owl-qe : libQuantumEspresso.a
 	$(LD) $(LDFLAGS) $(LINKFLAGS) $(FFLAGS_NOMAIN) -o $@ $(OWL_LIBS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	cp $@ $(MASTER_DIR)/bin
-
-# TODO: Remove the MKL library link
-# -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin
 
 clean:
 	rm -rf *.o *.a *.dSYM 
@@ -63,3 +61,7 @@ clean:
 libQuantumEspresso.a : $(OWL_QE_OBJS) 
 	$(AR) -r $@ $(OWL_QE_OBJS)
 	@echo " "
+
+#tldeps :
+#	if test -n "$(TLDEPS)" ; then \
+#	( cd $(QUANTUM_ESPRESSO_ROOT) ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi

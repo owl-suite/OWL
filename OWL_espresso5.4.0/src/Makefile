@@ -26,14 +26,13 @@ owl : owl-basics
 
 owl-qe : owl-basics
 	cd Main && $(MAKE) owl-qe
-	cd QuantumEspresso && $(MAKE) owl-qe
+	cd PhysicalSystems && $(MAKE) owl-qe
 
 clean:
 	cd Main && $(MAKE) clean
 	cd Utilities && $(MAKE) clean
 	cd PhysicalSystems && $(MAKE) clean 
 	cd MonteCarloAlgorithms && $(MAKE) clean
-	cd QuantumEspresso && $(MAKE) clean
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<

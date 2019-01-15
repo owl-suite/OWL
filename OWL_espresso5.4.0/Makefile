@@ -6,9 +6,9 @@
 #####################################################################
 
 ### Define C++ compiler and flags for different machines
-include architecture/mac_osx
+#include architecture/mac_osx
 #include architecture/olcf_titan
-#include architecture/olcf_eos
+include architecture/olcf_eos
 #include architecture/nersc
 
 ### Define directories

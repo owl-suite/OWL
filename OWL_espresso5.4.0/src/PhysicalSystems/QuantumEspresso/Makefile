@@ -41,7 +41,7 @@ OWL_QE_OBJS = QuantumEspressoSystem.o     \
               owl_run_QE.o
 
 ### Add the QuantumEspresso library to link line
-export OWL_LIBS += -L$(SRC_DIR)/QuantumEspresso -lQuantumEspresso
+export OWL_LIBS += -L$(SRC_DIR)/PhysicalSystems/QuantumEspresso -lQuantumEspresso
 
 #owl-qe : tldeps libQuantumEspresso.a
 owl-qe : libQuantumEspresso.a

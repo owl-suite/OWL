@@ -1,15 +1,18 @@
-# Add the source directory to the include path
-#export INCLUDE_PATH += -I $(SRC_DIR)
-
 PHYS_SYS_OBJS = Ising2D.o       \
                 Heisenberg2D.o
 
-default : all
+.PHONY : default owl-qe clean 
 
-all : libPhysicalSystems.a
+default : owl
+
+owl : libPhysicalSystems.a
+
+owl-qe :
+	cd QuantumEspresso && $(MAKE) owl-qe
 
 clean :
 	rm -rf *.o *.a *.dSYM
+	cd QuantumEspresso && $(MAKE) clean
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<

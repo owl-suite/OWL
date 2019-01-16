@@ -19,6 +19,9 @@ MODFLAGS = $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/iotk/src \
            $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/Modules  \
            $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/PW/src $(MOD_FLAG).
 
+# is it really needed?
+IFLAGS = -I$(QUANTUM_ESPRESSO_ROOT)/include
+
 #location of needed libraries
 LIBOBJS = $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/clib/clib.a
 

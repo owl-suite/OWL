@@ -1,6 +1,7 @@
-OWL_espresso5.4.0/src/qe
-OWL_espresso5.4.0/src/owl.dSYM/
-OWL_espresso5.4.0/src/Makefile_mac
+OWL_espresso5.4.0/src/QuantumEspresso/qe
+OWL_espresso5.4.0/src/Main/owl.dSYM/
+OWL_espresso5.4.0/architecture/Makefile_mac
 OWL_espresso5.4.0/src/*.o
 OWL_espresso5.4.0/src/*.a
-OWL_espresso5.4.0/src/owl
+OWL_espresso5.4.0/src/Main/owl
+

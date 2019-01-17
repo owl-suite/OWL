@@ -1,0 +1,23 @@
+### Define C++ compiler and flags for OLCF's EOS
+### Assuming default Intel compiler is used
+### module load hdf5
+### module load dynamic-link
+
+### C++ Compiler:
+export CXX = CC
+
+
+### Compiler Flags:
+### For debugging:
+export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
+
+### For production:
+#export CXXFLAGS = -O3 -Wall -std=c++11 -g 
+
+
+### Linking flags:   (compiler dependent)
+### For GNU compiler:
+#export LINKFLAGS = -lstdc++
+
+### For Intel compiler:
+export LINKFLAGS = -L/opt/intel/compilers_and_libraries_2018.1.163/linux/mkl/lib/intel64_lin -cxxlib

@@ -1,89 +1,39 @@
-# Makefile for OWL
+### Define the current directory as the source directory
+export SRC_DIR = $(shell pwd)
+export INCLUDE_PATH += -I $(SRC_DIR)
 
-QUANTUM_ESPRESSO_ROOT=./qe
-include $(QUANTUM_ESPRESSO_ROOT)/make.sys
+### Define libraries
+export OWL_LIBS = -L$(SRC_DIR)/Main -lMain                                 \
+                  -L$(SRC_DIR)/MonteCarloAlgorithms -lMonteCarloAlgorithms \
+                  -L$(SRC_DIR)/PhysicalSystems -lPhysicalSystems           \
+                  -L$(SRC_DIR)/Utilities -lUtilities
 
-EXECUTABLE = owl
+################################################
 
-### Define C++ compiler and flags for different machines
-include architecture/olcf_titan
-#include architecture/olcf_eos
-#include architecture/nersc
-#include architecture/mac_osx
+.PHONY: default all owl-basics owl owl-qe clean
 
-.SUFFIXES :
-.SUFFIXES : .o .c .f .f90 .cpp
+default : owl
 
-.cpp.o:
-	$(CXX) $(CXXFLAGS)  -c $<
+all : owl owl-qe
 
-# location of needed modules and included files (if any)
-MODFLAGS= $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/iotk/src \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/FFTXlib  \
-          $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/LAXlib   \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/Modules  \
-	  $(MOD_FLAG)$(QUANTUM_ESPRESSO_ROOT)/PW/src $(MOD_FLAG).
-IFLAGS=
+owl-basics:
+	cd Utilities && $(MAKE)
+	cd PhysicalSystems && $(MAKE)
+	cd MonteCarloAlgorithms && $(MAKE)
 
-#location of needed libraries
-LIBOBJS= $(QUANTUM_ESPRESSO_ROOT)/iotk/src/libiotk.a $(QUANTUM_ESPRESSO_ROOT)/clib/clib.a
+owl : owl-basics
+	cd Main && $(MAKE) owl
 
-COMMLIBS = \
-Communications.o
+owl-qe : owl-basics
+	cd Main && $(MAKE) owl-qe
+	cd PhysicalSystems && $(MAKE) owl-qe
 
-OWLOBJS = \
-QuantumEspressoSystem.o   \
-Heisenberg2D.o            \
-Ising2D.o                 \
-OWLMain.o
+clean:
+	cd Main && $(MAKE) clean
+	cd Utilities && $(MAKE) clean
+	cd PhysicalSystems && $(MAKE) clean 
+	cd MonteCarloAlgorithms && $(MAKE) clean
 
-OWLLIBS = \
-owl_getInfo_pwscf.o       \
-owl_do_pwscf.o            \
-owl_run_QE.o
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
 
-MCOBJS = \
-Histogram.o                 \
-RandomNumberGenerator.o     \
-MCAlgorithms.o              \
-WangLandauSampling.o        \
-ReplicaExchangeWangLandau.o \
-MulticanonicalSampling.o    \
-HistogramFreeMUCA.o         \
-QEMCMoves.o
-
-IOOBJS = \
-InputOutput.o
-
-QEMODS=$(QUANTUM_ESPRESSO_ROOT)/Modules/libqemod.a $(QUANTUM_ESPRESSO_ROOT)/FFTXlib/libqefft.a $(QUANTUM_ESPRESSO_ROOT)/LAXlib/libqela.a
-PWOBJS= $(QUANTUM_ESPRESSO_ROOT)/PW/src/libpw.a
-
-TLDEPS=bindir mods libs liblapack libblas pw
-
-all : tldeps $(EXECUTABLE)
-
-$(EXECUTABLE) : libcomm.a $(OWLOBJS) $(MCOBJS) libowl.a $(IOOBJS) $(LIBOBJS) $(PWOBJS) $(QEMODS)
-	$(LD) $(LDFLAGS) $(LINKFLAGS) -o $@ \
-	$(OWLOBJS) $(MCOBJS) libowl.a libcomm.a $(IOOBJS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
-	- ( cd $(QUANTUM_ESPRESSO_ROOT)/bin; ln -fs $(CURDIR)/$@ . )
-
-libcomm.a : $(COMMLIBS) 
-	$(AR) $(ARFLAGS) $@ $?
-
-libowl.a : $(OWLLIBS)
-	$(AR) $(ARFLAGS) $@ $?
-	$(RANLIB) $@
-
-tldeps :
-	if test -n "$(TLDEPS)" ; then \
-	( cd $(QUANTUM_ESPRESSO_ROOT) ; $(MAKE) $(TLDEPS) || exit 1 ) ; fi
-
-clean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L $(EXECUTABLE)
-	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
-
-veryclean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L *.cpp *.hpp $(EXECUTABLE)
-	- /bin/rm -f $(QUANTUM_ESPRESSO_ROOT)/bin/$(EXECUTABLE)
-
-include make.depend

@@ -17,20 +17,13 @@
 
 void readCommandLineArguments(int argc, char* argv[]) {
 
-  // Read in restart information
+  // Read in input file information
   if (argc != 2) {
-    //std::cout << "Usage: " << argv[0] << " [RestartFlag=0/1] \n";
     std::cout << "Usage: " << argv[0] << " [Input File Name] \n";
     exit(7);
   }
-/*
-  else {
-    if (sscanf(argv[1], "%d", &restartFlag) != 1) {
-      std::cout << "Error: cannot read restart flag! \n";
-      exit(1);
-    }
-  }
 
+/*
   switch (restartFlag) {
     case 0 : 
       // fresh start

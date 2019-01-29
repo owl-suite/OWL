@@ -69,7 +69,7 @@ Ising2D::Ising2D(const char* filename, int initial)
 	  break;
         }
         default : {   // random
-          if (rng() < 0.5) spin[i*Size+j] = -1;
+          if (getRandomNumber2() < 0.5) spin[i*Size+j] = -1;
           else spin[i*Size+j] = 1;
           //if (rng() < 0.5) spin[i][j] = DOWN;
           //else spin[i][j] = UP;
@@ -83,6 +83,7 @@ Ising2D::Ising2D(const char* filename, int initial)
   initializeObservables(2);      // observables[0] : energy
                                  // observables[1] : magnetization
   getObservablesFromScratch = true;
+  getObservables();
 
   buildMPIConfigurationType();
   pointerToConfiguration = static_cast<void*>(&spin[0]);

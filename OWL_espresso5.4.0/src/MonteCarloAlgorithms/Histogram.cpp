@@ -32,12 +32,16 @@ Histogram::Histogram(int restart, const char* inputFile)
     if (inputFile != NULL)
       readMCInputFile(inputFile);
     else {
-      std::cout << "Error: No input file for Wang-Landau sampling. Quiting... \n";
+      std::cout << "Error: No input file for reading histogram's info. Quiting... \n";
       exit(7);
     }
 
     // Calculate quantities based on the variables read in
     double energySubwindowWidth = (Emax - Emin) / (1.0 + double(numberOfWindows - 1)*(1.0 - overlap));
+
+    // Round upward to the closest binSize
+    energySubwindowWidth = ceil(energySubwindowWidth / binSize) * binSize;
+
     walkerID = (GlobalComm.thisMPIrank - (GlobalComm.thisMPIrank % simInfo.numMPIranksPerWalker)) / simInfo.numMPIranksPerWalker;
     myWindow = ( walkerID - (walkerID % numberOfWalkersPerWindow) ) / numberOfWalkersPerWindow;
     Emin     = Emin + double(myWindow) * (1.0 - overlap) * energySubwindowWidth;
@@ -662,9 +666,9 @@ void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
 void Histogram::readMCInputFile(char const* fileName)
 {
  
-  std::cout << "Reading Monte Carlo input file: " << fileName << std::endl;
+  std::cout << "Histogram class reading input file: " << fileName << std::endl;
 
-  std::ifstream inputFile(fileName);   // how to check if a file stream is initialized?
+  std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;
 
   if (inputFile.is_open()) {

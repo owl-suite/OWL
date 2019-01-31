@@ -89,17 +89,17 @@ void ReplicaExchangeWangLandau::run()
     sprintf(fileName, "energyLatticePos_walker%05d.dat", REWLComm.thisMPIrank);
     physical_system -> writeConfiguration(0, fileName);
     printf("Walker %05d: Start energy = %6.3f\n", REWLComm.thisMPIrank, physical_system -> observables[0]);
+    fflush(stdout);
   }
 
-
+  GlobalComm.barrier();
+  
+ 
 //-------------- End initialization --------------//
 
 // WL procedure starts here
-  //if (PhysicalSystemComm.thisMPIrank == 0)
-  //  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
-  getMaxModFactor();
+  //getMaxModFactor();
 
-  //while (h.modFactor > h.modFactorFinal) {
   while (MaxModFactor > h.modFactorFinal) {
     h.histogramFlat = false;
 
@@ -164,7 +164,9 @@ void ReplicaExchangeWangLandau::run()
             lastBackUpTime = currentTime;
           }
         }
+
       }
+
       h.totalMCsteps += h.histogramCheckInterval;
       //h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
 
@@ -175,16 +177,22 @@ void ReplicaExchangeWangLandau::run()
       //if (h.numHistogramNotImproved >= h.histogramRefreshInterval)
       //  h.refreshHistogram();
 
+      if (h.histogramFlat) {
+        // Prepare for the next iteration
+        h.modFactor /= h.modFactorReducer;
+        h.resetHistogram();
+        h.iterations++;
+      }
+
       // Get the maximum ModFactor among all processors
-      if (PhysicalSystemComm.thisMPIrank == 0)
-        MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+      getMaxModFactor();
 
     }
 
-    if (GlobalComm.thisMPIrank == 0) 
-      printf("Number of iterations performed = %d\n", h.iterations);
+    //if (GlobalComm.thisMPIrank == 0) 
+      printf("GlobalID: %05d, Number of iterations performed = %d\n", GlobalComm.thisMPIrank, h.iterations);
     
-      // Also write restart file here 
+    // Also write restart files here 
     if (PhysicalSystemComm.thisMPIrank == 0) {
       sprintf(fileName, "hist_dos_iteration%02d_walker%05d.dat", h.iterations, REWLComm.thisMPIrank);
       h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
@@ -192,10 +200,8 @@ void ReplicaExchangeWangLandau::run()
       physical_system -> writeConfiguration(1, fileName);
     }
 
-    // Go to next iteration
-    h.modFactor /= h.modFactorReducer;
-    h.resetHistogram();
-    h.iterations++;
+
+
   }
 
   // Write out data at the end of the simulation
@@ -213,7 +219,7 @@ void ReplicaExchangeWangLandau::run()
 bool ReplicaExchangeWangLandau::replicaExchange()
 {
 
-  std::cout << "YingWai's check: Inside replicaExchange\n";
+  //std::cout << "YingWai's check: Inside replicaExchange\n";
 
   double localDOSRatio             {0.0};
   bool   replicaExchangeAcceptance {false};
@@ -223,6 +229,7 @@ bool ReplicaExchangeWangLandau::replicaExchange()
   // Everyone finds its swap-partner
   assignSwapPartner();
   printf("GlobalID %05d, Walker %05d: partnerID = %05d\n", GlobalComm.thisMPIrank, REWLComm.thisMPIrank, partnerID);
+  fflush(stdout);
 
   if ((partnerID != -1) && (PhysicalSystemComm.thisMPIrank == 0)) {
     // Exchange energy with partner
@@ -360,9 +367,15 @@ void ReplicaExchangeWangLandau::getMaxModFactor()
 {
 
   //YingWai's note: will it be more performant if it is split into two steps?  (Dec 25, 17)
-  // * Asynchronized AllReduce within REWLComm
-  // * Broadcast to group members within PhySystemComm
+  // 1. Asynchronized AllReduce within REWLComm
+  // 2. Broadcast to group members within PhySystemComm
+  //if (PhysicalSystemComm.thisMPIrank == 0)
+  //  MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, REWLComm.communicator);
+
   MPI_Allreduce(&(h.modFactor), &MaxModFactor, 1, MPI_DOUBLE, MPI_MAX, GlobalComm.communicator);
+
+  // YingWai's Check
+  printf("GlobalID %05d, MaxModFactor = %15.10e, LocalModFactor = %15.10e\n", GlobalComm.thisMPIrank, MaxModFactor, h.modFactor);
 
 }
 

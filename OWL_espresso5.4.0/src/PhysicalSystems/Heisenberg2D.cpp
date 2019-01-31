@@ -108,6 +108,7 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
                                  // observables[2] : magnetization in y-direction
                                  // observables[3] : magnetization in z-direction
   firstTimeGetMeasures = true;
+  getObservables();
 
 }
 

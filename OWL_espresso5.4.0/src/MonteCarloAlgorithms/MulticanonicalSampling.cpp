@@ -5,7 +5,7 @@
 
 
 // Constructor
-MulticanonicalSampling::MulticanonicalSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile)   
+MulticanonicalSampling::MulticanonicalSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile, simInfo.HistogramCheckpointFile)
 {
 
   printf("Simulation method: Multicanonical (MUDA) sampling\n");

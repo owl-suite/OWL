@@ -19,10 +19,12 @@ struct SimulationInfo
   int  rngSeed               {-1};
   //char MCInputFile[255]      {};
   char* MCInputFile;
+  char* HistogramCheckpointFile;
 
   // MPI info
   int  numWalkers            {1};
   int  numMPIranksPerWalker  {1};
+  int  myWalkerID            {-1};
 
   // Command line options for QE and LSMS
   char physicalSystemCommandLine[256]      {};

@@ -10,16 +10,27 @@
 #include "Histogram.hpp"
 #include "Main/Communications.hpp"
 
-// Constructor
-Histogram::Histogram(int restart, const char* inputFile)
-{
-  // Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
+//TODO: The argument list of the Histogram constructor is redundant as simInfo is a global struct. Should be removed. (Feb 1, 19)
+//TODO: Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
 
-  if (restart)
-    readHistogramDOSFile("hist_dos_checkpoint.dat");
+// Constructor
+//Histogram::Histogram(int restart, const char* inputFile)
+Histogram::Histogram(int restart, const char* inputFile, const char* checkPointFile)
+{
+
+  // Read input file
+  if (inputFile != NULL)
+    readMCInputFile(inputFile);
+  else {
+    std::cout << "Error: No input file for reading histogram's info. Quiting... \n";
+    exit(7);
+  }
+
+  // Read checkpoint file, or initialize anew
+  if (restart && checkPointFile != NULL)
+    readHistogramDOSFile(checkPointFile);
   else {
     Emax = std::numeric_limits<ObservableType>::max();
-    //Emin = -std::numeric_limits<ObservableType>::max();
     Emin = std::numeric_limits<ObservableType>::lowest();    // C++11
 
     numberOfWindows          = 1;           // default to =1 if not specified in input file
@@ -27,14 +38,6 @@ Histogram::Histogram(int restart, const char* inputFile)
     overlap  = 1.0;
     walkerID = 0;
     myWindow = 0;
-
-    // Read input file
-    if (inputFile != NULL)
-      readMCInputFile(inputFile);
-    else {
-      std::cout << "Error: No input file for reading histogram's info. Quiting... \n";
-      exit(7);
-    }
 
     // Calculate quantities based on the variables read in
     double energySubwindowWidth = (Emax - Emin) / (1.0 + double(numberOfWindows - 1)*(1.0 - overlap));
@@ -390,12 +393,12 @@ int Histogram::getIndex(ObservableType energy)
 void Histogram::readHistogramDOSFile(const char* fileName)
 {
 
-  std::cout << "Reading restart file for Wang-Landau sampling: " << fileName << std::endl;
+  std::cout << "Reading histogram checkpoint file : " << fileName << std::endl;
 
   FILE *histdos_file = fopen(fileName, "r");
   if (histdos_file == NULL) {
-    std::cerr << "Error: cannot open restart file for Wang-Landau sampling"  << fileName << std::endl;
-    exit(7);    // perhaps can start from wl.input?
+    std::cerr << "Error: cannot open histogram checkpoint file "  << fileName << std::endl;
+    exit(7);    // perhaps can start from wl.input instead of quitting?
   }
 
   // TO DO: need to error-proof if they are not in order / missing...
@@ -408,8 +411,11 @@ void Histogram::readHistogramDOSFile(const char* fileName)
   if (fscanf(histdos_file, "%*s %lf", &modFactor) != 1)
     std::cerr << "Cannot read modFactor \n";
 
-  if (fscanf(histdos_file, "%*s %lf", &modFactorFinal) != 1)
+  double modFactorFinal_tmp;
+  if (fscanf(histdos_file, "%*s %lf", &modFactorFinal_tmp) != 1)
     std::cerr << "Cannot read modFactorFinal \n";
+  if (modFactorFinal_tmp < modFactorFinal)
+    std::cout << "modFactorFinal read from the checkpoint file is smaller than the input file. Simulation will continue with the new modFactorFinal. \n";
 
   if (fscanf(histdos_file, "%*s %lf", &modFactorReducer) != 1)
     std::cerr << "Cannot read modFactorReducer \n";
@@ -474,9 +480,8 @@ void Histogram::readHistogramDOSFile(const char* fileName)
       std::cerr << "Problem reading histogram and DOS. Check!\n";
   }
 
-  for (unsigned int i = 0; i < numBins; i++) {
-    printf("Check: %d %lu %20.8f\n", visited[i], hist[i], dos[i]);
-  }
+  //for (unsigned int i = 0; i < numBins; i++)
+  //  printf("Check: %d %lu %20.8f\n", visited[i], hist[i], dos[i]);
 
   fclose(histdos_file);
 

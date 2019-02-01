@@ -102,6 +102,7 @@ extern MPICommunicator GlobalComm;
 // Functions
 void initializeMPICommunication(MPICommunicator& PhysicalSystemComm, MPICommunicator& MCAlgorithmComm);
 void finalizeMPICommunication();
+void constructHistogramCheckpointFile();
 
 // The following should be replaced once the MPI classes are ready? (Jun 14, 17)
 void initializeQEMPICommunication();

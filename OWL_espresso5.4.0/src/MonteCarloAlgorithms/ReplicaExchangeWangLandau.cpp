@@ -8,7 +8,7 @@
 #include "Utilities/RandomNumberGenerator.hpp"
 
 // Constructor
-ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm) : h(simInfo.restartFlag, simInfo.MCInputFile)
+ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm) : h(simInfo.restartFlag, simInfo.MCInputFile, simInfo.HistogramCheckpointFile)
 {
 
   std::cout << "Simulation method: Replica-Exchange Wang-Landau sampling\n";
@@ -86,7 +86,7 @@ void ReplicaExchangeWangLandau::run()
 
   // Write out the energy
   if (PhysicalSystemComm.thisMPIrank == 0) {
-    sprintf(fileName, "energyLatticePos_walker%05d.dat", REWLComm.thisMPIrank);
+    sprintf(fileName, "config_initial_walker%05d.dat", REWLComm.thisMPIrank);
     physical_system -> writeConfiguration(0, fileName);
     printf("Walker %05d: Start energy = %6.3f\n", REWLComm.thisMPIrank, physical_system -> observables[0]);
     fflush(stdout);
@@ -159,7 +159,7 @@ void ReplicaExchangeWangLandau::run()
           if (currentTime - lastBackUpTime > 300) {
             sprintf(fileName, "hist_dos_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
             h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
-            sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
+            sprintf(fileName, "config_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
             physical_system -> writeConfiguration(1, fileName);
             lastBackUpTime = currentTime;
           }
@@ -196,7 +196,7 @@ void ReplicaExchangeWangLandau::run()
     if (PhysicalSystemComm.thisMPIrank == 0) {
       sprintf(fileName, "hist_dos_iteration%02d_walker%05d.dat", h.iterations, REWLComm.thisMPIrank);
       h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
-      sprintf(fileName, "OWL_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
+      sprintf(fileName, "config_checkpoint_walker%05d.dat", REWLComm.thisMPIrank);
       physical_system -> writeConfiguration(1, fileName);
     }
 
@@ -228,8 +228,8 @@ bool ReplicaExchangeWangLandau::replicaExchange()
 
   // Everyone finds its swap-partner
   assignSwapPartner();
-  printf("GlobalID %05d, Walker %05d: partnerID = %05d\n", GlobalComm.thisMPIrank, REWLComm.thisMPIrank, partnerID);
-  fflush(stdout);
+  //printf("GlobalID %05d, Walker %05d: partnerID = %05d\n", GlobalComm.thisMPIrank, REWLComm.thisMPIrank, partnerID);
+  //fflush(stdout);
 
   if ((partnerID != -1) && (PhysicalSystemComm.thisMPIrank == 0)) {
     // Exchange energy with partner

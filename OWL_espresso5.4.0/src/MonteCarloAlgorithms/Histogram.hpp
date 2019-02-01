@@ -11,7 +11,7 @@ class Histogram {
 
 public:
 
-  // These should be moved to the WL-MC class (when they are implemented...)
+  // These should be moved to the WL-MC class
   // ... or should it be a derived WL histogram class?   (July 24, 2017)
   double       flatnessCriterion;               // flatness criterion  
   double       modFactor;                       // natural log of modification factor, f
@@ -35,7 +35,8 @@ public:
   int  numHistogramRefreshed;
 
   // Constructor
-  Histogram(int = -1, const char* = NULL);
+  Histogram(int = -1, const char* = NULL, const char* = NULL);
+  //Histogram(int = -1, const char* = NULL);
 
   // Destructor
   ~Histogram();

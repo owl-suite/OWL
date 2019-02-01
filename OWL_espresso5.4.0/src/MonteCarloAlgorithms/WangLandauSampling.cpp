@@ -6,7 +6,7 @@
 
 
 // Constructor
-WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile)
+WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile, simInfo.HistogramCheckpointFile)
 {
 
   printf("Simulation method: Wang-Landau sampling\n");

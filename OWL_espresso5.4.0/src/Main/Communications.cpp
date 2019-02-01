@@ -110,14 +110,11 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
 
     /// group processors into different walkers
     int walkerID = (GlobalComm.thisMPIrank - (GlobalComm.thisMPIrank % simInfo.numMPIranksPerWalker)) / simInfo.numMPIranksPerWalker;
+    simInfo.myWalkerID = walkerID;
 
     /// store the global MPI rank IDs for all "group leaders" (rank 0s) in each walker
     for (int i=0; i<simInfo.numWalkers; i++)
-    {
       walkerLeadersID[i] = i * simInfo.numMPIranksPerWalker;
-      if (GlobalComm.thisMPIrank == 0)
-        std::cout << "walkerLeadersID[" << i << "] = " << walkerLeadersID[i] << "\n";
-    }
 
     /// build the physical system communicators
     /// i.e., group the processors having the same walkerID
@@ -136,6 +133,8 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
                   << "        OWL aborting...\n";
         exit(7);
       }
+
+    constructHistogramCheckpointFile();
 
   }
 
@@ -164,6 +163,21 @@ void finalizeMPICommunication()
 {
 
   MPI_Finalize();
+
+}
+
+
+void constructHistogramCheckpointFile()
+{
+
+  simInfo.HistogramCheckpointFile = new char[36]();
+  if (simInfo.algorithm == 5) 
+    sprintf(simInfo.HistogramCheckpointFile, "hist_dos_checkpoint_walker%05d.dat", simInfo.myWalkerID);
+  else
+    sprintf(simInfo.HistogramCheckpointFile, "hist_dos_checkpoint.dat");
+
+  // Check
+  //printf("GlobalID = %05d, myWalkerID = %5d, HistogramCheckpointFile = %s\n", GlobalComm.thisMPIrank, simInfo.myWalkerID, simInfo.HistogramCheckpointFile);
 
 }
 

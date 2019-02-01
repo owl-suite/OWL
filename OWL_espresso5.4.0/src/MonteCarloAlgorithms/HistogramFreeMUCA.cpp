@@ -5,7 +5,7 @@
 
 
 // Constructor
-DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile)
+DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile, simInfo.HistogramCheckpointFile)
 {
 
   printf("Simulation method: Histogram-free multicanonical sampling for discrete energy models\n");

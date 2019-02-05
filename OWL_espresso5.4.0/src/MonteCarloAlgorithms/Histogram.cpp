@@ -18,6 +18,15 @@
 Histogram::Histogram(int restart, const char* inputFile, const char* checkPointFile)
 {
 
+  Emax = std::numeric_limits<ObservableType>::max();
+  Emin = std::numeric_limits<ObservableType>::lowest();
+
+  numberOfWindows          = 1;           // default to =1 if not specified in input file
+  numberOfWalkersPerWindow = 1;
+  overlap  = 1.0;
+  walkerID = 0;
+  myWindow = 0;
+
   // Read input file
   if (inputFile != NULL)
     readMCInputFile(inputFile);
@@ -30,15 +39,6 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   if (restart && checkPointFile != NULL)
     readHistogramDOSFile(checkPointFile);
   else {
-    Emax = std::numeric_limits<ObservableType>::max();
-    Emin = std::numeric_limits<ObservableType>::lowest();    // C++11
-
-    numberOfWindows          = 1;           // default to =1 if not specified in input file
-    numberOfWalkersPerWindow = 1;
-    overlap  = 1.0;
-    walkerID = 0;
-    myWindow = 0;
-
     // Calculate quantities based on the variables read in
     double energySubwindowWidth = (Emax - Emin) / (1.0 + double(numberOfWindows - 1)*(1.0 - overlap));
 
@@ -62,7 +62,7 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
     totalMCsteps            = 0;
     acceptedMoves           = 0;
     rejectedMoves           = 0;
-    iterations              = 1;
+    iterations              = 0;
     numBinsFailingCriterion = numBins;
     numBelowRange           = 0;
     numAboveRange           = 0;

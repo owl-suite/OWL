@@ -84,6 +84,5 @@ binSize                   1
 
 ##### Information for MPI rank distribution #####
 
-NumberOfRandomWalkers      1
 NumberOfMPIranksPerWalker  5
 

@@ -64,17 +64,14 @@ void readMainInputFile(const char* FileName) {
             //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << std::endl;
             continue;
           }
-          //else if (key == "NumberOfRandomWalkers") {
-          //  lineStream >> simInfo.numWalkers;
-            //std::cout << "Simulation Info: Number of random walkers = " << simInfo.numWalkers << std::endl;
-          //  continue;
-          //}
           else if (key == "numberOfWindows") {
             lineStream >> simInfo.numberOfWindows;
+            //std::cout << "Simulation Info: number of energy window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWindows << std::endl;
             continue;
           }
           else if (key == "numberOfWalkersPerWindow") {
             lineStream >> simInfo.numberOfWalkersPerWindow;
+            //std::cout << "Simulation Info: number of random walkers per window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWalkersPerWindow << std::endl;
             continue;
           }
           else if (key == "NumberOfMPIranksPerWalker") {

@@ -17,7 +17,7 @@ int main (int argc, char *argv[]) {
   readCommandLineArguments(argc, argv);
 
   // Read from input file; store the simulation settings in simInfo
-  readMainInputFile(argv[1], simInfo);
+  readMainInputFile(argv[1]);
 
   // Initializations
   initializeMPICommunication( physicalSystemComm, mcAlgorithmComm );

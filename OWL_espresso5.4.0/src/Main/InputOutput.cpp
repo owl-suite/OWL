@@ -7,13 +7,13 @@
 
 
 // Input file should be specified as the first argument in command line
-void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
+void readMainInputFile(const char* FileName) {
   
   std::cout << "Reading main input file: " << FileName << std::endl;
   int length = strlen(FileName);
-  sim_info.MCInputFile = new char[length+1]();
-  strncpy(sim_info.MCInputFile, FileName, length+1);
-  //std::cout << "sim_info.MCInputFile set to be: " << sim_info.MCInputFile << std::endl;
+  simInfo.MCInputFile = new char[length+1]();
+  strncpy(simInfo.MCInputFile, FileName, length+1);
+  //std::cout << "simInfo.MCInputFile set to be: " << simInfo.MCInputFile << std::endl;
 
   std::ifstream inputFile(FileName);
   std::string line, key;
@@ -29,49 +29,57 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
   
           // Read and set SimulationInfo
           if (key == "RestartFlag") {
-            lineStream >> sim_info.restartFlag;
-            //std::cout << "Simulation Info: restartFlag = " << sim_info.restartFlag << std::endl;
+            lineStream >> simInfo.restartFlag;
+            //std::cout << "Simulation Info: restartFlag = " << simInfo.restartFlag << std::endl;
             continue;
           }
           else if (key == "PhysicalSystem") {
-            lineStream >> sim_info.system;
-            //std::cout << "Simulation Info: system = " << sim_info.system << std::endl;
+            lineStream >> simInfo.system;
+            //std::cout << "Simulation Info: system = " << simInfo.system << std::endl;
             continue;
           }
           else if (key == "PhysicalSystemCommandLine") {
-  //          lineStream >> sim_info.physicalSystemCommandLine;
-            lineStream.getline(sim_info.physicalSystemCommandLine, 256);
-            //std::cout << "Simulation Info: command line = " << sim_info.physicalSystemCommandLine << std::endl;
+  //          lineStream >> simInfo.physicalSystemCommandLine;
+            lineStream.getline(simInfo.physicalSystemCommandLine, 256);
+            //std::cout << "Simulation Info: command line = " << simInfo.physicalSystemCommandLine << std::endl;
             continue;
           }
           else if (key == "Algorithm") {
-            lineStream >> sim_info.algorithm;
-            //std::cout << "Simulation Info: algorithm = " << sim_info.algorithm << std::endl;
+            lineStream >> simInfo.algorithm;
+            //std::cout << "Simulation Info: algorithm = " << simInfo.algorithm << std::endl;
             continue;
           }
           else if (key == "RngSeed"){
-            lineStream >> sim_info.rngSeed;
-            //std::cout << "Random number seed = " << sim_info.rngSeed << std::endl;
+            lineStream >> simInfo.rngSeed;
+            //std::cout << "Random number seed = " << simInfo.rngSeed << std::endl;
             continue;
           }
           else if (key == "SpinModelLatticeSize") {
-            lineStream >> sim_info.spinModelLatticeSize;
-            //std::cout << "Simulation Info: lattice size = " << sim_info.spinModelLatticeSize << std::endl;
+            lineStream >> simInfo.spinModelLatticeSize;
+            //std::cout << "Simulation Info: lattice size = " << simInfo.spinModelLatticeSize << std::endl;
             continue;
           }
           else if (key == "QENumberOfAtoms") {
-            lineStream >> sim_info.numAtoms;
-            //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << sim_info.numAtoms << std::endl;
+            lineStream >> simInfo.numAtoms;
+            //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << std::endl;
             continue;
           }
-          else if (key == "NumberOfRandomWalkers") {
-            lineStream >> sim_info.numWalkers;
-            //std::cout << "Simulation Info: Number of random walkers = " << sim_info.numWalkers << std::endl;
+          //else if (key == "NumberOfRandomWalkers") {
+          //  lineStream >> simInfo.numWalkers;
+            //std::cout << "Simulation Info: Number of random walkers = " << simInfo.numWalkers << std::endl;
+          //  continue;
+          //}
+          else if (key == "numberOfWindows") {
+            lineStream >> simInfo.numberOfWindows;
+            continue;
+          }
+          else if (key == "numberOfWalkersPerWindow") {
+            lineStream >> simInfo.numberOfWalkersPerWindow;
             continue;
           }
           else if (key == "NumberOfMPIranksPerWalker") {
             lineStream >> simInfo.numMPIranksPerWalker;
-            //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << sim_info.numMPIranksPerWalker << std::endl;
+            //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << simInfo.numMPIranksPerWalker << std::endl;
             continue;
           }
           else {
@@ -83,8 +91,12 @@ void readMainInputFile(const char* FileName, SimulationInfo& sim_info) {
 
       }
     }
-  
+ 
     inputFile.close();
   }
+
+  if ((simInfo.numberOfWindows > 0) && (simInfo.numberOfWalkersPerWindow > 0))
+    simInfo.numWalkers = simInfo.numberOfWindows * simInfo.numberOfWalkersPerWindow;
+ 
 }
 

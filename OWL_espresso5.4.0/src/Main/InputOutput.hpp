@@ -4,6 +4,6 @@
 #include <iostream>
 #include "Globals.hpp"
 
-void readMainInputFile(const char* inputFileName, SimulationInfo& sim_info);
+void readMainInputFile(const char* inputFileName);
 
 #endif

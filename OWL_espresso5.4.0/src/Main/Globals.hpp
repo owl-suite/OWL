@@ -25,6 +25,8 @@ struct SimulationInfo
   int  numWalkers            {1};
   int  numMPIranksPerWalker  {1};
   int  myWalkerID            {-1};
+  int  numberOfWindows       {-1};      // only valid for REWL, will remain -1 for other MC algorithms
+  int  numberOfWalkersPerWindow {-1};   // ditto
 
   // Command line options for QE and LSMS
   char physicalSystemCommandLine[256]      {};

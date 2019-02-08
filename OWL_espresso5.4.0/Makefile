@@ -6,10 +6,7 @@
 #####################################################################
 
 ### Define C++ compiler and flags for different machines
-#include architecture/mac_osx
-#include architecture/olcf_titan
-include architecture/olcf_eos
-#include architecture/nersc
+include architecture.inc
 
 ### Define directories
 export MASTER_DIR = $(shell pwd)

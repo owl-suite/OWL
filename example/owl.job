@@ -16,7 +16,7 @@ export OMP_NUM_THREADS=1
 echo $MODULESHOME
 source $MODULESHOME/init/bash
 
-export owlexe=$HOME/OWL-QE/OWL_espresso5.4.0/src/owl
+export owlexe=$HOME/OWL-QE/OWL_espresso5.4.0/bin/owl-qe
 #export owlexe=$HOME/OWL-QE/OWL_espresso5.4.0/src/owl_gpu
 
 echo "--- Number of MPI tasks      = ", $NP

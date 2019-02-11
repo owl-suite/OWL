@@ -17,7 +17,7 @@ export CXXFLAGS = -O3 -Wall -std=c++11 -g
 
 ### Linking flags:   (compiler dependent)
 ### For GNU compiler:
-#export LINKFLAGS = $(FFLAGS_NOMAIN) -lstdc++
+#export LINKFLAGS = -lstdc++
 
 ### For Intel compiler:
-export LINKFLAGS = $(FFLAGS_NOMAIN) -cxxlib
+export LINKFLAGS = -cxxlib

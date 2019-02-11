@@ -9,10 +9,10 @@ export CXX = CC
 
 ### Compiler Flags:
 ### For debugging:
-export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
+#export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
 
 ### For production:
-#export CXXFLAGS = -O3 -Wall -std=c++11 -g 
+export CXXFLAGS = -O3 -Wall -std=c++11 -g 
 
 
 ### Linking flags:   (compiler dependent)

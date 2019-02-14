@@ -1,12 +1,6 @@
-!
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt.
-!
 !----------------------------------------------------------------------------
 SUBROUTINE get_natom_ener (natom, f_etot) BIND(C)
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
   !
@@ -26,7 +20,7 @@ END SUBROUTINE get_natom_ener
   !
 !----------------------------------------------------------------------------
 SUBROUTINE get_pos_array (pos_array) BIND(C)
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
   !
@@ -45,7 +39,7 @@ END SUBROUTINE get_pos_array
   !
 !----------------------------------------------------------------------------
 SUBROUTINE get_cell_array (cell_array) BIND(C)
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
   !
@@ -62,13 +56,30 @@ SUBROUTINE get_cell_array (cell_array) BIND(C)
 END SUBROUTINE get_cell_array
   !
 !----------------------------------------------------------------------------
-SUBROUTINE pass_pos_array (pos_array) BIND(C)
-  !----------------------------------------------------------------------------
+SUBROUTINE get_atomic_species (species_array) BIND(C)
+!----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
   !
-  ! ... Extract the position array from the Quantum Espresso modules
-  ! ... after updating the atomic positions from Wang-Landau codes
+  ! ... Extract the atomic species array from the Quantum Espresso modules
+  !
+  USE ions_base,     ONLY : ityp, nat
+  !
+  IMPLICIT NONE
+  INTEGER :: species_array(nat)
+  !
+  species_array(:) = ityp(:)
+  !
+END SUBROUTINE get_atomic_species
+  !
+!----------------------------------------------------------------------------
+SUBROUTINE pass_pos_array (pos_array) BIND(C)
+!----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
+  !
+  ! ... Pass the position array to the Quantum Espresso modules
+  ! ... after updating the atomic positions in OWL
   !
   USE constants,     ONLY : bohr_radius_angs
   USE cell_base,     ONLY : alat
@@ -77,24 +88,24 @@ SUBROUTINE pass_pos_array (pos_array) BIND(C)
   IMPLICIT NONE
   REAL(KIND=8) :: pos_array(3,nat)
   !
-  ! ... Feed the updated position array from Wang-Landau codes
+  ! ... Feed the updated position array from OWL
   !
   tau(:,:) = (pos_array(:,:) / alat) / bohr_radius_angs   ! ... (in Cartesian)
   !
-!  tau(1,nat) = 0.7744183 ! ... test; assuming this change is made from WL codes
-!  tau(2,nat) = 0.5192893 ! ... test; assuming this change is made from WL codes
-!  tau(3,nat) = 0.8074200 ! ... test; assuming this change is made from WL codes
+!  tau(1,nat) = 0.7744183 ! ... test; assuming this change is made from OWL
+!  tau(2,nat) = 0.5192893 ! ... test; assuming this change is made from OWL
+!  tau(3,nat) = 0.8074200 ! ... test; assuming this change is made from OWL
   !
 END SUBROUTINE pass_pos_array
   !
 !----------------------------------------------------------------------------
 SUBROUTINE pass_cell_array (cell_array) BIND(C)
-  !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !
   USE ISO_C_BINDING
   !
-  ! ... Extract the position array from the Quantum Espresso modules
-  ! ... after updating the cell lattice vector from Wang-Landau codes
+  ! ... Pass the position array to the Quantum Espresso modules
+  ! ... after updating the cell lattice vector in OWL
   !
   USE constants,     ONLY : bohr_radius_angs
   USE cell_base,     ONLY : alat, at, omega, bg
@@ -108,10 +119,10 @@ SUBROUTINE pass_cell_array (cell_array) BIND(C)
   !
   CALL cryst_to_cart( nat, tau, bg, -1 )
   !
-  ! ... Feed the updated cell vector array from Wang-Landau codes
+  ! ... Feed the updated cell vector array from OWL
   !
   at(:,:) = (cell_array(:,:) / alat) / bohr_radius_angs   ! ... (in Cartesian)
-!  at(3,3) = 1.015   ! ... test; assuming this change is made from WL codes
+!  at(3,3) = 1.015   ! ... test; assuming this change is made from OWL
   !
   ! ... Update the cell volume, position array, and reciprocal lattice vector
   ! ... using the updated lattice vector
@@ -125,3 +136,19 @@ SUBROUTINE pass_cell_array (cell_array) BIND(C)
 END SUBROUTINE pass_cell_array
   !
 !----------------------------------------------------------------------------
+SUBROUTINE pass_atomic_species (species_array) BIND(C)
+!----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
+  !
+  ! ... Pass the atomic species array to the Quantum Espresso modules
+  ! ... after updating the atomic species in OWL
+  !
+  USE ions_base,     ONLY : ityp, nat
+  !
+  IMPLICIT NONE
+  INTEGER :: species_array(nat)
+  !
+  ityp (:) = species_array(:)
+  !
+END SUBROUTINE pass_atomic_species

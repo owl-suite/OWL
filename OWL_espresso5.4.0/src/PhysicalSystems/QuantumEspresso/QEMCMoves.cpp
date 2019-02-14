@@ -8,7 +8,7 @@
 void writeAtomicPositions(Matrix<double> atom_positions)
 {
 
-  printf("YingWai's debug: atom_position inside displaceAnAtom\n");
+  printf("Debug: atom_position inside displaceAnAtom\n");
   for(unsigned int i=0; i<atom_positions.n_col(); i++) {
     printf("atom %d : ", i);
     for(unsigned int j=0; j<atom_positions.n_row(); j++)
@@ -22,7 +22,7 @@ void writeAtomicPositions(Matrix<double> atom_positions)
 void writeLatticeVectors(Matrix<double> cell_vectors)
 {
 
-  printf("YingWai's debug: lattice_vector inside stretchCrystalCell\n");
+  printf("Debug: lattice_vector inside stretchCrystalCell\n");
   for(unsigned int i=0; i<cell_vectors.n_col(); i++) {
     printf("vector %d : ", i);
     for(unsigned int j=0; j<cell_vectors.n_row(); j++)
@@ -36,7 +36,7 @@ void writeLatticeVectors(Matrix<double> cell_vectors)
 // Takes in old atomic positions and modify
 void displaceAnAtom(Matrix<double> &atom_positions)
 {
-  // YingWai's note (data layout of Matrix class):
+  // Note (data layout of Matrix class):
   // (i) mat(i,j)
   //     resize(nRow,nCol); nRow = dim. of coordinates, nCol = # of atoms
   //       j ->
@@ -68,7 +68,7 @@ void displaceAnAtom(Matrix<double> &atom_positions)
     atom_positions(i,ranAtom) += dr;
   }
 
-  // YingWai's debugging check
+  // Debugging check
   //writeAtomicPositions(atom_positions);
 
 }
@@ -78,7 +78,7 @@ void displaceAnAtom(Matrix<double> &atom_positions)
 void stretchCrystalCell(Matrix<double> &cell_vectors)
 {
 
-  // YingWai's note (data layout of cell_vectors[i][j]):
+  // Note (data layout of cell_vectors[i][j]):
   //    j -->
   //  i    a_x b_x c_x
   //  |    a_y b_y c_y
@@ -122,32 +122,59 @@ void stretchCrystalCell(Matrix<double> &cell_vectors)
   cell_vectors(1,ranLatticeVector) = L * sin_theta * sin_phi;
   cell_vectors(2,ranLatticeVector) = L * cos_theta;
 
-  //YingWai's debugging check
+  // Debugging check
   //writeLatticeVectors(cell_vectors);
 
 }
 
 
-void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors)
+
+void swapAtomSpeciesAtTwoSites(std::vector<int> &atom_species)
+{
+
+  // Choose two atoms at random
+  int ranAtom1 = rng() % atom_species.size();
+  int ranAtom2 = rng() % atom_species.size();
+ 
+  // Swap the species types of two atoms
+  int speciesTmp = atom_species[ranAtom1];
+  atom_species[ranAtom1] = atom_species[ranAtom2];
+  atom_species[ranAtom2] = speciesTmp;
+
+}
+
+
+
+void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors, std::vector<int> &atom_species)
 {
 
   // Types of MC moves
-  enum MCMoves {displace_atom, stretch_crystal_cell};
+  //enum MCMoves {displace_atom, stretch_crystal_cell, swap_atom_species};
 
-  //Choose a MC move to perform
-  int r = rng() % 2;
-  switch(r)
+  // Determine the MC moves in the move set
+  int MCmove {simInfo.QEMCMoveSet};
+
+  if (simInfo.QEMCMoveSet == -1)       // choose from all types of moves
+    MCmove = rng() % 3;
+  else if (simInfo.QEMCMoveSet == -2)  // choose between displaceAnAtom and stretchCrystalCell 
+    MCmove = rng() % 2;
+
+  switch(MCmove)
   {
     case 0 :
       displaceAnAtom(atom_positions);
-      std::cout << "MCMove: displace an atom\n";
+      //std::cout << "MCMove: displace an atom\n";
       break;
     case 1 :
       stretchCrystalCell(cell_vectors);
-      std::cout << "MCMove: stretch crystal cell\n";
+      //std::cout << "MCMove: stretch crystal cell\n";
+      break;
+    case 2 :
+      swapAtomSpeciesAtTwoSites(atom_species);
+      //std::cout << "MCMove: swap atomic species at two sites\n";
       break;
     default:
-      std::cout << "MCMove: invalid choice. r = %d " << r << std::endl;
+      //std::cout << "MCMove: invalid choice. MCmove = %d " << MCmove << std::endl;
       break;
   }
   

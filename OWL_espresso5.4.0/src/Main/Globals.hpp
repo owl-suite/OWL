@@ -31,9 +31,12 @@ struct SimulationInfo
   // Command line options for QE and LSMS
   char physicalSystemCommandLine[256]      {};
 
-  // these are system specific:
-  int  spinModelLatticeSize  {3};   // considering setting default to -1...
-  int  numAtoms              {3};   // it should exit if not specified in input file (Jun 24, 17)
+  // Monte Carlo move set for QE systems
+  int  QEMCMoveSet           {-1};
+
+  // These are physical system specific:
+  int  spinModelLatticeSize  {-1};   // setting default to -1...
+  int  numAtoms              {-1};   // code should exit if not specified in input file (Jun 24, 17)
 
 };
 

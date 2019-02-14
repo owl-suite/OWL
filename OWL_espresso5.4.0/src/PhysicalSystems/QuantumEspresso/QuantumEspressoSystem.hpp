@@ -2,6 +2,7 @@
 #define QUANTUM_ESPRESSO_SYSTEM_HPP
 
 #include <mpi.h>
+#include <vector>
 #include "PhysicalSystems/PhysicalSystemBase.hpp"
 #include "Utilities/Matrix.hpp"
 #include "Main/Globals.hpp"
@@ -13,6 +14,7 @@ struct QEConfiguration
 {
   Matrix<double> atomic_positions;            // Atomic positions (in Angstrom)
   Matrix<double> lattice_vectors;             // Unit cell vectors (in Angstrom)
+  std::vector<int> atomic_species;            // Atomic species (in atomic number)
 };
 
 

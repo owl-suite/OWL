@@ -1,12 +1,8 @@
-!
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
-!
 !----------------------------------------------------------------------------
-SUBROUTINE wl_do_pwscf ( exit_status ) 
+SUBROUTINE owl_do_pwscf ( exit_status ) BIND(C)
   !----------------------------------------------------------------------------
+  !
+  USE ISO_C_BINDING
   !
   ! ... The modified subroutine to run multiple PWscf calculations, providing 
   ! ... inputs for Wang-Landau algorithm
@@ -20,6 +16,9 @@ SUBROUTINE wl_do_pwscf ( exit_status )
   USE check_stop,       ONLY : check_stop_init, check_stop_now
   USE mp_images,        ONLY : intra_image_comm
   USE extrapolation,    ONLY : update_file, update_pot
+  USE scf,              ONLY : rho
+  USE lsda_mod,         ONLY : nspin
+  USE fft_base,         ONLY : dfftp
   USE qmmm,             ONLY : qmmm_initialization, qmmm_shutdown, &
                                qmmm_update_positions, qmmm_update_forces
   !
@@ -107,7 +106,7 @@ SUBROUTINE wl_do_pwscf ( exit_status )
      !
      ! ... send out forces to MM code in QM/MM run
      !
-     CALL qmmm_update_forces(force)
+     CALL qmmm_update_forces( force, rho%of_r, nspin, dfftp)
      !
      IF ( lmd .OR. lbfgs ) THEN
         !
@@ -174,4 +173,4 @@ SUBROUTINE wl_do_pwscf ( exit_status )
            & /,5X,'Max number of k-points (npk) = ',I6,&
            & /,5X,'Max angular momentum in pseudopotentials (lmaxx) = ',i2)
   !
-END SUBROUTINE wl_do_pwscf
+END SUBROUTINE owl_do_pwscf

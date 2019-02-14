@@ -32,6 +32,13 @@ PhysicalSystemCommandLine -i input -nk 5
 # Number of atoms in a unit cell
 QENumberOfAtoms 5
 
+# Monte Carlo move sets for QE systems
+# 0 : Displace the position of a random atom
+# 1 : Stretch the crystal's lattice cell
+# 2 : Swap the atomic species at two random sites
+# -1: Include all of the above and choose a move randomly
+# -2: Only choose between move 0 and move 1
+QEMCMoveSet -2
 
 ##### Inputs for PhysicalSystem=3,4 (Heisenberg and Ising models) #####
 

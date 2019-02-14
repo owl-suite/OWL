@@ -9,7 +9,9 @@
 WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFlag, simInfo.MCInputFile, simInfo.HistogramCheckpointFile)
 {
 
-  printf("Simulation method: Wang-Landau sampling\n");
+  if (GlobalComm.thisMPIrank == 0)
+    printf("Simulation method: Wang-Landau sampling\n");
+
   physical_system = ps;
 
 }
@@ -19,7 +21,8 @@ WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFl
 WangLandauSampling::~WangLandauSampling()
 {
 
-  printf("Exiting WangLandauSampling class... \n");
+  if (GlobalComm.thisMPIrank == 0)
+    printf("Exiting WangLandauSampling class... \n");
 
 }
 
@@ -52,7 +55,7 @@ void WangLandauSampling::run()
 
   // Write out the energy
   if (GlobalComm.thisMPIrank == 0) 
-    physical_system -> writeConfiguration(0, "energyLatticePos.dat");
+    physical_system -> writeConfiguration(0, "config_initial.dat");
     //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
 
 //-------------- End initialization --------------//

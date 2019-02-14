@@ -9,7 +9,7 @@
 // Input file should be specified as the first argument in command line
 void readMainInputFile(const char* FileName) {
   
-  std::cout << "Reading main input file: " << FileName << std::endl;
+  //std::cout << "Reading main input file: " << FileName << std::endl;
   int length = strlen(FileName);
   simInfo.MCInputFile = new char[length+1]();
   strncpy(simInfo.MCInputFile, FileName, length+1);
@@ -62,6 +62,11 @@ void readMainInputFile(const char* FileName) {
           else if (key == "QENumberOfAtoms") {
             lineStream >> simInfo.numAtoms;
             //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << std::endl;
+            continue;
+          }
+          else if (key == "QEMCMoveSet") {
+            lineStream >> simInfo.QEMCMoveSet;
+            //std::cout << "Simulation Info: choice of Monte Carlo move set for Quantum Espresso system= " << simInfo.QEMCMoveSet << std::endl;
             continue;
           }
           else if (key == "numberOfWindows") {

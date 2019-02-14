@@ -19,6 +19,6 @@ void writeAtomicPositions(Matrix<double> atom_positions);
 void writeLatticeVectors(Matrix<double> cell_vectors);
 
 // "Public"
-void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors);
+void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors, std::vector<int> &atom_species);
 
 

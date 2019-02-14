@@ -9,6 +9,7 @@
 #include <sstream>            // std::istringstream
 #include "Histogram.hpp"
 #include "Main/Communications.hpp"
+#include "Utilities/CheckFile.hpp"
 
 //TODO: The argument list of the Histogram constructor is redundant as simInfo is a global struct. Should be removed. (Feb 1, 19)
 //TODO: Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
@@ -28,7 +29,8 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   myWindow = 0;
 
   // Read input file
-  if (inputFile != NULL)
+  //if (inputFile != NULL)
+  if ( file_exists(inputFile) )
     readMCInputFile(inputFile);
   else {
     std::cout << "Error: No input file for reading histogram's info. Quiting... \n";
@@ -36,7 +38,8 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   }
 
   // Read checkpoint file, or initialize anew
-  if (restart && checkPointFile != NULL)
+  //if (restart && checkPointFile != NULL)
+  if (restart && file_exists(checkPointFile) )
     readHistogramDOSFile(checkPointFile);
   else {
     // Calculate quantities based on the variables read in
@@ -393,7 +396,8 @@ int Histogram::getIndex(ObservableType energy)
 void Histogram::readHistogramDOSFile(const char* fileName)
 {
 
-  std::cout << "Reading histogram checkpoint file : " << fileName << std::endl;
+  if (GlobalComm.thisMPIrank == 0)
+    std::cout << "Reading histogram checkpoint file : " << fileName << std::endl;
 
   FILE *histdos_file = fopen(fileName, "r");
   if (histdos_file == NULL) {
@@ -670,8 +674,9 @@ void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
 
 void Histogram::readMCInputFile(char const* fileName)
 {
- 
-  std::cout << "Histogram class reading input file: " << fileName << std::endl;
+
+  if (GlobalComm.thisMPIrank == 0) 
+    std::cout << "Histogram class reading input file: " << fileName << std::endl;
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;

@@ -1,4 +1,4 @@
-architecture.inc
+./architecture.inc
 *.swp
 bin/owl*
 src/Main/*.o

@@ -13,11 +13,11 @@
   #if [ "$1" == "cpu" ]; then
     cd q-e-qe-5.4
     ./configure --enable-openmp CC=mpicc F77=mpif77 MPIF90=mpif90
-    make pw
+    #make pw
     #make all
     cd ..
-    rm ../qe
-    ln -s q-e-qe-5.4 ../qe
+    rm ../quantum_espresso
+    ln -s external_codes/q-e-qe-5.4 ../quantum_espresso
   #fi
 
 # Build GPU code

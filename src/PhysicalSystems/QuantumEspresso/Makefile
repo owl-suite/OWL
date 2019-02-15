@@ -8,7 +8,7 @@
 
 # TODO: Test if "qe" links to a valid QE directory
 # TODO: Download and compile QE if it is not there yet
-QUANTUM_ESPRESSO_ROOT=./qe
+QUANTUM_ESPRESSO_ROOT=$(MASTER_DIR)/quantum_espresso
 include $(QUANTUM_ESPRESSO_ROOT)/make.sys
 include make.depend
 

@@ -6,14 +6,14 @@
   # Download espresso-5.4.0 if it does not exist
   if [ ! -d q-e-qe-5.4 ]; then
     wget https://github.com/QEF/q-e/archive/qe-5.4.tar.gz
-    tar zxvf qe-5.4
+    tar zxvf qe-5.4.tar.gz
   fi
 
   # Build CPU code
   #if [ "$1" == "cpu" ]; then
     cd q-e-qe-5.4
     ./configure --enable-openmp CC=mpicc F77=mpif77 MPIF90=mpif90
-    #make pw
+    make pw
     #make all
     cd ..
     rm ../quantum_espresso

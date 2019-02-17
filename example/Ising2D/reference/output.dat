@@ -1,0 +1,31 @@
+Reading main input file: owl.input
+walkerLeadersID[0] = 0
+Rank: 0 Random number seed supplied: 183083
+Simulation for 2D Ising model: 4x4 
+Reading Monte Carlo input file: owl.input
+Simulation method: Wang-Landau sampling
+Running WangLandauSampling...
+Number of iterations performed = 1
+Number of iterations performed = 2
+Number of iterations performed = 3
+Number of iterations performed = 4
+Number of iterations performed = 5
+Number of iterations performed = 6
+Number of iterations performed = 7
+Number of iterations performed = 8
+Number of iterations performed = 9
+Number of iterations performed = 10
+Number of iterations performed = 11
+Number of iterations performed = 12
+Number of iterations performed = 13
+Number of iterations performed = 14
+Number of iterations performed = 15
+Number of iterations performed = 16
+Number of iterations performed = 17
+Number of iterations performed = 18
+Number of iterations performed = 19
+Number of iterations performed = 20
+Ising2D finished
+Exiting WangLandauSampling class... 
+
+Simulation finished :)

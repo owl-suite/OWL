@@ -1,0 +1,56 @@
+&CONTROL
+   calculation       = 'scf'
+   etot_conv_thr     = 7.35e-09
+   outdir            = 'scratch'
+   prefix            = 'Cu1Zn1'
+   pseudo_dir        = './'
+   restart_mode      = 'from_scratch'
+/
+
+&SYSTEM
+   ecutrho           = 200
+   ecutwfc           = 40
+   ibrav             = 0
+   input_dft         = 'pbesol'
+   nat               = 16
+   ntyp              = 2
+   nbnd              = 192
+   tot_charge        = 0
+   occupations       = 'smearing'
+   smearing          = 'gaussian'
+   degauss           = 0.02
+/
+
+&ELECTRONS
+   conv_thr          = 7.35e-09
+   mixing_beta       = 0.7
+   scf_must_converge = .FALSE.
+/
+
+ATOMIC_SPECIES
+   Cu  63.546 Cu_pbesol_v1.2.uspp.f.upf
+   Zn  65.390 Zn_pbesol_v1.uspp.f.upf
+
+CELL_PARAMETERS (angstrom)
+   5.758307886   0.000000000   0.000000000
+   0.000000000   5.758307886   0.000000000
+   0.000000000   0.000000000   5.758307886
+K_POINTS gamma
+
+ATOMIC_POSITIONS (crystal)
+Cu       0.000000000   0.000000000   0.000000000
+Cu       0.500000000   0.000000000   0.000000000
+Cu       0.000000000   0.500000000   0.000000000
+Cu       0.500000000   0.500000000   0.000000000
+Cu       0.000000000   0.000000000   0.500000000
+Cu       0.500000000   0.000000000   0.500000000
+Cu       0.000000000   0.500000000   0.500000000
+Cu       0.500000000   0.500000000   0.500000000
+Zn       0.250000000   0.250000000   0.250000000
+Zn       0.750000000   0.250000000   0.250000000
+Zn       0.250000000   0.750000000   0.250000000
+Zn       0.750000000   0.750000000   0.250000000
+Zn       0.250000000   0.250000000   0.750000000
+Zn       0.750000000   0.250000000   0.750000000
+Zn       0.250000000   0.750000000   0.750000000
+Zn       0.750000000   0.750000000   0.750000000

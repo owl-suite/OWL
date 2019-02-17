@@ -1,0 +1,96 @@
+##########################################
+##   New / restarted simulation?        ##
+##########################################
+# 0: New simulation
+# 1: Restarted simulation
+RestartFlag  1
+
+
+##########################################
+##   Seed for random number generator   ##
+##########################################
+# -1: Get a random number seed from time
+RngSeed  -1
+
+
+##########################################
+##   Physical System                    ##
+##########################################
+# 1: QuantumExpresso
+# 2: LSMS
+# 3: Heisenberg 2D
+# 4: Ising 2D
+# 5: ATAT
+PhysicalSystem  1
+
+
+##### Inputs for PhysicalSystem=1 (Quantum Espresso) #####
+
+# Command line options for QE
+PhysicalSystemCommandLine -nb 2 -i qe.input
+
+# Monte Carlo move sets for QE systems
+# 0 : Displace the position of a random atom
+# 1 : Stretch the crystal's lattice cell
+# 2 : Swap the atomic species at two random sites
+# -1: Include all of the above and choose a move randomly
+# -2: Only choose between move 0 and move 1
+QEMCMoveSet 2
+
+# Number of atoms in a unit cell
+QENumberOfAtoms 16
+
+
+##### Inputs for PhysicalSystem=3,4 (Heisenberg and Ising models) #####
+
+# Lattice size for spin models
+#SpinModelLatticeSize  4
+
+
+
+##########################################
+##   Monte Carlo algorithm              ##
+##########################################
+# 1. (TODO) Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. (TODO) Parallel Tempering
+# 5. Replica-Exchange Wang-Landau (REWL)
+# 6. (TODO) Population Annealing 
+Algorithm  2
+
+
+##### Inputs for Wang-Landau sampling #####
+
+dim                       1
+flatnessCriterion         0.6 
+modFactor                 1.000 
+modFactorFinal            1.25000000e-06
+modFactorReducer          2.000 
+histogramCheckInterval    200 
+histogramRefreshInterval  1000000
+Emin                      -6918.12
+Emax                      -6917.98
+binSize                   0.005
+
+##### Inputs for Replica-Exchange Wang-Landau sampling #####
+
+#dim                       1
+#flatnessCriterion         0.6 
+#modFactor                 1.000 
+#modFactorFinal            1.25000000e-06
+#modFactorReducer          2.000 
+#histogramCheckInterval    10000 
+#histogramRefreshInterval  1000000
+#Emin                      -350
+#Emax                      -320
+#binSize                   1
+#numberOfWindows           3
+#numberOfWalkersPerWindow  1
+#overlap                   0.5
+#replicaExchangeInterval   100
+
+##### Information for MPI rank distribution #####
+
+NumberOfMPIranksPerWalker  32
+

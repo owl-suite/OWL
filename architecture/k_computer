@@ -1,0 +1,15 @@
+### Define C++ compiler and flags for different machines
+
+### C++ Compiler:
+export CXX = mpiFCCpx
+
+
+### Compiler Flags:
+# For debugging:
+#export CXXFLAGS = -Xg -std=c++11
+# For production:
+export CXXFLAGS = -Kfast -Xg -std=c++11 -DNDEBUG
+
+
+### Linking flags are compiler dependent
+export LINKFLAGS = -lstdc++

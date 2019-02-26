@@ -48,7 +48,7 @@ export OWL_LIBS += -L$(SRC_DIR)/PhysicalSystems/QuantumEspresso -lQuantumEspress
 
 #owl-qe : tldeps libQuantumEspresso.a
 owl-qe : libQuantumEspresso.a
-	$(LD) $(LDFLAGS) $(LINKFLAGS) $(FFLAGS_NOMAIN) -o $@ $(OWL_LIBS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
+	$(LD) $(LDFLAGS) $(LINKFLAGS) $(FFLAGS_NOMAIN) $(SRC_DIR)/Main/OWLMain.o -o $@ $(OWL_LIBS) $(PWOBJS) $(QEMODS) $(LIBOBJS) $(LIBS)
 	cp $@ $(MASTER_DIR)/bin
 
 clean:

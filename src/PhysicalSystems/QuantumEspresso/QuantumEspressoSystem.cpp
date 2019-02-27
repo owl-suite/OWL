@@ -341,27 +341,32 @@ void QuantumEspressoSystem::writeQErestartFile(const char* fileName)
 void QuantumEspressoSystem::buildMPIConfigurationType()
 {
 
-  int          count {2};
+  int          count {3};
   int          numElements[count];
   MPI_Aint     address_displacements[count];
   MPI_Datatype types[count];
 
   MPI_Aint start_address;
-  MPI_Aint address;
+  MPI_Aint address1;
+  MPI_Aint address2;
 
   // Number of elements in each array
   numElements[0] = trialConfig.atomic_positions.size();
   numElements[1] = trialConfig.lattice_vectors.size();
+  numElements[2] = trialConfig.atomic_species.size();
   //std::cout << "Debugging check: numElements[0]/[1] = " << numElements[0] << " , " << numElements[1] << std::endl;
 
   // The derived datatype consists of two arrays of MPI_DOUBLE
   types[0] = types[1] = MPI_DOUBLE;
+  types[2] = MPI_INT;
 
   // Calculate the relative addresses for each array
   MPI_Get_address(&trialConfig.atomic_positions[0], &start_address);
-  MPI_Get_address(&trialConfig.lattice_vectors[0], &address);
+  MPI_Get_address(&trialConfig.lattice_vectors[0], &address1);
+  MPI_Get_address(&trialConfig.atomic_species[0], &address2);
   address_displacements[0] = 0;
-  address_displacements[1] = address - start_address; 
+  address_displacements[1] = address1 - start_address;
+  address_displacements[2] = address2 - start_address;
 
   MPI_Type_create_struct(count, numElements, address_displacements, types, &MPI_ConfigurationType);
   MPI_Type_commit(&MPI_ConfigurationType);

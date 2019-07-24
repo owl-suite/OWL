@@ -39,7 +39,7 @@ private :
 
   // New configuration
   SpinDirection** spin;          // 2D array because it is a 2D model
-  double spinLength;
+  //double spinLength;
   
   bool firstTimeGetMeasures;
 

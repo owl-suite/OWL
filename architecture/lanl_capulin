@@ -1,0 +1,30 @@
+### Define C++ compiler and flags for LANL's Capulin (ARM Thunder X2 architecture)
+### Assuming default Cray's PrgEnv and compiler are used
+### module load hdf5
+
+### To use GCC compiler instead:
+### module swap PrgEnv-cray PrgEnv-gnu
+
+### To use ARM compiler instead:
+### module swap PrgEnv-cray PrgEnv-allinea
+
+### C++ Compiler:
+export CXX = CC
+
+
+### Compiler Flags:
+### For debugging:
+#export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG 
+
+### For production:
+# For GNU compiler:
+#export CXXFLAGS = -O3 -Wall -std=c++11 -g 
+# For ARM compiler:
+export CXXFLAGS = -Ofast -Wall -std=c++11 -g
+
+
+
+### Linking flags:   (compiler dependent)
+### For GNU compiler:
+export LINKFLAGS = -lstdc++
+

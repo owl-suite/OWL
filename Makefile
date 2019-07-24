@@ -50,10 +50,9 @@ owl-qe :
 	 fi
 
 clean :
-	@if test -d src ; then           \
-	    cd src && $(MAKE) clean;     \
-	 fi
 	@if test -d bin ; then           \
 	    cd bin && $(MAKE) clean;     \
 	 fi
-
+	@if test -d src ; then           \
+	    cd src && $(MAKE) clean;     \
+	 fi

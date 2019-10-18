@@ -31,8 +31,8 @@ owl-qe : owl-basics
 clean:
 	cd Main && $(MAKE) clean
 	cd Utilities && $(MAKE) clean
-	cd PhysicalSystems && $(MAKE) clean 
 	cd MonteCarloAlgorithms && $(MAKE) clean
+	cd PhysicalSystems && $(MAKE) clean 
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<

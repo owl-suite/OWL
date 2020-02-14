@@ -6,10 +6,12 @@ export CXX = mpicxx
 
 ### Compiler Flags:
 # For debugging:
-export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/usr/local/include
+#export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -I/usr/local/include
+# For profiling:
+#export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -fprofile-generate -I/usr/local/include
+export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG -fprofile-instr-use=/Users/ywl/Research/OWL/owl.profdata -I/usr/local/include
 # For production:
 #export CXXFLAGS = -O3 -Wall -std=c++11 -I/usr/local/include
-
 
 ### Linking flags are compiler dependent
 ### For GNU compiler:

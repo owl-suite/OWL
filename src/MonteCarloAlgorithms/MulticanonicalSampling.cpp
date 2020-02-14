@@ -33,6 +33,8 @@ void MulticanonicalSampling::run()
 
   char fileName[51];
  
+  //-------------- Initialization starts --------------//
+
   // Find the first energy that falls within the energy range    
   while (!acceptMove) {
     physical_system -> doMCMove();
@@ -47,7 +49,6 @@ void MulticanonicalSampling::run()
   // Write out the energy
   if (GlobalComm.thisMPIrank == 0)
     physical_system -> writeConfiguration(0, "energyLatticePos.dat");
-    //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
 
 //-------------- End initialization --------------//
 
@@ -56,7 +57,7 @@ void MulticanonicalSampling::run()
   //while (!(h.histogramFlat)) {
   for (unsigned int yw=0; yw<100; yw++) {
 
-    for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
+    for (unsigned int MCSteps=0; MCSteps<h.numberOfDataPointsPerIteration; MCSteps++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -74,7 +75,7 @@ void MulticanonicalSampling::run()
       }
 
       if (acceptMove) {
-         // Update histogram with trialEnergy
+         // Update histogram with trial state
          h.updateHistogram(physical_system -> observables[0]);
          h.acceptedMoves++;        
 
@@ -83,7 +84,7 @@ void MulticanonicalSampling::run()
       else {
          physical_system -> rejectMCMove();
 
-         // Update histogram with oldEnergy
+         // Update histogram with old state
          h.updateHistogram(physical_system -> oldObservables[0]);
          h.rejectedMoves++;
       }
@@ -91,11 +92,10 @@ void MulticanonicalSampling::run()
    
       // Write restart files at interval
       currentTime = MPI_Wtime();
-      if (GlobalComm.thisMPIrank == 0) {
-        if (currentTime - lastBackUpTime > 300) {
+      if (currentTime - lastBackUpTime > 300) {
+        if (GlobalComm.thisMPIrank == 0) {
           h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-          physical_system -> writeConfiguration(1, "OWL_restart_input");
-          //writeQErestartFile("OWL_restart_input", trialPos, trialLatticeVec);
+          physical_system -> writeConfiguration(1, "OWL_restart_configuration");
           lastBackUpTime = currentTime;
         }
       }

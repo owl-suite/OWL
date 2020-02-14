@@ -57,7 +57,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
 #ifdef DRIVER_MODE_QE
       physical_system = new QuantumEspressoSystem( physicalSystemComm );
 #else
-      std::cerr << "In standalone mode, using Quantum Espresso is not supported.\n"
+      std::cerr << "In standalone mode, use of Quantum Espresso is not supported.\n"
                 << "Please recompile OWL with \'make owl-qe\'.\n";
 #endif
       break;

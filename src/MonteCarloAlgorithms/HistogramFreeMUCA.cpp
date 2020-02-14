@@ -12,7 +12,7 @@ DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(PhysicalSystem* ps) : h(sim
   
   physical_system = ps;
 
-  numberOfDataPoints = 1000;                // TO DO: should be set from input file!
+  numberOfDataPoints = h.numberOfDataPointsPerIteration;
   DataSet.assign(numberOfDataPoints, 0);
 
 }
@@ -36,7 +36,9 @@ void DiscreteHistogramFreeMUCA::run()
     printf("Running DiscreteHistogramFreeMUCA...\n");
 
   char fileName[51];
- 
+
+  //-------------- Initialization starts --------------//
+
   // Find the first energy that falls within the energy range    
   while (!acceptMove) {
     physical_system -> doMCMove();
@@ -50,17 +52,16 @@ void DiscreteHistogramFreeMUCA::run()
 
   // Write out the energy
   if (GlobalComm.thisMPIrank == 0)
-    physical_system -> writeConfiguration(0, "energyLatticePos.dat");
-    //writeSystemFile("energyLatticePos.dat", oldEnergy, oldPos, oldLatticeVec);
+    physical_system -> writeConfiguration(0, "initial_configuration.dat");
 
-//-------------- End initialization --------------//
+  //-------------- Initialization ends ---------------//
 
-// MUCA procedure starts here
+  // MUCA procedure starts here
 
   for (int yw=0; yw<10; yw++) {
   //while (!(h.histogramFlat)) {
 
-    for (unsigned int MCSteps=0; MCSteps<h.histogramCheckInterval; MCSteps++) {
+    for (unsigned int MCSteps=0; MCSteps<numberOfDataPoints; MCSteps++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -78,7 +79,7 @@ void DiscreteHistogramFreeMUCA::run()
       }
 
       if (acceptMove) {
-         // Update histogram with trialEnergy
+         // Update histogram with trial state
          h.updateHistogram(physical_system -> observables[0]);
          h.acceptedMoves++;        
 
@@ -87,7 +88,7 @@ void DiscreteHistogramFreeMUCA::run()
       else {
          physical_system -> rejectMCMove();
 
-         // Update histogram with oldEnergy
+         // Update histogram with old state
          h.updateHistogram(physical_system -> oldObservables[0]);
          h.rejectedMoves++;
       }
@@ -95,11 +96,10 @@ void DiscreteHistogramFreeMUCA::run()
    
       // Write restart files at interval
       currentTime = MPI_Wtime();
-      if (GlobalComm.thisMPIrank == 0) {
-        if (currentTime - lastBackUpTime > 300) {
+      if (currentTime - lastBackUpTime > 300) {
+        if (GlobalComm.thisMPIrank == 0) {
           h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-          physical_system -> writeConfiguration(1, "OWL_restart_input");
-          //writeQErestartFile("OWL_restart_input", trialPos, trialLatticeVec);
+          physical_system -> writeConfiguration(1, "OWL_restart_configuration");
           lastBackUpTime = currentTime;
         }
       }

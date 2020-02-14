@@ -24,7 +24,10 @@ public:
   double       KullbackLeiblerDivergence;
   double       KullbackLeiblerDivergenceThreshold;
 
-  // WL sampling statistics:  (TO DO: these are repeated in MCAlgorithm base class. Revision needed.)
+  // Global update MUCA:
+  unsigned int numberOfDataPointsPerIteration;
+
+  // MC sampling statistics:  (TO DO: these are repeated in MCAlgorithm base class. Revision needed.)
   unsigned long int totalMCsteps;
   unsigned long int acceptedMoves;
   unsigned long int rejectedMoves;

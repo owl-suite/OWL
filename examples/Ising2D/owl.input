@@ -54,7 +54,7 @@ SpinModelLatticeSize  4
 # 3. Multicanonical Sampling (MUCA)
 # 4. (TODO) Parallel Tempering
 # 5. Replica-Exchange Wang-Landau (REWL)
-# 6. Discrete Histogram-Free MUCA 
+# 6. Global update MUCA 
 Algorithm  2
 
 
@@ -87,6 +87,11 @@ binSize                   1
 #numberOfWalkersPerWindow  1
 #overlap                   0.5
 #replicaExchangeInterval   100
+
+##### Inputs for Multicanonical Sampling and Gloabl Update MUCA #####
+
+KullbackLeiblerDivergenceThreshold = 0.0001
+numberOfDataPointsPerIteration = 10000
 
 ##### Information for MPI rank distribution #####
 

@@ -29,7 +29,6 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   myWindow = 0;
 
   // Read input file
-  //if (inputFile != NULL)
   if ( file_exists(inputFile) )
     readMCInputFile(inputFile);
   else {
@@ -74,7 +73,7 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
 
     // MUCA statistics:
     KullbackLeiblerDivergence = 0.0;
-    KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
+    //KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
 
   }
 
@@ -755,6 +754,16 @@ void Histogram::readMCInputFile(char const* fileName)
           if (key == "overlap") {
             lineStream >> overlap;
             //std::cout << "REWL: overlap = " << overlap << std::endl;
+            continue;
+          }
+          if (key == "KullbackLeiblerDivergenceThreshold") {
+            lineStream >> KullbackLeiblerDivergenceThreshold;
+            //std::cout << "MUCA: KullbackLeiblerDivergenceThreshold = " << KullbackLeiblerDivergenceThreshold << std::endl;
+            continue;
+          }
+          if (key == "numberOfDataPointsPerIteration") {
+            lineStream >> numberOfDataPointsPerIteration;
+            //std::cout << "Global update MUCA: numberOfDataPointsPerIteration = " << numberOfDataPointsPerIteration << std::endl;
             continue;
           }
 

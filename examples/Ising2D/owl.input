@@ -54,7 +54,7 @@ SpinModelLatticeSize  4
 # 3. Multicanonical Sampling (MUCA)
 # 4. (TODO) Parallel Tempering
 # 5. Replica-Exchange Wang-Landau (REWL)
-# 6. (TODO) Population Annealing 
+# 6. Discrete Histogram-Free MUCA 
 Algorithm  2
 
 

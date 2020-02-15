@@ -53,9 +53,7 @@ void MulticanonicalSampling::run()
 //---------------- Initialization ends ----------------//
 
   // MUCA procedure starts here
-
-  //while (!(h.histogramFlat)) {
-  for (unsigned int yw=0; yw<100; yw++) {      // [TODO] this needs to switch to using KB divergence
+  while (!(h.histogramFlat)) {
 
     // Thermalization (these steps do not update the histogram)
     for (unsigned int MCSteps=0; MCSteps<h.numberOfThermalizationSteps; MCSteps++) {

@@ -82,6 +82,7 @@ void MulticanonicalSampling::run()
       }
 
     }
+    h.totalMCsteps += h.numberOfThermalizationSteps;
 
     // MUCA statistics starts here
     for (unsigned int MCSteps=0; MCSteps<h.numberOfUpdatesPerIteration; MCSteps++) {
@@ -115,7 +116,6 @@ void MulticanonicalSampling::run()
          h.updateHistogram(physical_system -> oldObservables[0]);
          h.rejectedMoves++;
       }
-      h.totalMCsteps++;
    
       // Write restart files at interval
       currentTime = MPI_Wtime();
@@ -127,6 +127,7 @@ void MulticanonicalSampling::run()
         }
       }
     }
+    h.totalMCsteps += h.numberOfUpdatesPerIteration;
 
     // Update DOS with the histogram
     h.updateDOSwithHistogram();
@@ -134,7 +135,7 @@ void MulticanonicalSampling::run()
     h.histogramFlat = h.checkKullbackLeiblerDivergence();
       
     if (GlobalComm.thisMPIrank == 0) {
-      printf("Number of iterations performed = %d\n", h.iterations);
+      printf("Iteration %d finished \n", h.iterations);
     
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
@@ -152,8 +153,11 @@ void MulticanonicalSampling::run()
   }
 
   // Write out data at the end of the simulation
-  h.writeNormDOSFile("dos.dat");
-  h.writeHistogramDOSFile("hist_dos_final.dat");
+  if (GlobalComm.thisMPIrank == 0) {
+    h.writeNormDOSFile("dos.dat");
+    h.writeHistogramDOSFile("hist_dos_final.dat");
+    printf("Number of total MC steps (including thermalization) = %lu\n", h.totalMCsteps);
+  }
 
 }
 

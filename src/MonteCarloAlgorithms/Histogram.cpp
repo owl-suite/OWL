@@ -319,7 +319,6 @@ bool Histogram::checkKullbackLeiblerDivergence()
   for (unsigned int i=0; i<numBins; i++) {
     if (visited[i] == 1) {
       probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(numberOfUpdatesPerIteration);
-      std::cout << probDistribution[i] << std::endl;
       KullbackLeiblerDivergence += probDistribution[i] * log(probDistribution[i]/flatnessReference);
     }
   }

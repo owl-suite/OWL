@@ -109,7 +109,7 @@ void DiscreteHistogramFreeMUCA::run()
     // [TODO] update scheme should be different from the original!!
     h.updateDOSwithHistogram();
     // check deviation from ideal sampling using Kullback-Leibler divergence
-    h.histogramFlat = h.checkDeviationFromIdealSampling();
+    h.histogramFlat = h.checkKullbackLeiblerDivergence();
       
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);

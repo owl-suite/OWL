@@ -59,22 +59,26 @@ void MulticanonicalSampling::run()
 
     // Thermalization (these steps do not update the histogram)
     for (unsigned int MCSteps=0; MCSteps<h.numberOfThermalizationSteps; MCSteps++) {
+
       physical_system -> doMCMove();
       physical_system -> getObservables();
 
       // check if the energy falls within the energy range
-      if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
+      if ( !h.checkEnergyInRange(physical_system -> observables[0]) ) {
         acceptMove = false;
         physical_system -> rejectMCMove();
+      }
       else {
         // determine acceptance
         if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
-                 h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
+                 h.getDOS(physical_system -> observables[0])) > getRandomNumber2() ) {
           acceptMove = true;
           physical_system -> acceptMCMove();
-        else
+                 }
+        else {
           acceptMove = false;
           physical_system -> rejectMCMove();
+        }
       }
 
     }
@@ -142,8 +146,9 @@ void MulticanonicalSampling::run()
     h.resetHistogram();
     h.iterations++;
     h.numberOfUpdatesPerIteration = static_cast<unsigned int>(ceil(static_cast<double>(h.numberOfUpdatesPerIteration) * h.numberOfUpdatesMultiplier));
-    if (GlobalComm.thisMPIrank == 0) {
+    if (GlobalComm.thisMPIrank == 0)
       printf("Number of updates in the next iteration = %d\n", h.numberOfUpdatesPerIteration);
+
   }
 
   // Write out data at the end of the simulation

@@ -12,7 +12,7 @@ DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(PhysicalSystem* ps) : h(sim
   
   physical_system = ps;
 
-  numberOfDataPoints = h.numberOfDataPointsPerIteration;
+  numberOfDataPoints = h.numberOfUpdatesPerIteration;
   DataSet.assign(numberOfDataPoints, 0);
 
 }
@@ -50,7 +50,7 @@ void DiscreteHistogramFreeMUCA::run()
   // Always count the first energy if it is within range
   h.updateHistogram(physical_system -> observables[0]);
 
-  // Write out the energy
+  // Write out the initial configuration
   if (GlobalComm.thisMPIrank == 0)
     physical_system -> writeConfiguration(0, "initial_configuration.dat");
 
@@ -61,7 +61,7 @@ void DiscreteHistogramFreeMUCA::run()
   for (int yw=0; yw<10; yw++) {
   //while (!(h.histogramFlat)) {
 
-    for (unsigned int MCSteps=0; MCSteps<numberOfDataPoints; MCSteps++) {
+    for (unsigned int MCSteps=0; MCSteps<h.numberOfUpdatesPerIteration; MCSteps++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -106,9 +106,10 @@ void DiscreteHistogramFreeMUCA::run()
     }
 
     // Update DOS with the histogram
+    // [TODO] update scheme should be different from the original!!
     h.updateDOSwithHistogram();
-    // check flatness of histogram using Kullback-Leibler divergence
-    h.histogramFlat = h.checkKullbackLeiblerDivergence();
+    // check deviation from ideal sampling using Kullback-Leibler divergence
+    h.histogramFlat = h.checkDeviationFromIdealSampling();
       
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);

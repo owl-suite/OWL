@@ -20,12 +20,12 @@ public:
   unsigned int histogramCheckInterval;          // number of MC steps between every histogram flatness check
   int          histogramRefreshInterval;        // refresh histogram every certain number of histogram checks
 
-  // MUCA statistics:
-  double       KullbackLeiblerDivergence;
-  double       KullbackLeiblerDivergenceThreshold;
-
-  // Global update MUCA:
-  unsigned int numberOfDataPointsPerIteration;
+  // MUCA:
+  double       KullbackLeiblerDivergence;            // Kullback-Leibler divergence
+  double       KullbackLeiblerDivergenceThreshold;   // predefined Kullback-Leibler divergence to terminate simulation
+  unsigned int numberOfUpdatesPerIteration;          // number of MC steps in an iteration
+  double       numberOfUpdatesMultiplier;            // a multiplier to increase the number of updates in the next iteration
+  unsigned int numberOfThermalizationSteps;          // number of MC steps for thermalization before each iteration
 
   // MC sampling statistics:  (TO DO: these are repeated in MCAlgorithm base class. Revision needed.)
   unsigned long int totalMCsteps;

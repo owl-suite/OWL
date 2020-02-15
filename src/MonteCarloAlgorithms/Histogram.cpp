@@ -71,9 +71,8 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
     numHistogramNotImproved = 0;
     numHistogramRefreshed   = 0;
 
-    // MUCA statistics:
+    // MUCA:
     KullbackLeiblerDivergence = 0.0;
-    //KullbackLeiblerDivergenceThreshold = 0.0001;   // TO DO: should be read in from input file
 
   }
 
@@ -301,24 +300,25 @@ bool Histogram::checkHistogramFlatness()
 }
 
 
-// Ref: S. Kullback and R.A. Leibler, Ann.Math. Stat. 22, 79 (1951).
+// Ref: S. Kullback and R. A. Leibler, Ann. Math. Stat. 22, 79 (1951).
 // It measures the similarity of two probability distributions, P(x) and Q(x).
-// Here, it is used to measure the deviation from ideal sampling.
 bool Histogram::checkKullbackLeiblerDivergence()
 {
-  int numVisitedBins = std::count(visited.begin(), visited.end(), 1); 
+  int numVisitedBins = std::count(visited.begin(), visited.end(), 1);
   //int numVisitedBins = 0;
   //for (unsigned int i=0; i<numBins; i++) {
   //  if (visited[i] == 1)
   //    numVisitedBins++;
   //}
+  std::cout << "Number of visited bins = " << numVisitedBins << std::endl;
 
-  double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins,10) );
+  double flatnessReference = 1.0 / static_cast<double>( numVisitedBins );
+  //double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins, 10) );
 
   KullbackLeiblerDivergence = 0.0;
   for (unsigned int i=0; i<numBins; i++) {
     if (visited[i] == 1) {
-      probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(histogramCheckInterval);
+      probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(numberOfUpdatesPerIteration);
       std::cout << probDistribution[i] << std::endl;
       KullbackLeiblerDivergence += probDistribution[i] * log(probDistribution[i]/flatnessReference);
     }
@@ -761,9 +761,19 @@ void Histogram::readMCInputFile(char const* fileName)
             //std::cout << "MUCA: KullbackLeiblerDivergenceThreshold = " << KullbackLeiblerDivergenceThreshold << std::endl;
             continue;
           }
-          if (key == "numberOfDataPointsPerIteration") {
-            lineStream >> numberOfDataPointsPerIteration;
-            //std::cout << "Global update MUCA: numberOfDataPointsPerIteration = " << numberOfDataPointsPerIteration << std::endl;
+          if (key == "numberOfUpdatesPerIteration") {
+            lineStream >> numberOfUpdatesPerIteration;
+            //std::cout << "MUCA: numberOfUpdatesPerIteration = " << numberOfUpdatesPerIteration << std::endl;
+            continue;
+          }
+          if (key == "numberOfUpdatesMultiplier") {
+            lineStream >> numberOfUpdatesMultiplier;
+            //std::cout << "MUCA: numberOfUpdatesMultiplier = " << numberOfUpdatesMultiplier << std::endl;
+            continue;
+          }
+          if (key == "numberOfThermalizationSteps") {
+            lineStream >> numberOfThermalizationSteps;
+            //std::cout << "MUCA: numberOfThermalizationSteps = " << numberOfThermalizationSteps << std::endl;
             continue;
           }
 

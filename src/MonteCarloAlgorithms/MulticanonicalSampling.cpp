@@ -1,3 +1,6 @@
+// MUCA implementation following the recipe suggested in this paper:
+// Ref: J. Gross, J. Zierenberg, M. Weigel, and W. Janke. Comp. Phys. Comm. 224, 387–395 (2018). 
+
 #include <cstdio>
 #include <cmath>
 #include "MulticanonicalSampling.hpp"
@@ -35,7 +38,7 @@ void MulticanonicalSampling::run()
  
   //-------------- Initialization starts --------------//
 
-  // Find the first energy that falls within the energy range    
+  // Find the first energy that falls within the energy range
   while (!acceptMove) {
     physical_system -> doMCMove();
     physical_system -> getObservables();
@@ -43,21 +46,41 @@ void MulticanonicalSampling::run()
     acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
   }
 
-  // Always count the first energy if it is within range
-  h.updateHistogram(physical_system -> observables[0]);
-
-  // Write out the energy
+  // Write out the initial configuration
   if (GlobalComm.thisMPIrank == 0)
-    physical_system -> writeConfiguration(0, "energyLatticePos.dat");
+    physical_system -> writeConfiguration(0, "initial_configuration.dat");
 
-//-------------- End initialization --------------//
+//---------------- Initialization ends ----------------//
 
-// MUCA procedure starts here
+  // MUCA procedure starts here
 
   //while (!(h.histogramFlat)) {
-  for (unsigned int yw=0; yw<100; yw++) {
+  for (unsigned int yw=0; yw<100; yw++) {      // [TODO] this needs to switch to using KB divergence
 
-    for (unsigned int MCSteps=0; MCSteps<h.numberOfDataPointsPerIteration; MCSteps++) {
+    // Thermalization (these steps do not update the histogram)
+    for (unsigned int MCSteps=0; MCSteps<h.numberOfThermalizationSteps; MCSteps++) {
+      physical_system -> doMCMove();
+      physical_system -> getObservables();
+
+      // check if the energy falls within the energy range
+      if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
+        acceptMove = false;
+        physical_system -> rejectMCMove();
+      else {
+        // determine acceptance
+        if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
+                 h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
+          acceptMove = true;
+          physical_system -> acceptMCMove();
+        else
+          acceptMove = false;
+          physical_system -> rejectMCMove();
+      }
+
+    }
+
+    // MUCA statistics starts here
+    for (unsigned int MCSteps=0; MCSteps<h.numberOfUpdatesPerIteration; MCSteps++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -66,7 +89,7 @@ void MulticanonicalSampling::run()
       if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
         acceptMove = false;
       else {
-        // determine WL acceptance
+        // determine acceptance
         if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
                  h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
           acceptMove = true;
@@ -118,7 +141,9 @@ void MulticanonicalSampling::run()
     // Go to next iteration
     h.resetHistogram();
     h.iterations++;
-
+    h.numberOfUpdatesPerIteration = static_cast<unsigned int>(ceil(static_cast<double>(h.numberOfUpdatesPerIteration) * h.numberOfUpdatesMultiplier));
+    if (GlobalComm.thisMPIrank == 0) {
+      printf("Number of updates in the next iteration = %d\n", h.numberOfUpdatesPerIteration);
   }
 
   // Write out data at the end of the simulation

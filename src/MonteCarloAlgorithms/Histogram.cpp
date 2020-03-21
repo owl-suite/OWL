@@ -102,7 +102,7 @@ ObservableType Histogram::getBinSize()
 }
 
 
-int Histogram::getNumberOfBins()
+unsigned int Histogram::getNumberOfBins()
 {
   return numBins;
 }
@@ -136,7 +136,7 @@ void Histogram::setBinSize(ObservableType dE)
 
 void Histogram::setNumberOfBins(long int n)
 {
-  numBins = n;
+  numBins = static_cast<unsigned int>(n);
   // need to resize hist and dos accordingly
 }
 
@@ -237,98 +237,52 @@ void Histogram::updateDOS(ObservableType energy)
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
 
+
 void Histogram::updateDOSwithHistogram()
 {
+
+  getNumberOfVisitedBins();
+  calculateProbabilityDistribution();
+
   for (unsigned int i=0; i<numBins; i++)
     if ((visited[i] == 1) && (hist[i] != 0))
       dos[i] += log(hist[i]);
 }
 
-bool Histogram::checkEnergyInRange(ObservableType energy)
+
+void Histogram::updateDOSwithRemainder()
 {
-  bool isWithinRange {false};
-  if (energy < Emin) {
-    //std::cerr << "Energy below range. Energy = " << energy << std::endl;
-    numBelowRange++; 
-    isWithinRange = false;
-  }
-  else if (energy > Emax) {
-    //std::cerr << "Energy above range. Energy = " << energy << std::endl;
-    numAboveRange++;
-    isWithinRange = false;
-  }
-  else {
-    //std::cerr << "Energy within range. Energy = " << energy << std::endl;
-    isWithinRange = true;
-  }
 
-  return isWithinRange;
-
-}
-
-bool Histogram::checkHistogramFlatness()
-{
-  int numVisitedBins = 0;
-  unsigned long int sumEntries = 0;
-
-  for (unsigned int i=0; i<numBins; i++) {
-    if (visited[i] == 1) {
-      sumEntries += hist[i];
-      numVisitedBins++;
-    }
-  }
-  double flatnessReference = flatnessCriterion * double(sumEntries) / double(numVisitedBins);
-
-  unsigned int numBinsFailingCriterionLastTime = numBinsFailingCriterion;
-  numBinsFailingCriterion = 0;
-  for (unsigned int i=0; i<numBins; i++) {
-    if (visited[i] == 1) {
-      if (hist[i] < flatnessReference) {
-        numBinsFailingCriterion++;
-      } 
-    }
-  }
-
-  if (numBinsFailingCriterion >= numBinsFailingCriterionLastTime)
-    numHistogramNotImproved++;
-
-  if (numBinsFailingCriterion == 0)
-    return true;
-  else
-    return false;
-
-}
-
-
-// Ref: S. Kullback and R. A. Leibler, Ann. Math. Stat. 22, 79 (1951).
-// It measures the similarity of two probability distributions, P(x) and Q(x).
-bool Histogram::checkKullbackLeiblerDivergence()
-{
-  int numVisitedBins = std::count(visited.begin(), visited.end(), 1);
-  //int numVisitedBins = 0;
-  //for (unsigned int i=0; i<numBins; i++) {
-  //  if (visited[i] == 1)
-  //    numVisitedBins++;
-  //}
-  std::cout << "Number of visited bins = " << numVisitedBins << std::endl;
-
+  getNumberOfVisitedBins();
+  calculateProbabilityDistribution();
   double flatnessReference = 1.0 / static_cast<double>( numVisitedBins );
-  //double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins, 10) );
+  //printf("N_updates = %d \n", numberOfUpdatesPerIteration);
+  //printf("flatnessReference = %f\n", flatnessReference);
 
-  KullbackLeiblerDivergence = 0.0;
   for (unsigned int i=0; i<numBins; i++) {
-    if (visited[i] == 1) {
-      probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(numberOfUpdatesPerIteration);
-      KullbackLeiblerDivergence += probDistribution[i] * log(probDistribution[i]/flatnessReference);
+    if (visited[i] == 1) { 
+      dos[i] += log(numberOfUpdatesPerIteration) * (probDistribution[i] - flatnessReference);
+      //dos[i] += probDistribution[i] - flatnessReference;
+      //printf("i = %d, correction = %10.5f\n", i, (probDistribution[i] - flatnessReference));
     }
+    //if ((visited[i] == 1) && (hist[i] != 0)) { 
+      //Works, comparable to MUCA
+      //dos[i] += log(numberOfUpdatesPerIteration) * (probDistribution[i] - flatnessReference);
+      //Works but slow
+      //dos[i] += log(histRange) * (probDistribution[i] - flatnessReference);
+      //dos[i] += probDistribution[i] - flatnessReference;
+    //}
+
+    printf("i = %d, dos = %10.5f\n", i, dos[i]);
+    
   }
 
-  std::cout << "KullbackLeiblerDivergence = " << KullbackLeiblerDivergence << std::endl;
-
-  if (KullbackLeiblerDivergence <= KullbackLeiblerDivergenceThreshold)
-    return true;
-  else  
-    return false;
+  shiftDOS();
+  //printf("After shifting:\n");
+  //for (unsigned int i=0; i<numBins; i++)
+  //  printf("i = %d, dos = %10.5f\n", i, dos[i]);
+  
+  writeNormDOSFile(0);
 
 }
 
@@ -375,6 +329,127 @@ void Histogram::writeHistogramDOSFile(const char* fileName, int iteration, int w
 
   fprintf(histdos_file, "\n");
   fclose(histdos_file);
+}
+
+
+// TO DO: construct filename from walkerID  (Sep 25, 2017)
+void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
+{
+
+  FILE* dosFile;
+  if (fileName != NULL) dosFile = fopen(fileName, "w");
+  else dosFile = stdout;
+
+  // To Do: see if there is a min/max function to use for C++ vector
+  //double minDOS = 0.0;
+  double maxDOS = 0.0;
+  for (unsigned int i = 0; i < numBins; i++) {
+    if (visited[i] && (dos[i] > maxDOS)) maxDOS = dos[i];
+    //if (visited[i] && (dos[i] < minDOS)) minDOS = dos[i];
+  }
+
+  double norm = 0.0;
+  for (unsigned int i = 0; i < numBins; i++) {
+    if (visited[i]) norm += exp(dos[i] - maxDOS);
+    //if (visited[i]) norm += exp(dos[i] - minDOS);
+  }
+
+  for (unsigned int i = 0; i < numBins; i++) {
+    if (visited[i])
+      fprintf(dosFile, "%18.10e  %18.10e\n", Emin + binSize * double(i), exp(dos[i] - maxDOS) / norm); 
+      //fprintf(dosFile, "%18.10e  %18.10e\n", Emin + binSize * double(i), exp(dos[i] - minDOS) / norm);
+  }
+
+  if (fileName != NULL) fclose(dosFile);
+
+}
+
+
+
+bool Histogram::checkEnergyInRange(ObservableType energy)
+{
+  bool isWithinRange {false};
+  if (energy < Emin) {
+    //std::cerr << "Energy below range. Energy = " << energy << std::endl;
+    numBelowRange++; 
+    isWithinRange = false;
+  }
+  else if (energy > Emax) {
+    //std::cerr << "Energy above range. Energy = " << energy << std::endl;
+    numAboveRange++;
+    isWithinRange = false;
+  }
+  else {
+    //std::cerr << "Energy within range. Energy = " << energy << std::endl;
+    isWithinRange = true;
+  }
+
+  return isWithinRange;
+
+}
+
+
+bool Histogram::checkHistogramFlatness()
+{
+  int numVisitedBins = 0;
+  unsigned long int sumEntries = 0;
+
+  for (unsigned int i=0; i<numBins; i++) {
+    if (visited[i] == 1) {
+      sumEntries += hist[i];
+      numVisitedBins++;
+    }
+  }
+  double flatnessReference = flatnessCriterion * double(sumEntries) / double(numVisitedBins);
+
+  unsigned int numBinsFailingCriterionLastTime = numBinsFailingCriterion;
+  numBinsFailingCriterion = 0;
+  for (unsigned int i=0; i<numBins; i++) {
+    if (visited[i] == 1) {
+      if (hist[i] < flatnessReference) {
+        numBinsFailingCriterion++;
+      } 
+    }
+  }
+
+  if (numBinsFailingCriterion >= numBinsFailingCriterionLastTime)
+    numHistogramNotImproved++;
+
+  if (numBinsFailingCriterion == 0)
+    return true;
+  else
+    return false;
+
+}
+
+
+// Kullback-Leibler divergence measures the similarity of two probability distributions, P(x) and Q(x).
+// P(x) is probDistribution pre-calculated in Histogram::calculateProbabilityDistribution().
+// Q(x) is a flat distribution here.
+// Ref: S. Kullback and R. A. Leibler, Ann. Math. Stat. 22, 79 (1951).
+bool Histogram::checkKullbackLeiblerDivergence()
+{
+  
+  getNumberOfVisitedBins();
+  calculateProbabilityDistribution();
+
+  // Q(x)
+  double flatnessReference = 1.0 / static_cast<double>( numVisitedBins );
+  //double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins, 10) );
+
+  KullbackLeiblerDivergence = 0.0;
+  for (unsigned int i=0; i<numBins; i++) {
+    if (visited[i] == 1 && hist[i] > 0)
+      KullbackLeiblerDivergence += probDistribution[i] * log(probDistribution[i]/flatnessReference);
+  }
+
+  std::cout << "Kullback-Leibler Divergence = " << KullbackLeiblerDivergence << std::endl;
+
+  if (KullbackLeiblerDivergence <= KullbackLeiblerDivergenceThreshold)
+    return true;
+  else  
+    return false;
+
 }
 
 
@@ -644,32 +719,6 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 }
 
 
-// TO DO: construct filename from walkerID  (Sep 25, 2017)
-void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
-{
-
-  FILE* dosFile;
-  if (fileName != NULL) dosFile = fopen(fileName, "w");
-  else dosFile = stdout;
-
-  // To Do: see if there is a max function to use for C++ vector
-  double maxDOS = 0.0;
-  for (unsigned int i = 0; i < numBins; i++)
-    if (dos[i] > maxDOS) maxDOS = dos[i];
-
-  double norm = 0.0;
-  for (unsigned int i = 0; i < numBins; i++)
-    if (visited[i]) norm += exp(dos[i] - maxDOS);
-
-  for (unsigned int i = 0; i < numBins; i++)
-    fprintf(dosFile, "%18.10e  %18.10e\n", Emin + binSize * double(i),
-                                           exp(dos[i] - maxDOS) / norm); 
-
-  if (fileName != NULL) fclose(dosFile);
-
-}
-
-
 void Histogram::readMCInputFile(char const* fileName)
 {
 
@@ -788,3 +837,32 @@ void Histogram::readMCInputFile(char const* fileName)
 }
 
 
+void Histogram::calculateProbabilityDistribution()
+{
+  for (unsigned int i=0; i<numBins; i++) {
+    probDistribution[i] = static_cast<double>(hist[i]) / static_cast<double>(numberOfUpdatesPerIteration);
+    if (visited[i])
+      printf("bin : %d, visited : %d, probDist : %f \n", i, visited[i], probDistribution[i]);
+  }
+}
+
+
+unsigned int Histogram::getNumberOfVisitedBins()
+{
+  numVisitedBins = std::count(visited.begin(), visited.end(), 1);
+  //std::cout << "Number of visited bins = " << numVisitedBins << std::endl;
+
+  return numVisitedBins;
+}
+
+
+void Histogram::shiftDOS()
+{
+  double minDOS = 0.0;
+  for (unsigned int i = 0; i < numBins; i++)
+    if (visited[i] && (dos[i] < minDOS)) minDOS = dos[i];
+
+  for (unsigned int i = 0; i < numBins; i++)
+    if (visited[i]) dos[i] -= minDOS;
+
+}

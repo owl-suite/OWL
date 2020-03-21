@@ -46,7 +46,7 @@ public:
   
   // Public member functions:
   ObservableType getBinSize();
-  int            getNumberOfBins();
+  unsigned int   getNumberOfBins();
   double         getDOS(ObservableType energy);
 
   void setEnergyRange (ObservableType E1, ObservableType E2);
@@ -59,6 +59,7 @@ public:
   void updateHistogram(ObservableType energy);
   void updateDOS(ObservableType energy);
   void updateDOSwithHistogram();
+  void updateDOSwithRemainder();
 
   void writeHistogramDOSFile(const char* fileName, int iteration = -1, int walkerID = 0);
   void writeNormDOSFile(const char* fileName, int walkerID = 0);
@@ -81,6 +82,7 @@ private:
   //ObservableType binSize;                  // energy bin size
   double binSize;
   unsigned int numBins;                      // total number of bins
+  unsigned int numVisitedBins;               // number of visited bins
   unsigned int numBinsFailingCriterion;
 
   unsigned long int numBelowRange;           // count the number of configurations that falls below Emin
@@ -105,6 +107,9 @@ private:
   int getIndex(ObservableType energy);              // Calculate the bin index from an energy
   void readHistogramDOSFile(const char* fileName);
   void readMCInputFile(const char* fileName);       // TODO: this should move to MCAlgorithm base class
+  void calculateProbabilityDistribution();          // Normalized histogram
+  unsigned int getNumberOfVisitedBins();
+  void shiftDOS();
 
 };
 

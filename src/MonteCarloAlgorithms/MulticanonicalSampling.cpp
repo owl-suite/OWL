@@ -146,7 +146,7 @@ void MulticanonicalSampling::run()
     h.iterations++;
     h.numberOfUpdatesPerIteration = static_cast<unsigned int>(ceil(static_cast<double>(h.numberOfUpdatesPerIteration) * h.numberOfUpdatesMultiplier));
     if (GlobalComm.thisMPIrank == 0)
-      printf("Number of updates in the next iteration = %d\n", h.numberOfUpdatesPerIteration);
+      printf("Number of updates in the next iteration = %d\n \n", h.numberOfUpdatesPerIteration);
 
   }
 

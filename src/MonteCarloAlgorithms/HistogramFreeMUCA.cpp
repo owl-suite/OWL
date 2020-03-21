@@ -12,8 +12,7 @@ DiscreteHistogramFreeMUCA::DiscreteHistogramFreeMUCA(PhysicalSystem* ps) : h(sim
   
   physical_system = ps;
 
-  numberOfDataPoints = h.numberOfUpdatesPerIteration;
-  DataSet.assign(numberOfDataPoints, 0);
+  DataSet.assign(h.numberOfUpdatesPerIteration, 0);
 
 }
 
@@ -39,16 +38,13 @@ void DiscreteHistogramFreeMUCA::run()
 
   //-------------- Initialization starts --------------//
 
-  // Find the first energy that falls within the energy range    
+  // Find the first energy that falls within the energy range
   while (!acceptMove) {
     physical_system -> doMCMove();
     physical_system -> getObservables();
     physical_system -> acceptMCMove();    // always accept the move to push the state forward
     acceptMove = h.checkEnergyInRange(physical_system -> observables[0]);
   }
-
-  // Always count the first energy if it is within range
-  h.updateHistogram(physical_system -> observables[0]);
 
   // Write out the initial configuration
   if (GlobalComm.thisMPIrank == 0)
@@ -57,10 +53,37 @@ void DiscreteHistogramFreeMUCA::run()
   //-------------- Initialization ends ---------------//
 
   // MUCA procedure starts here
+  //for (unsigned int yw=0; yw<5; yw++) {
+  while (!(h.histogramFlat)) {
 
-  for (int yw=0; yw<10; yw++) {
-  //while (!(h.histogramFlat)) {
+    // Thermalization (these steps do not update the histogram)
+    for (unsigned int MCSteps=0; MCSteps<h.numberOfThermalizationSteps; MCSteps++) {
 
+      physical_system -> doMCMove();
+      physical_system -> getObservables();
+
+      // check if the energy falls within the energy range
+      if ( !h.checkEnergyInRange(physical_system -> observables[0]) ) {
+        acceptMove = false;
+        physical_system -> rejectMCMove();
+      }
+      else {
+        // determine acceptance
+        if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
+                 h.getDOS(physical_system -> observables[0])) > getRandomNumber2() ) {
+          acceptMove = true;
+          physical_system -> acceptMCMove();
+                 }
+        else {
+          acceptMove = false;
+          physical_system -> rejectMCMove();
+        }
+      }
+
+    }
+    h.totalMCsteps += h.numberOfThermalizationSteps;
+
+    // MUCA statistics starts here
     for (unsigned int MCSteps=0; MCSteps<h.numberOfUpdatesPerIteration; MCSteps++) {
 
       physical_system -> doMCMove();
@@ -70,7 +93,7 @@ void DiscreteHistogramFreeMUCA::run()
       if ( !h.checkEnergyInRange(physical_system -> observables[0]) )
         acceptMove = false;
       else {
-        // determine WL acceptance
+        // determine acceptance
         if ( exp(h.getDOS(physical_system -> oldObservables[0]) - 
                  h.getDOS(physical_system -> observables[0])) > getRandomNumber2() )
           acceptMove = true;
@@ -92,7 +115,6 @@ void DiscreteHistogramFreeMUCA::run()
          h.updateHistogram(physical_system -> oldObservables[0]);
          h.rejectedMoves++;
       }
-      h.totalMCsteps++;
    
       // Write restart files at interval
       currentTime = MPI_Wtime();
@@ -104,15 +126,17 @@ void DiscreteHistogramFreeMUCA::run()
         }
       }
     }
+    h.totalMCsteps += h.numberOfUpdatesPerIteration;
 
-    // Update DOS with the histogram
-    // [TODO] update scheme should be different from the original!!
-    h.updateDOSwithHistogram();
+    if (h.iterations == 0)    // Update DOS with histogram
+      h.updateDOSwithHistogram();
+    else                      // Update DOS with remainder
+      h.updateDOSwithRemainder();
     // check deviation from ideal sampling using Kullback-Leibler divergence
     h.histogramFlat = h.checkKullbackLeiblerDivergence();
       
     if (GlobalComm.thisMPIrank == 0) {
-      printf("Number of iterations performed = %d\n", h.iterations);
+      printf("Iteration %d finished \n", h.iterations);
     
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
@@ -123,12 +147,18 @@ void DiscreteHistogramFreeMUCA::run()
     // Go to next iteration
     h.resetHistogram();
     h.iterations++;
-    std::cout << "Iteration " << yw << " finished.\n";
+    h.numberOfUpdatesPerIteration = static_cast<unsigned int>(ceil(static_cast<double>(h.numberOfUpdatesPerIteration) * h.numberOfUpdatesMultiplier));
+    if (GlobalComm.thisMPIrank == 0)
+      printf("Number of updates in the next iteration = %d\n \n", h.numberOfUpdatesPerIteration);
+      
   }
 
   // Write out data at the end of the simulation
-  h.writeNormDOSFile("dos.dat");
-  h.writeHistogramDOSFile("hist_dos_final.dat");
+  if (GlobalComm.thisMPIrank == 0) {
+    h.writeNormDOSFile("dos.dat");
+    h.writeHistogramDOSFile("hist_dos_final.dat");
+    printf("Number of total MC steps (including thermalization) = %lu\n", h.totalMCsteps);
+  }
 
 }
 
@@ -137,7 +167,7 @@ void DiscreteHistogramFreeMUCA::run()
 // Private member functions
 void DiscreteHistogramFreeMUCA::resetDataSet()
 {
-  DataSet.assign(numberOfDataPoints, 0);  // To DO: check other functions!
+  DataSet.assign(h.numberOfUpdatesPerIteration, 0);  // To DO: check other functions!
 }
 
 

@@ -44,18 +44,4 @@ private :
 
 };
 
-
-// To be implemented.
-class Metropolis : public MonteCarloAlgorithm {
-
-public :
-
-  Metropolis(PhysicalSystem* ps) {}
-  ~Metropolis() {}
-
-  void run() {}
-
-};
-
-
 #endif

@@ -15,7 +15,7 @@ Ising2D::Ising2D(const char* filename, int initial)
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
-
+ 
   spin = new SpinDirection[LatticeSize];
 
   //spin = new SpinDirection*[Size];
@@ -87,6 +87,8 @@ Ising2D::Ising2D(const char* filename, int initial)
 
   buildMPIConfigurationType();
   pointerToConfiguration = static_cast<void*>(&spin[0]);
+
+  numberOfMCSweepsPerStep = (unsigned long int) LatticeSize; 
  
 }
 
@@ -235,20 +237,17 @@ void Ising2D::doMCMove()
   for (int i = 0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 
+  // randomly choose a site
   CurX = rng() % Size;
   CurY = rng() % Size;
+  CurType = spin[CurX*Size + CurY];
 
-  CurType = spin[CurX*Size+CurY];
-
+  // flip the spin at that site
   if (CurType == -1)
     spin[CurX*Size+CurY] = 1;
   else
     spin[CurX*Size+CurY] = -1;
-  //if (CurType == DOWN)
-  //  spin[CurX][CurY] = UP;
-  //else
-  //  spin[CurX][CurY] = DOWN;
-
+    
   //writeConfiguration(0);
 
 }

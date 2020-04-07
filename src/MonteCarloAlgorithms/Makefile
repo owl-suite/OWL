@@ -3,6 +3,7 @@
 
 MONTE_CARLO_OBJS = MCAlgorithms.o               \
                    Histogram.o                  \
+                   Metropolis.o                 \
                    MulticanonicalSampling.o     \
                    WangLandauSampling.o         \
                    ReplicaExchangeWangLandau.o  \

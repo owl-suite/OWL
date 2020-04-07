@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Globals.hpp"
 #include "MonteCarloAlgorithms/MCAlgorithms.hpp"
+#include "MonteCarloAlgorithms/Metropolis.hpp"
 #include "MonteCarloAlgorithms/WangLandauSampling.hpp"
 #include "MonteCarloAlgorithms/ReplicaExchangeWangLandau.hpp"
 #include "MonteCarloAlgorithms/MulticanonicalSampling.hpp"
@@ -89,11 +90,10 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  6. Histogram-free Multicanonical sampling (discrete energy version)
   switch (simInfo.algorithm) {
     case 1 :
-      MC = new Metropolis( physical_system );
+      MC = new Metropolis( physical_system, simInfo.MCInputFile);
       break;
 
     case 2 :
-      //MC = new WangLandauSampling( simInfo.restartFlag, simInfo.MCInputFile );
       MC = new WangLandauSampling( physical_system );
       break;
 

@@ -49,13 +49,19 @@ SpinModelLatticeSize  4
 ##########################################
 ##   Monte Carlo algorithm              ##
 ##########################################
-# 1. (TODO) Metropolis Sampling
+# 1. Metropolis Sampling
 # 2. Wang-Landau Sampling
 # 3. Multicanonical Sampling (MUCA)
 # 4. (TODO) Parallel Tempering
 # 5. Replica-Exchange Wang-Landau (REWL)
 # 6. Global update MUCA 
 Algorithm  2
+
+##### Inputs for Metropolis sampling #####
+
+numberOfThermalizationSteps  10000
+numberOfMCSteps              20000
+temperature                  3.0
 
 
 ##### Inputs for Wang-Landau sampling #####

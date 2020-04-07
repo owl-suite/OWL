@@ -29,7 +29,6 @@ MulticanonicalSampling::~MulticanonicalSampling()
 void MulticanonicalSampling::run()
 {
 
-  //double currentTime, lastBackUpTime;
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
     printf("Running Multicanonical Sampling...\n");

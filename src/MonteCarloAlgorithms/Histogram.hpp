@@ -102,9 +102,9 @@ private:
   int myWindow;
 
   // Private member functions:
-  int getIndex(ObservableType energy);       // Calculate the bin index from an energy
+  int getIndex(ObservableType energy);              // Calculate the bin index from an energy
   void readHistogramDOSFile(const char* fileName);
-  void readMCInputFile(const char* fileName);
+  void readMCInputFile(const char* fileName);       // TODO: this should move to MCAlgorithm base class
 
 };
 

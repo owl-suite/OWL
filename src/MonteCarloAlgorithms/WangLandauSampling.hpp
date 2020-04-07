@@ -20,7 +20,4 @@ private :
   
 };
 
-
-
-
 #endif

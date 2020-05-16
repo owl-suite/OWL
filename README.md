@@ -1,5 +1,5 @@
 # OWL
-Open-source/Oak Wang-Landau (OWL): A suite for first-principles based Monte Carlo simulations
+Open-source/Oak-Ridge Wang-Landau (OWL): A suite for first-principles based Monte Carlo simulations
 
 OWL is a scientific software for large-scale Monte Carlo simulations for materials. Originally developed at Oak Ridge National Laboratory to implement Wang-Landau sampling with first-principles calculations for the study of finite temperature materials properties, it is now open-sourced and has extended to provide a collection of commonly used classical, modern and parallel Monte Carlo algorithms.
 

@@ -33,6 +33,8 @@ int main (int argc, char *argv[]) {
   finalizeSimulation( physical_system, MC );
   finalizeMPICommunication();
 
-  std::cout << "\nSimulation finished :)\n";
+  if (GlobalComm.thisMPIrank == 0)
+    std::cout << "\nSimulation finished :)\n";
+
   return 0;
 }

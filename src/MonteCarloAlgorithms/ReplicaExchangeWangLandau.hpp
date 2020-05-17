@@ -17,6 +17,7 @@
 typedef int WalkerIDType;
 typedef int WindowIDype;
 
+enum OutputMode {checkPoint, endOfIteration, endOfSimulation};
 
 class ReplicaExchangeWangLandau : public MonteCarloAlgorithm {
 
@@ -34,9 +35,7 @@ private :
 
   /// YingWai's note: (Sep 17, 2017)
   /// Is it better to have the random number generator here?
-  //std::mt19937 rng;
-  //std::uniform_real_distribution<double> rnd;
-
+ 
   MPICommunicator PhysicalSystemComm;
   MPICommunicator REWLComm;
   int numWalkers;
@@ -56,6 +55,7 @@ private :
   int downExchanges;
 
   double MaxModFactor;
+  bool simulationContinues;
 
 
   // Private member functions:
@@ -70,6 +70,7 @@ private :
 
   void getMaxModFactor();
 
+  void writeCheckPointFiles(OutputMode output_mode);
   void readREWLInputFile(const char* fileName); 
 
 };

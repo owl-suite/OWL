@@ -107,7 +107,8 @@ Ising2D::~Ising2D()
 
   deleteObservables();
 
-  printf("Ising2D finished\n");
+  if (GlobalComm.thisMPIrank == 0)
+    printf("Ising2D finished\n");
 
 }
 

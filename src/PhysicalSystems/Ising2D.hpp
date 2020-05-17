@@ -2,7 +2,7 @@
 #define ISING2D_HPP
 
 #include "PhysicalSystemBase.hpp"
-#include "Main/Globals.hpp"
+//#include "Main/Globals.hpp"
 
 
 class Ising2D : public PhysicalSystem {
@@ -29,7 +29,6 @@ private :
 
   int Size;
   long LatticeSize;
-
 
   // Old configuration
   int CurX, CurY;

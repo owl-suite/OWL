@@ -29,20 +29,19 @@ public:
   virtual void buildMPIConfigurationType() = 0;
 
   // Parameters common to (needed by) all models:
-  int numObservables;
+  unsigned long int numberOfMCSweepsPerStep {1};
+  unsigned int numObservables;
   ObservableType* observables;
   ObservableType* oldObservables;
-  //double* observables;
-  //double* oldObservables;
+
+  // For systems where energy is calculated from the difference with the previous configuration, 
+  // this flag will cause the energy to be calculated from scratch again
+  // Useful for initialization or after replica exchange
+  bool getObservablesFromScratch {true};   
 
   // MPI derived type to store configuration for replica exchange
   MPI_Datatype MPI_ConfigurationType;
   void* pointerToConfiguration;
-
-  // For systems where energy is calculated from the difference with the previous configuration, 
-  // this flag will cause the energy to be calculated from scratch again
-  // Useful for initialization and after replica exchange
-  bool getObservablesFromScratch {true};        
 
   // MPI Communicator for one energy calculation
   //MPICommunicator PhysicalSystemCommunicator;
@@ -50,14 +49,12 @@ public:
 
 protected:
 
-  void initializeObservables(int n) {
+  void initializeObservables(unsigned int n) {
     numObservables = n;
     if (numObservables > 0) {
       observables    = new ObservableType[numObservables];
       oldObservables = new ObservableType[numObservables];
-      //observables    = new double[numObservables];
-      //oldObservables = new double[numObservables];
-      for (int i=0; i<numObservables; i++) {
+      for (unsigned int i=0; i<numObservables; i++) {
         observables[i]    = 0;
         oldObservables[i] = 0;
       }
@@ -68,23 +65,14 @@ protected:
     }
   }
 
+
   void resetObservables() {
-    for (int i=0; i<numObservables; i++) {
+    for (unsigned int i=0; i<numObservables; i++) {
       oldObservables[i] = observables[i];
       observables[i] = 0;
     }
   }
 
-/*
-  void restoreObservables() {
-    double tmp;
-    for (int i=0; i<numObservables; i++) {
-      tmp = observables[i];
-      observables[i] = oldObservables[i];
-      oldObservables[i] = tmp;
-    }
-  }
-*/
 
   void deleteObservables() {
     delete[] observables;

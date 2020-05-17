@@ -19,5 +19,4 @@ src/PhysicalSystems/QuantumEspresso/*.swp
 src/Utilities/*.o
 src/Utilities/*.a
 src/Utilities/*.swp
-run/
 architecture.inc

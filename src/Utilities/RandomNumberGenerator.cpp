@@ -3,10 +3,11 @@
 
 
 // YingWai: should the RNG be placed as a member in MCAlgorithm class?
-std::mt19937 rng;
+std::mt19937 rng_engine;
 //int RngSeed {-1};
 std::uniform_real_distribution<double> distribution1(-0.5, 0.5); 
 std::uniform_real_distribution<double> distribution2(0.0, 1.0); 
+std::uniform_int_distribution<int> distribution_int; 
 
 void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
 {
@@ -33,6 +34,6 @@ void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
   phy_sys_comm.broadcastScalar(RngSeed, 0);
 
   // Initialize random number generators
-  rng.seed(RngSeed);
+  rng_engine.seed(RngSeed);
 
 }

@@ -239,8 +239,8 @@ void Ising2D::doMCMove()
     oldObservables[i] = observables[i];
 
   // randomly choose a site
-  CurX = rng() % Size;
-  CurY = rng() % Size;
+  CurX = getIntRandomNumber() % Size;
+  CurY = getIntRandomNumber() % Size;
   CurType = spin[CurX*Size + CurY];
 
   // flip the spin at that site

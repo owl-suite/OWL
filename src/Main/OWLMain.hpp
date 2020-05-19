@@ -10,6 +10,7 @@
 #include "MonteCarloAlgorithms/MulticanonicalSampling.hpp"
 #include "MonteCarloAlgorithms/HistogramFreeMUCA.hpp"
 #include "PhysicalSystems/Heisenberg2D.hpp"
+#include "PhysicalSystems/Heisenberg3D.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
 
 #ifdef DRIVER_MODE_QE
@@ -73,6 +74,10 @@ void setSimulation(PhysicalSystem*      &physical_system,
 
     case 4 :
       physical_system = new Ising2D();
+      break;
+
+    case 5 :
+      physical_system = new Heisenberg3D();
       break;
 
     default :

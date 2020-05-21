@@ -11,7 +11,6 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
   printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   int i, j;
-  char c;
   double r1, r2, rr;
 
   Size = simInfo.spinModelLatticeSize;
@@ -31,22 +30,9 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
 
     for(i = 0; i < Size; i++) {
       for (j = 0; j < Size; j++) {
-        if (fscanf(f, "%c", &c) != 1) {
+        if (fscanf(f, "%lf %lf %lf", &spin[i][j].x, &spin[i][j].y, &spin[i][j].z) != 3) {
           std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
           exit(1);
-        }
-        switch (c) {
-          case 'U' : {
-            spin[i][j].x = 0.0;
-            spin[i][j].y = 0.0;
-            spin[i][j].z = 1.0;
-            break;
-          }
-          default  : {
-            spin[i][j].x = 0.0;
-            spin[i][j].y = 0.0;
-            spin[i][j].z = -1.0;
-          }
         }
       }
       fscanf(f, "%*c");
@@ -62,26 +48,26 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
           spin[i][j].x = 1.0;
           spin[i][j].y = 0.0;
           spin[i][j].z = 0.0;
-	  break;
+	        break;
         }
         case 2  : {
           spin[i][j].x = 0.0;
           spin[i][j].y = 1.0;
           spin[i][j].z = 0.0;
-	  break;
+	        break;
         }
         case 3  : {
           spin[i][j].x = 0.0;
           spin[i][j].y = 0.0;
           spin[i][j].z = 1.0;
-	  break;
+	        break;
         }
         case 4  : {
           spin[i][j].x = 0.0;
           spin[i][j].y = 0.0;
-	  if (((i + j) % 2) == 0) spin[i][j].z = 1.0;
-	  else spin[i][j].z = -1.0;
-	  break;
+	        if (((i + j) % 2) == 0) spin[i][j].z = 1.0;
+	        else spin[i][j].z = -1.0;
+	        break;
         }
         default : {
           do {
@@ -133,8 +119,7 @@ void Heisenberg2D::readCommandLineOptions()
 void Heisenberg2D::writeConfiguration(int format, const char* filename)
 {
 
-  int i;
-  int x, y;
+  int i, j;
 
   FILE* f;
   if (filename != NULL) f = fopen(filename, "w");
@@ -150,9 +135,9 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
     for (i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
-    for (y = Size - 1; y >= 0; y--) {
-      for (x = 0; x < Size; x++) 
-        fprintf(f, "%8.5f %8.5f %8.5f\n", spin[x][y].x, spin[x][y].y, spin[x][y].z);
+    for (i = 0; i < Size; i++) {
+      for (j = 0; j < Size; j++)
+        fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i][j].x, spin[i][j].y, spin[i][j].z);
       fprintf(f, "\n");
     }
 
@@ -170,32 +155,36 @@ void Heisenberg2D::GetMeasuresBruteForce()
 {
   //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
 
-  int x, y;
+  int i, j;
   int xLeft, yBelow;
 
   // Uncomment this when observables[] are used
   //resetObservables();
-  double tempE = 0.0;
-  double tempMx = 0.0;
-  double tempMy = 0.0;
-  double tempMz = 0.0;
+  //double tempE = 0.0;
+  //double tempMx = 0.0;
+  //double tempMy = 0.0;
+  //double tempMz = 0.0;
+  ObservableType tempE = 0.0;
+  ObservableType tempMx = 0.0;
+  ObservableType tempMy = 0.0;
+  ObservableType tempMz = 0.0;
 
-  for (x = 0; x < Size; x++) {
-    if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
-    for (y = 0; y < Size; y++) {
-      if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
+  for (i = 0; i < Size; i++) {
+    if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
+    for (j = 0; j < Size; j++) {
+      if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
       //observables[0] += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
       //               spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
       //               spin[x][y].z * (spin[xLeft][y].z + spin[x][yBelow].z);
       //observables[1] += spin[x][y].x;
       //observables[2] += spin[x][y].y;
       //observables[3] += spin[x][y].z;
-      tempE  += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
-                spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
-                spin[x][y].z * (spin[xLeft][y].z + spin[x][yBelow].z);
-      tempMx += spin[x][y].x;
-      tempMy += spin[x][y].y;
-      tempMz += spin[x][y].z;
+      tempE  += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
+                spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +
+                spin[i][j].z * (spin[xLeft][j].z + spin[i][yBelow].z);
+      tempMx += spin[i][j].x;
+      tempMy += spin[i][j].y;
+      tempMz += spin[i][j].z;
     }
   }
   //observables[0] = -observables[0];   // ferromagnetic (FO) coupling
@@ -213,25 +202,26 @@ void Heisenberg2D::GetMeasuresBruteForce()
 void Heisenberg2D::getObservables()
 {
 
-  int x, y;
+  int i, j;
   int xLeft, yBelow;
   int xRight, yAbove;
-  double energyChange;
+  //double energyChange;
+  ObservableType energyChange;
 
   if (firstTimeGetMeasures) {
 
     //resetObservables();
   
-    for (x = 0; x < Size; x++) {
-      if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
-      for (y = 0; y < Size; y++) {
-        if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
-        observables[0] += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
-                          spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
-                          spin[x][y].z * (spin[xLeft][y].z + spin[x][yBelow].z);
-        observables[1] += spin[x][y].x;
-        observables[2] += spin[x][y].y;
-        observables[3] += spin[x][y].z;
+    for (i = 0; i < Size; i++) {
+      if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
+      for (j = 0; j < Size; j++) {
+        if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
+        observables[0] += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
+                          spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +
+                          spin[i][j].z * (spin[xLeft][j].z + spin[i][yBelow].z);
+        observables[1] += spin[i][j].x;
+        observables[2] += spin[i][j].y;
+        observables[3] += spin[i][j].z;
       }
     }
     observables[0] = -observables[0]; // ferromagnetic (FO) coupling
@@ -276,8 +266,8 @@ void Heisenberg2D::doMCMove()
 
   //CurX = (int)(gsl_rng_uniform(rng) * Size);
   //CurY = (int)(gsl_rng_uniform(rng) * Size);
-  CurX = rng() % Size;
-  CurY = rng() % Size;
+  CurX = getIntRandomNumber() % Size;
+  CurY = getIntRandomNumber() % Size;
 
   CurType = spin[CurX][CurY];
 

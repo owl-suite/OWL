@@ -20,6 +20,7 @@ RngSeed  183083
 # 2: LSMS
 # 3: Heisenberg 2D
 # 4: Ising 2D
+# 5: Heisenberg 3D
 PhysicalSystem  4
 
 
@@ -59,9 +60,9 @@ Algorithm  2
 
 ##### Inputs for Metropolis sampling #####
 
-numberOfThermalizationSteps  10000
-numberOfMCSteps              20000
-temperature                  3.0
+#numberOfThermalizationSteps  10000
+#numberOfMCSteps              20000
+#temperature                  3.0
 
 
 ##### Inputs for Wang-Landau sampling #####
@@ -96,10 +97,10 @@ binSize                   1
 
 ##### Inputs for Multicanonical Sampling and Gloabl Update MUCA #####
 
-KullbackLeiblerDivergenceThreshold  0.0001
-numberOfUpdatesPerIteration         3521
-numberOfUpdatesMultiplier           1.1
-numberOfThermalizationSteps         510
+#KullbackLeiblerDivergenceThreshold  0.0001
+#numberOfUpdatesPerIteration         3521
+#numberOfUpdatesMultiplier           1.1
+#numberOfThermalizationSteps         510
 
 ##### Information for MPI rank distribution #####
 

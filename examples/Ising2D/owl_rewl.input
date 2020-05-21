@@ -20,6 +20,7 @@ RngSeed  183083
 # 2: LSMS
 # 3: Heisenberg 2D
 # 4: Ising 2D
+# 5: Heisenberg 3D
 PhysicalSystem  4
 
 
@@ -49,13 +50,19 @@ SpinModelLatticeSize  4
 ##########################################
 ##   Monte Carlo algorithm              ##
 ##########################################
-# 1. (TODO) Metropolis Sampling
+# 1. Metropolis Sampling
 # 2. Wang-Landau Sampling
 # 3. Multicanonical Sampling (MUCA)
 # 4. (TODO) Parallel Tempering
 # 5. Replica-Exchange Wang-Landau (REWL)
-# 6. (TODO) Population Annealing 
+# 6. Global update MUCA 
 Algorithm  5
+
+##### Inputs for Metropolis sampling #####
+
+#numberOfThermalizationSteps  10000
+#numberOfMCSteps              20000
+#temperature                  3.0
 
 
 ##### Inputs for Wang-Landau sampling #####

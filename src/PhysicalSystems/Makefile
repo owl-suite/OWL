@@ -1,5 +1,6 @@
 PHYS_SYS_OBJS = Ising2D.o       \
-                Heisenberg2D.o
+                Heisenberg2D.o  \
+				Heisenberg3D.o
 
 .PHONY : default owl-qe clean 
 

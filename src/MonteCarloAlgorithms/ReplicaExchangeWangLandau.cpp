@@ -188,7 +188,7 @@ void ReplicaExchangeWangLandau::run()
 
   }
     
-    writeCheckPointFiles(endOfSimulation);
+  writeCheckPointFiles(endOfSimulation);
 
 }
 

@@ -19,14 +19,17 @@ public:
   virtual ~PhysicalSystem() {}  
 
   // Functions:
-  virtual void readCommandLineOptions() = 0;
   virtual void writeConfiguration(int = 0, const char* = NULL) = 0;
   virtual void getObservables() = 0;
   virtual void doMCMove() = 0;
   virtual void acceptMCMove() = 0;
   virtual void rejectMCMove() = 0;        // restore old observables and old configurations to current ones
   
-  virtual void buildMPIConfigurationType() = 0;
+  // Construct data structures for MPI communications. Used in Replica exchanges.
+  void buildMPIConfigurationType() {};
+
+  void readCommandLineOptions() {};
+  void readHamiltonianTerms(const char* inputFile) {};
 
   // Parameters common to (needed by) all models:
   unsigned long int numberOfMCSweepsPerStep {1};

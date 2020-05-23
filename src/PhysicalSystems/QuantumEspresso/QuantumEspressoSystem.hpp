@@ -28,11 +28,11 @@ public:
   ~QuantumEspressoSystem();
 
   void readCommandLineOptions();
-  void writeConfiguration(int = 0, const char* = NULL);
-  void getObservables();
-  void doMCMove();
-  void acceptMCMove();
-  void rejectMCMove();
+  void writeConfiguration(int = 0, const char* = NULL)  override;
+  void getObservables()                                 override;
+  void doMCMove()                                       override;
+  void acceptMCMove()                                   override;
+  void rejectMCMove()                                   override;
 
   void buildMPIConfigurationType();
 
@@ -40,9 +40,9 @@ private:
 
   // Parameters from command line options for controlling parallelization in Quantum Espresso
   int   nimage            {1};                 // number of images
-  int   npool             {1};                 // (?)
-  int   ndiag             {1};                 // (?)
-  int   ntg               {1};                 // ntaskg (?)
+  int   npool             {1};                 // 
+  int   ndiag             {1};                 // 
+  int   ntg               {1};                 // ntaskg
   int   nband             {1};                 // number of bands
   char  QEInputFile[81]   = { ' ', '\0' };     // QE input file
 

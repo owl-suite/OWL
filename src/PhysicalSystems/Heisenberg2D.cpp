@@ -112,8 +112,8 @@ Heisenberg2D::~Heisenberg2D()
 }
 
 
-void Heisenberg2D::readCommandLineOptions()
-{ };
+//void Heisenberg2D::readCommandLineOptions()
+//{ };
 
 
 void Heisenberg2D::writeConfiguration(int format, const char* filename)
@@ -311,8 +311,8 @@ void Heisenberg2D::rejectMCMove()
     observables[i] = oldObservables[i];
 }
 
-
+/*
 void Heisenberg2D::buildMPIConfigurationType()
 {
 }
-
+*/

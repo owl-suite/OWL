@@ -113,9 +113,6 @@ Ising2D::~Ising2D()
 }
 
 
-void Ising2D::readCommandLineOptions()
-{ };
-
 
 void Ising2D::writeConfiguration(int format, const char* filename)
 {

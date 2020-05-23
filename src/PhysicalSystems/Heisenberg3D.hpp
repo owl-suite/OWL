@@ -8,17 +8,17 @@ class Heisenberg3D : public PhysicalSystem {
 
 public :
 
-  Heisenberg3D(const char* = NULL, int = 0); 
+  Heisenberg3D(const char* inputFile, const char* coordinatesFile = NULL, int initial = 0); 
   ~Heisenberg3D();
 
-  void readCommandLineOptions();
-  void writeConfiguration(int = 0, const char* = NULL);
-  void getObservables();
-  void doMCMove();
-  void acceptMCMove();
-  void rejectMCMove();
+  //void readCommandLineOptions()                         override;
+  void writeConfiguration(int = 0, const char* = NULL)  override;
+  void getObservables()                                 override;
+  void doMCMove()                                       override;
+  void acceptMCMove()                                   override;
+  void rejectMCMove()                                   override;
 
-  void buildMPIConfigurationType();
+  //void buildMPIConfigurationType()                      override;
 
 private :
 
@@ -41,7 +41,10 @@ private :
   
   bool firstTimeGetMeasures;
 
+  // Private functions
   void GetMeasuresBruteForce();
+  void readCoordinatesFile(const char* coordinatesFile);
+  void initializeSpinConfiguration(int initial);
 
 };
 

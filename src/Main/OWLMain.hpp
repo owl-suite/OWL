@@ -11,6 +11,7 @@
 #include "MonteCarloAlgorithms/HistogramFreeMUCA.hpp"
 #include "PhysicalSystems/Heisenberg2D.hpp"
 #include "PhysicalSystems/Heisenberg3D.hpp"
+#include "PhysicalSystems/Heisenberg3D_B20.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
 
 #ifdef DRIVER_MODE_QE
@@ -77,7 +78,11 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
 
     case 5 :
-      physical_system = new Heisenberg3D();
+      physical_system = new Heisenberg3D(simInfo.MCInputFile);
+      break;
+
+    case 6 :
+      physical_system = new Heisenberg3D_B20(simInfo.MCInputFile);
       break;
 
     default :

@@ -21,6 +21,7 @@ RngSeed  183083
 # 3: Heisenberg 2D
 # 4: Ising 2D
 # 5: Heisenberg 3D
+# 6: Customized crystal structure
 PhysicalSystem  4
 
 
@@ -40,11 +41,25 @@ PhysicalSystem  4
 # -2: Only choose between move 0 and move 1
 #QEMCMoveSet -2
 
-##### Inputs for PhysicalSystem=3,4 (Heisenberg and Ising models) #####
+##### Inputs for PhysicalSystem=3,4,5 (Heisenberg and Ising models) #####
 
 # Lattice size for spin models
 SpinModelLatticeSize  4
 
+
+##### Inputs for PhysicalSystem=6 (Customized crystal structure) #####
+# Example: 2x2x2 BCC iron
+
+#LatticeVectors  1.0     0.0     0.0
+#                0.0     1.0     0.0
+#                0.0     0.0     1.0
+#
+#NumberOfAtomsPerUnitCell        2
+#
+#atom    Fe    0.0    0.0    0.0
+#atom    Fe    0.5    0.5    0.5
+#
+#unitCellDimensions      2 2 2
 
 
 ##########################################

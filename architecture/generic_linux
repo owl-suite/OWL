@@ -6,9 +6,9 @@ export CXX = mpicxx
 
 ### Compiler Flags:
 # For debugging:
-#export CXXFLAGS = -O0 -Wall -std=c++11 -g -DDEBUG -D_DEBUG
+#export CXXFLAGS = -O0 -Wall -std=c++17 -g -DDEBUG -D_DEBUG
 # For production:
-export CXXFLAGS = -O3 -Wall -W -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -std=c++11
+export CXXFLAGS = -O3 -Wall -W -Wconversion -Wshadow -Wcast-qual -Wwrite-strings -std=c++17
 
 
 ### Linking flags are compiler dependent

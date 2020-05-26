@@ -7,7 +7,7 @@
 Heisenberg3D::Heisenberg3D(const char* inputFile, const char* coordinatesFile, int initial)
 {
 
-  printf("Simulation for 3D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
+  printf("Simulation for 3D Heisenberg model: %dx%dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size * Size;

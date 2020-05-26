@@ -25,8 +25,8 @@ struct SimulationInfo
   int  numWalkers            {1};
   int  numMPIranksPerWalker  {1};
   int  myWalkerID            {-1};
-  int  numberOfWindows       {-1};      // only valid for REWL, will remain -1 for other MC algorithms
-  int  numberOfWalkersPerWindow {-1};   // ditto
+  int  numberOfWindows       {-1};                   // only valid for REWL, will remain -1 for other MC algorithms
+  int  numberOfWalkersPerWindow {-1};                // ditto
 
   // Command line options for QE and LSMS
   char physicalSystemCommandLine[256]      {};
@@ -35,8 +35,8 @@ struct SimulationInfo
   int  QEMCMoveSet           {-1};
 
   // These are physical system specific:
-  int  spinModelLatticeSize  {-1};   // setting default to -1...
-  int  numAtoms              {-1};   // code should exit if not specified in input file (Jun 24, 17)
+  int  spinModelLatticeSize  {-1};                   // setting default to -1
+  int  numAtoms              {-1};                   // code should exit if not specified in input file (Jun 24, 17)
 
 };
 

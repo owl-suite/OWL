@@ -38,8 +38,8 @@ public:
   ObservableType* oldObservables;
 
   // For systems where energy is calculated from the difference with the previous configuration, 
-  // this flag will cause the energy to be calculated from scratch again
-  // Useful for initialization or after replica exchange
+  // this flag will cause the energy to be calculated from scratch again.
+  // Useful for initialization or after replica exchange.
   bool getObservablesFromScratch {true};   
 
   // MPI derived type to store configuration for replica exchange

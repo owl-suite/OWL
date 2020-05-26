@@ -59,7 +59,7 @@ SpinModelLatticeSize  4
 #atom    Fe    0.0    0.0    0.0
 #atom    Fe    0.5    0.5    0.5
 #
-#unitCellDimensions      2 2 2
+#UnitCellDimensions      2 2 2
 
 
 ##########################################

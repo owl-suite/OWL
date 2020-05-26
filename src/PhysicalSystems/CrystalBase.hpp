@@ -107,7 +107,7 @@ public :
 
           if (key.compare(0, 1, "#") != 0) {
 
-            if (key == "numberOfAtomsPerUnitCell") {
+            if (key == "NumberOfAtomsPerUnitCell") {
               lineStream >> unitCell.number_of_atoms;
               std::cout << "Crystal: number of atoms per unit cell = " << unitCell.number_of_atoms << "\n";
 
@@ -115,7 +115,7 @@ public :
               unitCell.atomic_positions.resize(3, unitCell.number_of_atoms);
               continue;
             }
-            else if (key == "latticeVectors") {
+            else if (key == "LatticeVectors") {
               lineStream >> unitCell.lattice_vectors(0,0) >> unitCell.lattice_vectors(1,0) >> unitCell.lattice_vectors(2,0);
               std::cout << "Crystal: Lattice vectors (" 
                         << unitCell.lattice_vectors(0,0) << ", " 
@@ -148,7 +148,7 @@ public :
               //std::cout << "atom_counter = " << atom_counter << "\n";
               continue;
             }
-            else if (key == "unitCellDimensions") {
+            else if (key == "UnitCellDimensions") {
               lineStream >> unitCellDimensions[0] >> unitCellDimensions[1] >> unitCellDimensions[2];
               std::cout << "Crystal: unit cell dimensions = " << unitCellDimensions[0] << " x " 
                                                               << unitCellDimensions[1] << " x " 

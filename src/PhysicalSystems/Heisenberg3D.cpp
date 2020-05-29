@@ -4,10 +4,12 @@
 #include "Heisenberg3D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
-Heisenberg3D::Heisenberg3D(const char* inputFile, const char* coordinatesFile, int initial)
+Heisenberg3D::Heisenberg3D(const char* inputFile, const char* spinConfigFile, int initial)
 {
 
   printf("Simulation for 3D Heisenberg model: %dx%dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
+
+  assert (simInfo.spinModelLatticeSize > 0);
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size * Size;
@@ -21,8 +23,8 @@ Heisenberg3D::Heisenberg3D(const char* inputFile, const char* coordinatesFile, i
   }
   //SpinDirection spinTemp[LatticeSize];
 
-  if (coordinatesFile != NULL)
-    readCoordinatesFile(coordinatesFile);
+  if (spinConfigFile != NULL)
+    readSpinConfigFile(spinConfigFile);
   else
     initializeSpinConfiguration(initial);
 
@@ -277,12 +279,12 @@ void Heisenberg3D::buildMPIConfigurationType()
 */
 
 
-void Heisenberg3D::readCoordinatesFile(const char* coordinatesFile)
+void Heisenberg3D::readSpinConfigFile(const char* spinConfigFile)
 {
 
-    FILE* f = fopen(coordinatesFile, "r");
+    FILE* f = fopen(spinConfigFile, "r");
     if (f == NULL) {
-      std::cout << "Coordinates file " << coordinatesFile << " unreadable!" << std::endl;
+      std::cout << "Coordinates file " << spinConfigFile << " unreadable!" << std::endl;
       exit(1);
     }
 
@@ -291,7 +293,7 @@ void Heisenberg3D::readCoordinatesFile(const char* coordinatesFile)
         for (unsigned int k = 0; k < Size; k++) {
           //spinIndex = (long) i * Size * Size + j * Size + k;
           if (fscanf(f, "%lf %lf %lf", &spin[i][j][k].x, &spin[i][j][k].y, &spin[i][j][k].z) != 3) {
-            std::cout << "Coordinates file " << coordinatesFile << " unreadable!" << std::endl;
+            std::cout << "Coordinates file " << spinConfigFile << " unreadable!" << std::endl;
             exit(1);
           }
           //spin[i][j][k] = spinTemp[spinIndex];

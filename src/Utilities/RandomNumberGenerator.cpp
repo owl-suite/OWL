@@ -7,7 +7,9 @@ std::mt19937 rng_engine;
 //int RngSeed {-1};
 std::uniform_real_distribution<double> distribution1(-0.5, 0.5); 
 std::uniform_real_distribution<double> distribution2(0.0, 1.0); 
-std::uniform_int_distribution<int> distribution_int; 
+std::uniform_int_distribution<int> distribution_int;
+std::uniform_int_distribution<unsigned int> distribution_uint; 
+
 
 void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
 {

@@ -11,8 +11,8 @@
 #include "MonteCarloAlgorithms/HistogramFreeMUCA.hpp"
 #include "PhysicalSystems/Heisenberg2D.hpp"
 #include "PhysicalSystems/Heisenberg3D.hpp"
-#include "PhysicalSystems/Heisenberg3D_B20.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
+#include "PhysicalSystems/CrystalStructure3D.hpp"
 
 #ifdef DRIVER_MODE_QE
 #include "PhysicalSystems/QuantumEspresso/QuantumEspressoSystem.hpp"
@@ -82,7 +82,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
 
     case 6 :
-      physical_system = new Heisenberg3D_B20(simInfo.MCInputFile);
+      physical_system = new CrystalStructure3D(simInfo.MCInputFile);
       break;
 
     default :

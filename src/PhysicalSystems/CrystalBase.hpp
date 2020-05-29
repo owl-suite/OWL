@@ -74,7 +74,6 @@ public :
   inline unsigned int getRelativeUnitCellIndex(unsigned int x, unsigned int y, unsigned int z)
   { return z * 9 + y * 3 + x + 13; }
 
-};
 
 
 #endif

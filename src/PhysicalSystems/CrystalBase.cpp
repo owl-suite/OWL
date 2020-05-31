@@ -27,26 +27,36 @@ Lattice::Lattice(const char* inputFile)
   
   // Initialize unit cell
   unitCell.lattice_vectors.resize(3, 3);
-  readUnitCellInfo(inputFile);
+  if (std::filesystem::exists(inputFile))
+    readUnitCellInfo(inputFile);
+  else {
+    std::cout << "Input file " << inputFile << " does not exist! \n";
+    std::cout << "OWL aborting...\n";
+    exit(7);
+  }
+  
   numberOfUnitCells = unitCellDimensions[0] * unitCellDimensions[1] * unitCellDimensions[2];
   constructUnitCellVectors();
 
   // Initialize crystal
   totalNumberOfAtoms = numberOfUnitCells * unitCell.number_of_atoms;
-  //constructGlobalCoordinates();
+  constructGlobalCoordinates();
   // Check:
   //printAllPairwiseDistances();
 
 
   // Initialize nearest neighbor lists for each unit cell
+  numAdjacentUnitCells = 1;                                   // TODO: to be read in from input file
   constructRelativeUnitCellVectors();
   nearestNeighborUnitCellList.resize(numberOfUnitCells);
   for (unsigned int i=0; i<numberOfUnitCells; i++)
     nearestNeighborUnitCellList[i] = constructNearestNeighborUnitCellList(i);
 
   constructRelativeCoordinates();
+  std::cout << "Class Lattice: Constructed nearest neighbor list for each unit cell. \n";
+
   // Check:
-  printPairwiseDistancesInUnitCellList(13);
+  //printPairwiseDistancesInUnitCellList(13);
 
 }
 
@@ -66,8 +76,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
   {
 
     //if (GlobalComm.thisMPIrank == 0)
-      if (std::filesystem::exists(mainInputFile))
-        std::cout << "Crystal class reading input file: " << mainInputFile << "\n";
+      std::cout << "Crystal class reading input file: " << mainInputFile << "\n";
 
     std::ifstream inputFile(mainInputFile);
     std::string line, key;
@@ -190,19 +199,20 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
       for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
         unsigned int atomIndex = getAtomIndex(uc, atomID);
-        //std::cout << "Global coordinates " << uc << " " << atomID << " = ( ";
-        std::cout << "Global coordinates " << atomIndex << " = ( ";
+        //std::cout << "Global coordinates " << atomIndex << " = ( ";
         for (unsigned int i=0; i<3; i++) {
           globalAtomicPositions(i, atomIndex) = double(unitCellVectors(i,uc)) + unitCell.atomic_positions(i,atomID);
-          std::cout << globalAtomicPositions(i, atomIndex) << " ";
+          //std::cout << globalAtomicPositions(i, atomIndex) << " ";
         }
-        std::cout << ") \n";
+        //std::cout << ") \n";
       }
     }
   
+    std::cout << "Class Lattice: Constructed global coordinates. \n";
+
   }
 
-
+  // Note: Assume the reference unit cell is (0,0,0)
   void Lattice::constructRelativeCoordinates()
   {
 
@@ -213,16 +223,18 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     for (unsigned int uc=0; uc<nearestNeighborUnitCellList.size(); uc++) {
       for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
         unsigned int atomIndex = uc * unitCell.number_of_atoms + atomID;
-        std::cout << "Relative coordinates " << atomIndex << " = ( ";
+        //std::cout << "Relative coordinates " << atomIndex << " = ( ";
         for (unsigned int i=0; i<3; i++) {
           assert (atomIndex == counter);
           relativeAtomicPositions(i, atomIndex) = double(relativeUnitCellVectors(i,uc)) + unitCell.atomic_positions(i,atomID);
-          std::cout << relativeAtomicPositions(i, atomIndex) << " ";
+          //std::cout << relativeAtomicPositions(i, atomIndex) << " ";
         }
-        std::cout << ") \n";
+        //std::cout << ") \n";
         counter++;
       }
     }
+
+    std::cout << "Class Lattice: Constructed relative coordinates. \n";
 
   }
 
@@ -232,7 +244,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
     double distance = 0.0;
     for (unsigned int i=0; i<3; i++)
-      distance += (globalAtomicPositions(i, atom1) - globalAtomicPositions(i, atom2)) * (globalAtomicPositions(i, atom1) - globalAtomicPositions(i, atom2));
+      distance += (globalAtomicPositions(i, atom2) - globalAtomicPositions(i, atom1)) * (globalAtomicPositions(i, atom2) - globalAtomicPositions(i, atom1));
 
     return sqrt(distance);  
 
@@ -244,7 +256,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
     double distance = 0.0;
     for (unsigned int i=0; i<3; i++)
-      distance += (relativeAtomicPositions(i, atom1) - relativeAtomicPositions(i, atom2)) * (relativeAtomicPositions(i, atom1) - relativeAtomicPositions(i, atom2));
+      distance += (relativeAtomicPositions(i, atom2) - relativeAtomicPositions(i, atom1)) * (relativeAtomicPositions(i, atom2) - relativeAtomicPositions(i, atom1));
 
     return sqrt(distance);
 
@@ -253,13 +265,13 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
   void Lattice::printAllPairwiseDistances()
   {  
-
+ 
     for (unsigned int atom1=0; atom1<totalNumberOfAtoms; atom1++) {
       for (unsigned int atom2=atom1; atom2<totalNumberOfAtoms; atom2++) {
         std::cout << "atom " << atom1 << ", atom " << atom2 << " : " 
-                  << globalAtomicPositions(0, atom1) - globalAtomicPositions(0, atom2) << " , " 
-                  << globalAtomicPositions(1, atom1) - globalAtomicPositions(1, atom2) << " , " 
-                  << globalAtomicPositions(2, atom1) - globalAtomicPositions(2, atom2) << " . " 
+                  << globalAtomicPositions(0, atom2) - globalAtomicPositions(0, atom1) << " , " 
+                  << globalAtomicPositions(1, atom2) - globalAtomicPositions(1, atom1) << " , " 
+                  << globalAtomicPositions(2, atom2) - globalAtomicPositions(2, atom1) << " . " 
                   << getPairwiseDistance(atom1,atom2) << "\n";
       }
     }
@@ -281,9 +293,9 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
         unsigned int atom2 = getAtomIndex(j, k);
         unsigned int atom2_global = getAtomIndex(nearestNeighborUnitCellList[globalUnitCellIndex][j], k);
         std::cout << "atom " << atom1_global << ", atom " << atom2_global << " : " 
-                  << relativeAtomicPositions(0, atom1) - relativeAtomicPositions(0, atom2) << " , " 
-                  << relativeAtomicPositions(1, atom1) - relativeAtomicPositions(1, atom2) << " , " 
-                  << relativeAtomicPositions(2, atom1) - relativeAtomicPositions(2, atom2) << " . " 
+                  << relativeAtomicPositions(0, atom2) - relativeAtomicPositions(0, atom1) << " , " 
+                  << relativeAtomicPositions(1, atom2) - relativeAtomicPositions(1, atom1) << " , " 
+                  << relativeAtomicPositions(2, atom2) - relativeAtomicPositions(2, atom1) << " . " 
                   << getRelativePairwiseDistance(atom1, atom2) << "\n";
       }
     }
@@ -291,17 +303,16 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
   }
 
 
-  // Note: this function is ad hoc for now. It only checks immediate nearest neighbors (-1, 0, 1) in all (x, y, z) diections
   void Lattice::constructRelativeUnitCellVectors()
   {
-
-    // 27 elements because there are 3 possibilities (-1, 0, 1) for all (x, y, z) directions considering only nearest neighbors
-    relativeUnitCellVectors.resize(3,27);
+    int temp =  2 * numAdjacentUnitCells + 1;
+    int numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell. TODO: can reduce by half.
+    relativeUnitCellVectors.resize(3, numberOfNeighoringUnitCells);
 
     unsigned int counter {0};
-    for (int k=-1; k<=1; k++) {
-      for (int j=-1; j<=1; j++) {
-        for (int i=-1; i<=1; i++) {
+    for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
+      for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
+        for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
           relativeUnitCellVectors(0, counter) = i;
           relativeUnitCellVectors(1, counter) = j;
           relativeUnitCellVectors(2, counter) = k;
@@ -310,7 +321,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       }
     }
 
-    assert(counter==27);
+    assert(counter == numberOfNeighoringUnitCells);
 
   }
 
@@ -331,9 +342,13 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       return x_new >= 0 ? (x_new % unitCellDimensions[dimension]) : (x_new + unitCellDimensions[dimension]);
     };
 
-    for (int k=-1; k<=1; k++) {
-      for (int j=-1; j<=1; j++) {
-        for (int i=-1; i<=1; i++) {
+    //for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
+    //  for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
+    //    for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+    for (int k=-numAdjacentUnitCells; k<=0; k++) {
+      for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
+        for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+          if (getRelativeUnitCellIndex(i,j,k) > 13) break;
           nx_new = getUnitCellComponentPBC(nx+i, 0);
           ny_new = getUnitCellComponentPBC(ny+j, 1);
           nz_new = getUnitCellComponentPBC(nz+k, 2);
@@ -342,10 +357,6 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
         }
       }
     }
-    
-    //std::sort(unitCellNeighborList.begin(), unitCellNeighborList.end(), 
-    //          [](unsigned int a, unsigned int b) { return (a < b); }
-    //);
 
     //std::cout << "Unit Cell " << currentUnitCell << " , NeighborList = ";
     //for (auto i : unitCellList)

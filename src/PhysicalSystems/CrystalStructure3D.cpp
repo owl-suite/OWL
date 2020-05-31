@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
@@ -11,12 +13,22 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const char* spinCo
   printf("Simulation for customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
 
   assert (lattice.totalNumberOfAtoms > 0);
-  spin = new SpinDirection[lattice.totalNumberOfAtoms];
+  spin.resize(lattice.totalNumberOfAtoms);
 
   if (spinConfigFile != NULL)
     readSpinConfigFile(spinConfigFile);
   else
     initializeSpinConfiguration(initial);
+
+  // Initialize nearest neighbor lists for each atom
+  neighborList.resize(lattice.totalNumberOfAtoms);
+  constructPrimaryNeighborList();
+  mapPrimaryToAllNeighborLists();
+
+  //for (unsigned int i=0; i<lattice.totalNumberOfAtoms; i++)
+  //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
+
+
 
   // ------OK up to here
 
@@ -34,7 +46,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const char* spinCo
 CrystalStructure3D::~CrystalStructure3D()
 {
 
-  delete spin;
+  //delete spin;
   deleteObservables();
 
   printf("CrystalStructure3D finished\n");
@@ -79,11 +91,11 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 
 
 // To implement
-void CrystalStructure3D::GetMeasuresBruteForce() 
+void CrystalStructure3D::getObservablesFromScratch() 
 {
 
 /*
-  //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
+  //printf("!!! CALLING getObservablesFromScratch !!! \n");
 
   int i, j, k;
   int xLeft, yBelow, zBackward;
@@ -183,7 +195,7 @@ void CrystalStructure3D::buildMPIConfigurationType()
 */
 
 
-
+// To implement
 void CrystalStructure3D::readSpinConfigFile(const char* spinConfigFile)
 {
 
@@ -195,35 +207,35 @@ void CrystalStructure3D::readSpinConfigFile(const char* spinConfigFile)
 void CrystalStructure3D::initializeSpinConfiguration(int initial)
 {
 
-  for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++) {
+  for (unsigned int atomID = 0; atomID < lattice.totalNumberOfAtoms; atomID++) {
 
     switch (initial) {
       case 1 : {
-        spin[i].x = 1.0;
-        spin[i].y = 0.0;
-        spin[i].z = 0.0;
+        spin[atomID].x = 1.0;
+        spin[atomID].y = 0.0;
+        spin[atomID].z = 0.0;
         break;
       }
       case 2  : {
-        spin[i].x = 0.0;
-        spin[i].y = 1.0;
-        spin[i].z = 0.0;
+        spin[atomID].x = 0.0;
+        spin[atomID].y = 1.0;
+        spin[atomID].z = 0.0;
 	    break;
       }
       case 3  : {
-        spin[i].x = 0.0;
-        spin[i].y = 0.0;
-        spin[i].z = 1.0;
+        spin[atomID].x = 0.0;
+        spin[atomID].y = 0.0;
+        spin[atomID].z = 1.0;
 	      break;
       }
       case 4  : {
-        spin[i].x = 0.0;
-        spin[i].y = 0.0;
-        spin[i].z = (i % 2 == 0) ? 1.0 : -1.0;
+        spin[atomID].x = 0.0;
+        spin[atomID].y = 0.0;
+        spin[atomID].z = (atomID % 2 == 0) ? 1.0 : -1.0;
         break;
       }
       default  : {
-        assignRandomSpinConfiguration(i);
+        assignRandomSpinConfiguration(atomID);
       }
     }
 
@@ -231,8 +243,9 @@ void CrystalStructure3D::initializeSpinConfiguration(int initial)
 
 }
 
+
 // OK
-void CrystalStructure3D::assignRandomSpinConfiguration(unsigned int i)
+void CrystalStructure3D::assignRandomSpinConfiguration(unsigned int currentAtom)
 {
 
   double r1, r2, rr;
@@ -243,9 +256,9 @@ void CrystalStructure3D::assignRandomSpinConfiguration(unsigned int i)
     rr = r1 * r1 + r2 * r2;
   } while (rr > 1.0);
 
-  spin[i].x = 2.0 * r1 * sqrt(1.0 - rr);
-  spin[i].y = 2.0 * r2 * sqrt(1.0 - rr);
-  spin[i].z = 1.0 - 2.0 * rr;
+  spin[currentAtom].x = 2.0 * r1 * sqrt(1.0 - rr);
+  spin[currentAtom].y = 2.0 * r2 * sqrt(1.0 - rr);
+  spin[currentAtom].z = 1.0 - 2.0 * rr;
 
 }
 
@@ -254,5 +267,245 @@ void CrystalStructure3D::assignRandomSpinConfiguration(unsigned int i)
 void CrystalStructure3D::readHamiltonianTerms(const char* inputFile)
 {
 
+  
+}
+
+
+// To implement
+ObservableType CrystalStructure3D::nearestNeighborInterations()
+{
+
+  return 0.0;
+
+}
+
+
+// Construct the neighbor list for each atom, given the list of neighboring unit cells to check
+std::vector<NeighboringAtomInfo> CrystalStructure3D::constructNeighborListFromNeighboringUnitCells(unsigned int atom1_global)
+{
+
+    // A neighbor list where pairwise interactions with current atom will be checked
+    std::vector<NeighboringAtomInfo> atomList;
+
+    // Current unit cell is always (0,0,0) relatively.
+    unsigned int localUnitCellIndex = lattice.getRelativeUnitCellIndex(0, 0, 0);
+    unsigned int globalUnitCellIndex =  atom1_global / lattice.unitCell.number_of_atoms;
+    
+    unsigned int atom1 = lattice.getAtomIndex(localUnitCellIndex,  atom1_global % lattice.unitCell.number_of_atoms);
+
+    for (unsigned int j=0; j<lattice.nearestNeighborUnitCellList[globalUnitCellIndex].size(); j++) {
+      for (unsigned int k=0; k<lattice.unitCell.number_of_atoms; k++) {
+
+        unsigned int atom2 = lattice.getAtomIndex(j, k);
+        unsigned int atom2_global = lattice.getAtomIndex(lattice.nearestNeighborUnitCellList[globalUnitCellIndex][j], k);
+        if (atom1_global == atom2_global) break;
+        double distance = lattice.getRelativePairwiseDistance(atom1, atom2);
+
+        if (distance <= 1.0)
+          atomList.push_back({atom2_global, distance, 0.0, 0.0});
+        
+      }
+    }
+
+    std::sort(atomList.begin(), atomList.end(), 
+              [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
+    );
+
+    std::cout << "Sorted neighbor list of " << atom1_global << ":\n";
+    std::cout << "Atom    distance \n";
+    for (auto i : atomList)
+      std::cout << i.atomID << " " << i.distance << "\n";
+
+  return atomList;
+
+}
+
+
+// Construct the neighbor list for each atom in a unit cell
+// Unit cell and atomID are relative to the reference unit cell
+void CrystalStructure3D::constructPrimaryNeighborList()
+{
+
+  double distance {0.0};
+  double J_ij     {0.0};          // Exchange coupling
+  double D_ij     {0.0};          // Dzyaloshinskii-Moriya (DM) interaction
+  double dx       {0.0};
+  double dy       {0.0};
+  double dz       {0.0};
+
+  primaryNeighborList.resize(lattice.unitCell.number_of_atoms);
+  unsigned int localUnitCellIndex = lattice.getRelativeUnitCellIndex(0, 0, 0);
+
+  for (unsigned int atomID=0; atomID<lattice.unitCell.number_of_atoms; atomID++) {
+    unsigned int atom1 = lattice.getAtomIndex(localUnitCellIndex,  atomID);
+
+    for (unsigned int j=0; j<lattice.nearestNeighborUnitCellList[localUnitCellIndex].size(); j++) {
+      for (unsigned int k=0; k<lattice.unitCell.number_of_atoms; k++) {
+        unsigned int atom2 = lattice.getAtomIndex(j, k);
+        if (atom1 == atom2) break;
+        dx = lattice.relativeAtomicPositions(0, atom2) - lattice.relativeAtomicPositions(0, atom1);
+        dy = lattice.relativeAtomicPositions(1, atom2) - lattice.relativeAtomicPositions(1, atom1);
+        dz = lattice.relativeAtomicPositions(2, atom2) - lattice.relativeAtomicPositions(2, atom1);
+        distance = lattice.getRelativePairwiseDistance(atom1, atom2);
+
+        std::cout << "atom " << atom1 << " (" << lattice.relativeAtomicPositions(0, atom1) << ", "
+                                              << lattice.relativeAtomicPositions(1, atom1) << ", "
+                                              << lattice.relativeAtomicPositions(2, atom1) 
+                  << ") , atom " << atom2 << " (" << lattice.relativeAtomicPositions(0, atom2) << ", "
+                                                  << lattice.relativeAtomicPositions(1, atom2) << ", "
+                                                  << lattice.relativeAtomicPositions(2, atom2) 
+                  << ") from unit cell (" 
+                  << lattice.relativeUnitCellVectors(0,j) << " " 
+                  << lattice.relativeUnitCellVectors(1,j) << " " 
+                  << lattice.relativeUnitCellVectors(2,j) << ") : " 
+                  << dx << " , " << dy << " , " << dz << " . " << distance << "\n";
+
+        J_ij = assignExchangeCouplings(dx, dy, dz, distance);
+        D_ij = assignDMInteractions(dx, dy, dz, distance);
+
+        if (distance <= 1.0)
+          primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
+      }
+    }
+    
+    std::cout << "Primary neighbor list of " << atom1 << ":\n";
+    std::cout << "Atom    distance \n";
+    for (auto i : primaryNeighborList[atomID])
+      std::cout << i.atomID << " " << i.distance << " " << i.J_ij << " " << i.D_ij << "\n";
+
+  }
+
+  std::cout << "CrystalStructure3D: Constructed primary neighbor lists for all atoms in a unit cell. \n";
+
+}
+
+
+void CrystalStructure3D::mapPrimaryToAllNeighborLists()
+{
+
+  unsigned int thisAtom, atom_tmp, relative_uc, real_uc, atomID_in_uc, atomID;
+
+  for (unsigned int i=0; i<lattice.numberOfUnitCells; i++) {
+    for (unsigned int j=0; j<lattice.unitCell.number_of_atoms; j++) {
+
+      thisAtom = lattice.getAtomIndex(i,j);
+
+      for (auto k : primaryNeighborList[j]) {
+        atom_tmp = k.atomID;
+
+        relative_uc = atom_tmp / lattice.unitCell.number_of_atoms;       // which relative unit cell the neighoring atom in?
+        atomID_in_uc = atom_tmp % lattice.unitCell.number_of_atoms;      // which atom is the neighoring atom in a unit cell?
+        real_uc = lattice.nearestNeighborUnitCellList[i][relative_uc];
+        atomID = lattice.getAtomIndex(real_uc, atomID_in_uc);
+
+        neighborList[thisAtom].push_back({atomID, k.distance, k.J_ij, k.D_ij});
+        //std::cout << atomID << " " << k.distance << "\n";
+      }
+
+      std::sort(neighborList[thisAtom].begin(), neighborList[thisAtom].end(), 
+                [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
+      );
+
+      std::cout << "Mapped Neighbor list of " << thisAtom << ":\n";
+      std::cout << "Atom     distance      J_ij       D_ij \n";
+      for (auto m : neighborList[thisAtom] )
+        std::cout << m.atomID << " " << m.distance << " " << m.J_ij << " " << m.D_ij << "\n";
+
+    }
+  }
+
+  std::cout << "CrystalStructure3D: Mapped primary neighbor lists to all atoms. \n";
+
+}
+
+// Note: Coupling measured in meV
+double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double dz, double dr)
+{
+
+  const double dr_ref1   {0.613054};     // should be defined in input file if possible
+  const double dr_ref2   {0.913759};
+  const double dr_ref3   {0.957453};
+  const double dr_ref4   {1.0};
+  const double ref1      {0.22956};
+  const double ref2      {0.27044};
+  const double ref3      {0.5};
+  const double threshold {0.0001};
+  double coupling        {0.0};
+
+  auto sameMagitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
+
+  if (sameMagitude(dr, dr_ref1)) {         // nearest-neighbor coupling
+    if (sameMagitude(dx, ref1))             coupling = 5.746999335;
+    else if (sameMagitude(dx, ref2))        coupling = 5.746992166;
+    else if (sameMagitude(dx, ref3))        coupling = 5.750420632;
+  }  
+  else if (sameMagitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
+    if (sameMagitude(dx, ref1))             coupling = -1.288546897;
+    else if (sameMagitude(dx, ref3))        coupling = -1.286718254;
+    else if (sameMagitude(dx, ref1+ref3))   coupling = -1.285652206;
+  }  
+  else if (sameMagitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
+    if (sameMagitude(dx, ref2))             coupling = -1.019740021;
+    else if (sameMagitude(dx, ref3))        coupling = -1.021497653;
+    else if (sameMagitude(dx, ref2+ref3))   coupling = -1.019455211;
+  }  
+  else if (sameMagitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling
+    if (sameMagitude(dx, dr_ref4))          coupling = 0.231944895;
+    else if (sameMagitude(dy, dr_ref4))     coupling = 0.233575161;
+    else if (sameMagitude(dz, dr_ref4))     coupling = 0.234596638;
+  }
+
+  return coupling;
+
+}
+
+
+double CrystalStructure3D::assignDMInteractions(double dx, double dy, double dz, double dr)
+{
+  
+  const double dr_ref1   {0.613054};     // should be defined in input file if possible
+  const double dr_ref2   {0.913759};
+  const double dr_ref3   {0.957453};
+  const double dr_ref4   {1.0};
+  const double ref1      {0.22956};
+  const double ref2      {0.27044};
+  const double ref3      {0.5};
+  const double threshold {0.001};
+  double coupling        {0.0};
+  
+  auto sameMagitude = [=](double a, double b) -> bool { return fabs(fabs(a) - fabs(b)) < threshold; };
+  auto sameSign     = [=](double a, double b) -> bool { return a * b > 0.0; };
+
+  if (sameMagitude(dr, dr_ref1)) {         // nearest-neighbor coupling
+    if (sameMagitude(dx, ref1))             coupling = 0.17494;
+    else if (sameMagitude(dx, ref3))        coupling = -0.06926;
+    else if (sameMagitude(dx, ref2)) {
+      if (sameSign(dx, dz))                 coupling = -0.09617;
+      else                                  coupling = 0.09617;
+    } 
+  }
+  else if (sameMagitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
+    if (sameMagitude(dx, ref1))             coupling = 0.05245;
+    else if (sameMagitude(dx, ref3))        coupling = -0.04845;
+    else if (sameMagitude(dx, ref1+ref3)) {
+      if (sameSign(dx, dz))                 coupling = -0.06946;
+      else                                  coupling = 0.06946;
+    }
+  }
+  else if (sameMagitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
+    if (sameMagitude(dx, ref3))             coupling = -0.02081;
+    else if (sameMagitude(dx, ref2+ref3))   coupling = 0.02138;
+    else if (sameMagitude(dx, ref2)) {
+      if (sameSign(dx, dz))                 coupling = 0.09933;
+      else                                  coupling = -0.09933;
+    }
+  }
+  else if (sameMagitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling
+    if (sameMagitude(dx, dr_ref4))          coupling = 1.0;
+    else if (sameMagitude(dy, dr_ref4))     coupling = 1.0;
+    else if (sameMagitude(dz, dr_ref4))     coupling = 1.0;
+  }
+
+  return coupling;
   
 }

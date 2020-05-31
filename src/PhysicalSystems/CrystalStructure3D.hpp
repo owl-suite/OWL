@@ -13,6 +13,14 @@ struct SpinDirection {
 };
 
 
+struct NeighboringAtomInfo {
+  unsigned int atomID;
+  double       distance {0.0};          // Distance from a reference atom
+  double       J_ij     {0.0};          // Exchange coupling
+  double       D_ij     {0.0};          // Dzyaloshinskii-Moriya (DM) interaction 
+};
+
+
 class CrystalStructure3D : public PhysicalSystem {
 
 public :
@@ -30,28 +38,39 @@ public :
 
   void readHamiltonianTerms(const char* inputFile);
 
+    Lattice                                         lattice;
+
 private :
 
-  Lattice lattice;
+  // Overall configuration
+
+  std::vector<SpinDirection>                      spin;
+  std::vector< std::vector<NeighboringAtomInfo> > neighborList;            // Each atom has a list of nearest neighbor atoms
+  std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;     // Neighbor list for each atom in a unit cell 
 
   // Old configuration
-  unsigned int currentPosition;
+  unsigned int  currentPosition;
   SpinDirection currentSpin;
-
-  // New configuration
-  SpinDirection* spin;
-  //double spinLength;
   
   bool firstTimeGetMeasures;
 
+
   // Private functions
+  // Initialization:
   void readSpinConfigFile(const char* spinConfigFile);
   void initializeSpinConfiguration(int initial);
-  void assignRandomSpinConfiguration(unsigned int i);
-  void GetMeasuresBruteForce();
+  void assignRandomSpinConfiguration(unsigned int currentAtom);
+  std::vector<NeighboringAtomInfo> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
 
-  // Hamiltonian Terms
-  ObservableType NearestNeighborInterations();
+  void constructPrimaryNeighborList();
+  void mapPrimaryToAllNeighborLists();
+
+  double assignExchangeCouplings(double dx, double dy, double dz, double dr);
+  double assignDMInteractions(double dx, double dy, double dz, double dr);
+
+  // Hamiltonian measurements:
+  void getObservablesFromScratch();
+  ObservableType nearestNeighborInterations();
   
 };
 

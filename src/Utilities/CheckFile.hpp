@@ -1,3 +1,6 @@
+#ifndef CHECK_FILE_HPP
+#define CHECK_FILE_HPP
+
 #include <sys/stat.h>
 #include <string>
 #include <fstream>
@@ -10,6 +13,7 @@ inline bool file_exists (const std::string& filename) {
 
 inline bool file_exists (const char* filename) {
   struct stat buffer;  
-   return (stat (filename, &buffer) == 0);
+  return (stat (filename, &buffer) == 0);
 }
 
+#endif

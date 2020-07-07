@@ -46,14 +46,13 @@ Lattice::Lattice(const char* inputFile)
 
 
   // Initialize nearest neighbor lists for each unit cell
-  numAdjacentUnitCells = 1;                                   // TODO: to be read in from input file
+  numAdjacentUnitCells = 1;                                   // TODO: to be read in from input file. Default should be all unit cells
   constructRelativeUnitCellVectors();
   nearestNeighborUnitCellList.resize(numberOfUnitCells);
   for (unsigned int i=0; i<numberOfUnitCells; i++)
     nearestNeighborUnitCellList[i] = constructNearestNeighborUnitCellList(i);
 
   constructRelativeCoordinates();
-  std::cout << "Class Lattice: Constructed nearest neighbor list for each unit cell. \n";
 
   // Check:
   //printPairwiseDistancesInUnitCellList(13);
@@ -306,7 +305,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
   void Lattice::constructRelativeUnitCellVectors()
   {
     int temp =  2 * numAdjacentUnitCells + 1;
-    int numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell. TODO: can reduce by half.
+    int numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell.
     relativeUnitCellVectors.resize(3, numberOfNeighoringUnitCells);
 
     unsigned int counter {0};
@@ -342,13 +341,16 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       return x_new >= 0 ? (x_new % unitCellDimensions[dimension]) : (x_new + unitCellDimensions[dimension]);
     };
 
-    //for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
-    //  for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
-    //    for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+    for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
+      for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
+        for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+/*
+    // Note: The following 4 lines were used to reduce the number of neighboring unit cells by half. 
     for (int k=-numAdjacentUnitCells; k<=0; k++) {
       for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
         for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
           if (getRelativeUnitCellIndex(i,j,k) > 13) break;
+*/
           nx_new = getUnitCellComponentPBC(nx+i, 0);
           ny_new = getUnitCellComponentPBC(ny+j, 1);
           nz_new = getUnitCellComponentPBC(nz+k, 2);

@@ -46,11 +46,11 @@ private :
 
   // Overall configuration
   std::vector<SpinDirection>                      spin;
-  std::vector< std::vector<NeighboringAtomInfo> > neighborList;               // Each atom has a list of neighboring atoms
-  std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;        // Neighbor list for each atom in a unit cell 
+  std::vector< std::vector<NeighboringAtomInfo> > neighborList;                       // Each atom has a list of neighboring atoms
+  std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;                // Neighbor list for each atom in a unit cell 
 
-  std::vector<double>                             neighborDistances;          // Stores the distances between neighbors
-  double                                          interactionCutoffDistance;
+  std::vector<double>                             neighborDistances;                  // Stores the distances between neighbors
+  double                                          interactionCutoffDistance {1.0};    // Default to one lattice constant
 
   // Old configuration
   unsigned int  currentPosition;
@@ -63,9 +63,11 @@ private :
 
   // Initialization:
   void   readSpinConfigFile(const char* spinConfigFile);
+  void   readInteractionCutoffDistance(const char* inputFile);
   void   initializeSpinConfiguration(int initial);
-  void    assignRandomSpinDirection(unsigned int currentAtom);             // TODO: change to return type SpinDirection
+  void   assignRandomSpinDirection(unsigned int currentAtom);
   double assignExchangeCouplings(double dx, double dy, double dz, double dr);
+  //double assignExchangeCouplings_testing(double dx, double dy, double dz, double dr);       // temp. testing code
   double assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr);
   
   // Neighbor lists:

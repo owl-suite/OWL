@@ -3,7 +3,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <fstream>
 #include "CrystalStructure3D.hpp"
+#include "Utilities/CheckFile.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
 
@@ -15,14 +17,17 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const char* spinCo
   assert (lattice.totalNumberOfAtoms > 0);
   spin.resize(lattice.totalNumberOfAtoms);
 
-  if (spinConfigFile != NULL)
+  if (file_exists(spinConfigFile))
     readSpinConfigFile(spinConfigFile);
   else
     initializeSpinConfiguration(initial);
 
+  // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented (July 7, 20)
+  if (file_exists(inputFile))
+    readInteractionCutoffDistance(inputFile);
+  
   // Initialize nearest neighbor lists for each atom
-  neighborList.resize(lattice.totalNumberOfAtoms);           
-  interactionCutoffDistance = 1.0;                       // TODO: the cutoff should be read in from inputFile
+  neighborList.resize(lattice.totalNumberOfAtoms);
   constructPrimaryNeighborList();
   mapPrimaryToAllNeighborLists();
 
@@ -76,7 +81,7 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
     fprintf(f, "\n");
 
     for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++)
-          fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
+      fprintf(f, "%8.5f %8.5f %8.5f\n \n", spin[i].x, spin[i].y, spin[i].z);
 
   }
 
@@ -87,12 +92,11 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 }
 
 
-// Newly implemented. Need testing.
+// TODO: energy (observebles[0]) calculations 
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
-  //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
-  observables[0] = getExchangeInterations();
+  observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
   std::tie(observables[1], observables[2], observables[3]) = getMagnetization();
 
   firstTimeGetMeasures = false;
@@ -100,12 +104,11 @@ void CrystalStructure3D::getObservablesFromScratch()
 }
 
 
-// Newly implemented. Need testing.
+
 void CrystalStructure3D::getObservables() 
 {
 
-  //observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();;
-  observables[0] += getDifferenceInExchangeInterations();
+  observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();;
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -113,7 +116,7 @@ void CrystalStructure3D::getObservables()
 }
 
 
-// OK
+
 void CrystalStructure3D::doMCMove()
 {
 
@@ -129,6 +132,7 @@ void CrystalStructure3D::doMCMove()
 }
 
 
+
 /*
 void CrystalStructure3D::undoMCMove()
 {
@@ -137,7 +141,8 @@ void CrystalStructure3D::undoMCMove()
 }
 */
 
-// OK
+
+
 void CrystalStructure3D::acceptMCMove()
 {
   // update "old" observables
@@ -145,7 +150,8 @@ void CrystalStructure3D::acceptMCMove()
     oldObservables[i] = observables[i];
 }
 
-// OK
+
+
 void CrystalStructure3D::rejectMCMove()
 {
   spin[currentPosition] = oldSpin;
@@ -160,14 +166,52 @@ void CrystalStructure3D::buildMPIConfigurationType()
 */
 
 
-// To implement
+// TODO: To implement 
 void CrystalStructure3D::readSpinConfigFile(const char* spinConfigFile)
 {
 
 }
 
 
-// OK
+
+void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile)
+{
+  std::cout << "CrystalStructure3D class reading input file: " << mainInputFile << "\n";
+
+  std::ifstream inputFile(mainInputFile);
+  std::string line, key;
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+          std::istringstream lineStream(line);
+          lineStream >> key;
+
+          //std::cout << "Debug: " << key << "\n"; 
+
+          if (key.compare(0, 1, "#") != 0) {
+
+            if (key == "InteractionCutoffDistance") {
+              lineStream >> interactionCutoffDistance;
+              std::cout << "CrystalStructure3D: interaction cutoff distance = " << interactionCutoffDistance << "\n";
+              continue;
+            }
+
+          }
+
+      }
+    }
+
+    inputFile.close();
+
+  }
+
+}
+
+
+
 void CrystalStructure3D::initializeSpinConfiguration(int initial)
 {
 
@@ -208,7 +252,6 @@ void CrystalStructure3D::initializeSpinConfiguration(int initial)
 }
 
 
-// OK
 void CrystalStructure3D::assignRandomSpinDirection(unsigned int currentAtom)
 {
 
@@ -227,7 +270,7 @@ void CrystalStructure3D::assignRandomSpinDirection(unsigned int currentAtom)
 }
 
 
-// To implement
+// TODO: To implement
 void CrystalStructure3D::readHamiltonianTerms(const char* inputFile)
 {
 
@@ -324,6 +367,7 @@ void CrystalStructure3D::constructPrimaryNeighborList()
         if (distance <= interactionCutoffDistance) {
           J_ij = assignExchangeCouplings(dx, dy, dz, distance);
           D_ij = assignDzyaloshinskiiMoriyaInteractions(dx, dy, dz, distance);
+          //J_ij = assignExchangeCouplings_testing(dx, dy, dz, distance);
           primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
         }
 
@@ -390,7 +434,8 @@ void CrystalStructure3D::mapPrimaryToAllNeighborLists()
 }
 
 // Note: Coupling measured in meV
-// Ad hoc for our system for now.  All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
+// Ad hoc for our system for now.
+// TODO: All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
 double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double dz, double dr)
 {
 
@@ -405,11 +450,9 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
   const double ref1      {0.22956};
   const double ref2      {0.27044};
   const double ref3      {0.5};
-  const double threshold {0.0001};
   double coupling        {0.0};
 
-  // might replace it by the one in Utilities/CompareNumbers.hpp
-  auto sameMagnitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
+  //auto sameMagnitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
 
   if (sameMagnitude(dr, dr_ref1)) {         // nearest-neighbor coupling
     if (sameMagnitude(dx, ref1))             coupling = 5.737246246;
@@ -452,22 +495,44 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
 }
 
 
-// Ad hoc for our system for now.  All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
+/*
+double CrystalStructure3D::assignExchangeCouplings_testing(double dx, double dy, double dz, double dr)
+{
+
+  const double dr_ref    {1.0};
+  const double threshold {0.0001};
+  double coupling        {0.0};
+
+  // might replace it by the one in Utilities/CompareNumbers.hpp
+  auto sameMagnitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
+
+  if (sameMagnitude(dr, dr_ref)) {    // 4th nearest-neighbor coupling
+    if (sameMagnitude(dx, dr_ref))          coupling = -1.0;
+    else if (sameMagnitude(dy, dr_ref))     coupling = -1.0;
+    else if (sameMagnitude(dz, dr_ref))     coupling = -1.0;
+  }
+
+  return coupling;
+
+}
+*/
+
+
+// TODO: Ad hoc for our system for now.  All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
 double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr)
 {
   
   const double dr_ref1   {0.613054};
   const double dr_ref2   {0.913759};
   const double dr_ref3   {0.957453};
-  const double dr_ref4   {1.0};
-  const double dr_ref5   {1.17296};
-  const double dr_ref6   {1.35461};
-  const double dr_ref7   {1.38445};
+  //const double dr_ref4   {1.0};
+  //const double dr_ref5   {1.17296};
+  //const double dr_ref6   {1.35461};
+  //const double dr_ref7   {1.38445};
 
   const double ref1      {0.22956};
   const double ref2      {0.27044};
   const double ref3      {0.5};
-  //const double threshold {0.001};
   double coupling        {0.0};
   
   //auto sameMagnitude = [=](double a, double b) -> bool { return fabs(fabs(a) - fabs(b)) < threshold; };
@@ -497,7 +562,7 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dx, dou
     else if (sameMagnitude(dz, ref2+ref3))
       coupling = (dz > 0.0) ? 0.024074747 : -0.024074747;
   }
-
+/*
   else if (sameMagnitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling (sign to be confirmed)
     if (sameMagnitude(dx, dr_ref4))         // <-- sign problem!
       coupling = (dx > 0.0) ? -0.066329338 : 0.066329338;
@@ -506,15 +571,7 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dx, dou
     else if (sameMagnitude(dz, dr_ref4))
       coupling = (dz > 0.0) ? 0.000973312 : -0.000973312;
   }
-  else if (sameMagnitude(dr, dr_ref5)) {    // 5th nearest-neighbor coupling (data missing)
-
-  }
-  else if (sameMagnitude(dr, dr_ref6)) {    // 6th nearest-neighbor coupling
-
-  }
-  else if (sameMagnitude(dr, dr_ref7)) {    // 7th nearest-neighbor coupling (data missing)
-
-  }
+*/
 
   return coupling;
   

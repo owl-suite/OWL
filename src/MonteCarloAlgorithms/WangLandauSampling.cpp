@@ -124,7 +124,7 @@ void WangLandauSampling::run()
       //  h.refreshHistogram();
     }
 
-    bool KB  = h.checkKullbackLeiblerDivergence();
+    //bool KB  = h.checkKullbackLeiblerDivergence();
 
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);

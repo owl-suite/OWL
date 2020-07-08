@@ -21,6 +21,7 @@ private :
 
   unsigned long int numberOfThermalizationSteps;
   unsigned long int numberOfMCSteps;
+  unsigned long int numberOfMCUpdatesPerStep {1};
   double temperature;
 
   void readMCInputFile(const char* fileName);  // TODO: this should move to MCAlgorithms base class (Histogram class has the same function)

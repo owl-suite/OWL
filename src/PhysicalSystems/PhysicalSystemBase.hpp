@@ -32,7 +32,6 @@ public:
   void readHamiltonianTerms(const char* inputFile) {};
 
   // Parameters common to (needed by) all models:
-  unsigned long int numberOfMCSweepsPerStep {1};
   unsigned int numObservables;
   ObservableType* observables;
   ObservableType* oldObservables;

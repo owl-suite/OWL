@@ -54,7 +54,7 @@ void Metropolis::run()
   // Thermalization (observables are not accumulated)
   for (unsigned long int MCSteps=0; MCSteps<numberOfThermalizationSteps; MCSteps++) {
 
-    for (unsigned long int i=0; i<physical_system -> numberOfMCSweepsPerStep; i++) {
+    for (unsigned long int i=0; i<numberOfMCUpdatesPerStep; i++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -72,7 +72,7 @@ void Metropolis::run()
   // Observable accumulation starts here
   for (unsigned long int MCSteps=0; MCSteps<numberOfMCSteps; MCSteps++) {
 
-    for (unsigned long int i=0; i<physical_system -> numberOfMCSweepsPerStep; i++) {
+    for (unsigned long int i=0; i<numberOfMCUpdatesPerStep; i++) {
     
       physical_system -> doMCMove();
       physical_system -> getObservables();
@@ -132,6 +132,11 @@ void Metropolis::readMCInputFile(const char* fileName)
             //std::cout << "Metropolis: numberOfMCSteps = " << numberOfMCSteps << std::endl;
             continue;
           }
+          if (key == "numberOfMCUpdatesPerStep") {
+            lineStream >> numberOfMCUpdatesPerStep;
+            //std::cout << "Metropolis: numberOfMCUpdatesPerStep = " << numberOfMCUpdatesPerStep << std::endl;
+            continue;
+          }
           if (key == "temperature") {
             lineStream >> temperature;
             //std::cout << "Metropolis: temperature = " << temperature << std::endl;
@@ -187,7 +192,7 @@ void Metropolis::writeResultsFile(const char* filename)
   fprintf(f, "Simulation temperature:         %8.5f \n", temperature);
   fprintf(f, "Total number of MC steps:       %lu \n", numberOfMCSteps);
   fprintf(f, "Number of thermalization steps: %lu \n", numberOfThermalizationSteps);
-  fprintf(f, "Number of MC sweeps per steps:  %lu \n", physical_system -> numberOfMCSweepsPerStep);
+  fprintf(f, "Number of MC sweeps per steps:  %lu \n", numberOfMCUpdatesPerStep);
   fprintf(f, "Number of accepted MC moves:    %lu (%5.2f %%) \n", 
           acceptedMoves, (double)acceptedMoves / (double)numberOfMCSteps * 100.0);
   fprintf(f, "Number of rejected MC moves:    %lu (%5.2f %%) \n", 

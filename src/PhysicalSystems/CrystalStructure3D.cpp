@@ -63,7 +63,7 @@ CrystalStructure3D::~CrystalStructure3D()
 //{ };
 
 
-// OK
+
 void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 {
 
@@ -191,8 +191,6 @@ void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile
       if (!line.empty()) {
           std::istringstream lineStream(line);
           lineStream >> key;
-
-          //std::cout << "Debug: " << key << "\n"; 
 
           if (key.compare(0, 1, "#") != 0) {
 

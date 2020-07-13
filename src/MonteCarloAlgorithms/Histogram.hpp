@@ -39,8 +39,7 @@ public:
 
   // Constructor
   Histogram(int = -1, const char* = NULL, const char* = NULL);
-  //Histogram(int = -1, const char* = NULL);
-
+  
   // Destructor
   ~Histogram();
   

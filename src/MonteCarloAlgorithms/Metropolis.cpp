@@ -147,8 +147,8 @@ void Metropolis::run()
 
   writeResultsFile();
 
-
 }
+
 
 // This implementation is similar to the one in Histogram class
 void Metropolis::readMCInputFile(const char* fileName)
@@ -176,17 +176,17 @@ void Metropolis::readMCInputFile(const char* fileName)
             //std::cout << "Metropolis: numberOfThermalizationSteps = " << numberOfThermalizationSteps << std::endl;
             continue;
           }
-          if (key == "numberOfMCSteps") {
+          else if (key == "numberOfMCSteps") {
             lineStream >> numberOfMCSteps;
             //std::cout << "Metropolis: numberOfMCSteps = " << numberOfMCSteps << std::endl;
             continue;
           }
-          if (key == "numberOfMCUpdatesPerStep") {
+          else if (key == "numberOfMCUpdatesPerStep") {
             lineStream >> numberOfMCUpdatesPerStep;
             //std::cout << "Metropolis: numberOfMCUpdatesPerStep = " << numberOfMCUpdatesPerStep << std::endl;
             continue;
           }
-          if (key == "temperature") {
+          else if (key == "temperature") {
             lineStream >> temperature;
             //std::cout << "Metropolis: temperature = " << temperature << std::endl;
             continue;
@@ -217,8 +217,6 @@ void Metropolis::readMCInputFile(const char* fileName)
 
 void Metropolis::accumulateObservables()
 {
-
-  //TODO: print observables to stdout/file
 
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
     averagedObservables[i] += physical_system -> observables[i];    

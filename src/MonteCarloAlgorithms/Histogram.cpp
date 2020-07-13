@@ -37,7 +37,6 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   }
 
   // Read checkpoint file, or initialize anew
-  //if (restart && checkPointFile != NULL)
   if (restart && file_exists(checkPointFile) )
     readHistogramDOSFile(checkPointFile);
   else {

@@ -19,6 +19,8 @@ int main (int argc, char *argv[]) {
   // Read from input file; store the simulation settings in simInfo
   readMainInputFile(argv[1]);
 
+  writeSimulationInfo();
+
   // Initializations
   initializeMPICommunication( physicalSystemComm, mcAlgorithmComm );
   initializeRandomNumberGenerator( physicalSystemComm, simInfo.rngSeed );
@@ -34,7 +36,7 @@ int main (int argc, char *argv[]) {
   finalizeMPICommunication();
 
   if (GlobalComm.thisMPIrank == 0)
-    std::cout << "\nSimulation finished :)\n";
+    std::cout << "\nSimulation finished :)\n\n";
 
   return 0;
 }

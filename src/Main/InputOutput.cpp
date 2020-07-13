@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <cstring>
 #include <string>             // std::string
 #include <sstream>            // std::istringstream
@@ -7,7 +8,8 @@
 
 
 // Input file should be specified as the first argument in command line
-void readMainInputFile(const char* FileName) {
+void readMainInputFile(const char* FileName)
+{
   
   //std::cout << "Reading main input file: " << FileName << std::endl;
   int length = strlen(FileName);
@@ -102,3 +104,98 @@ void readMainInputFile(const char* FileName) {
  
 }
 
+
+void writeSimulationInfo()
+{
+
+  printf("\n");
+  printf("                  ####################################################################\n");
+  printf("                  ##                                                                ##\n");
+  printf("                  ##   Oak-Ridge/Open-source Wang-Landau (OWL) simulation package   ##\n");
+  printf("                  ##   Copyright (C) 2015-2020                                      ##\n");
+  printf("                  ##                                                                ##\n");
+  printf("                  ####################################################################\n");
+  printf("\n\n");
+
+  printf("Initializing simulation...\n");
+
+
+  switch (simInfo.restartFlag) {
+    case 0 : 
+      // fresh start
+      std::cout << "   New/restarted simulation :  New\n";
+      break;
+    case 1 : 
+      // restart from file
+      std::cout << "   New/restarted simulation :  Restarted\n";
+      break;
+    default :
+      std::cout << "   New/restarted simulation :  Restart flag != 0 or 1. Use default: new simulation.\n";
+      simInfo.restartFlag = 0;
+    }
+
+
+  switch (simInfo.system) {
+    case 1 :
+      std::cout << "   Physical system          :  Quantum Espresso (driver mode)\n";
+      std::cout << "    - Command line options:    " << simInfo.physicalSystemCommandLine << "\n";
+      break;
+
+    case 2 :
+      std::cout << "   Physical system          :  Locally Self-Consistent Multiple Scattering (driver mode)\n";
+      std::cout << "    - Command line options:    " << simInfo.physicalSystemCommandLine << "\n";
+      break;
+
+    case 3 :
+      std::cout << "   Physical system          :  2D Heisenberg model\n";
+      break;
+
+    case 4 :
+      std::cout << "   Physical system          :  2D Ising model\n";
+      break;
+
+    case 5 :
+      std::cout << "   Physical system          :  3D Heisenberg model\n";
+      break;
+
+    case 6 :
+      std::cout << "   Physical system          :  3D Customized crystal structure\n";
+      break;
+
+    default :
+      std::cerr << "   Physical system          :  ERROR! Physical system not specified. \n";
+      std::cerr << "\nOWL Aborting...\n";
+      exit(10);
+  }
+
+
+  switch (simInfo.algorithm) {
+    case 1 :
+      std::cout << "   MC algorithm             :  Metropolis Sampling\n";
+      break;
+
+    case 2 :
+      std::cout << "   MC algorithm             :  Wang-Landau Sampling\n";
+      break;
+
+    case 3 :
+      std::cout << "   MC algorithm             :  Multicanonical Sampling\n";
+      break;
+
+    case 4 :
+      std::cout << "   MC algorithm             :  Parallel Tempering\n";
+      break;
+
+    case 5 :
+      std::cout << "   MC algorithm             :  Replica-Exchange Wang-Landau sampling\n";
+      break;
+      
+    case 6 :
+      std::cout << "   MC algorithm             :  Discrete Histogram-Free Multicanonical Sampling\n";
+      break;
+      
+    default :
+      std::cout << "   MC algorithm             :  MC algorithm not specified. Use default: Wang-Landau sampling.\n";
+  }
+
+}

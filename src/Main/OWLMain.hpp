@@ -22,25 +22,10 @@ void readCommandLineArguments(int argc, char* argv[]) {
 
   // Read in input file information
   if (argc != 2) {
-    std::cout << "Usage: " << argv[0] << " [Input File Name] \n";
+    std::cout << "Usage: " << argv[0] << " [OWL's Input File Name] \n";
     exit(7);
   }
 
-/*
-  switch (restartFlag) {
-    case 0 : 
-      // fresh start
-      std::cout << "YingWai's check: Fresh MC simulation\n";
-      break;
-    case 1 : 
-      // restart from file
-      std::cout << "YingWai's check: Restarted run\n";
-      break;
-    default :
-      std::cout << "Restart flag != 0 or 1. Assume a fresh start.\n";
-      restartFlag = 0;
-    }
-*/
 }
 
 void setSimulation(PhysicalSystem*      &physical_system,
@@ -126,6 +111,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
       
     default :
       std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
+      MC = new WangLandauSampling( physical_system );
   }
 
 }

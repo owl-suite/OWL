@@ -44,6 +44,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 
 }
 
+
 //Destructor
 Metropolis::~Metropolis()
 {
@@ -51,10 +52,13 @@ Metropolis::~Metropolis()
   delete[] averagedObservables;
   delete[] variances;
 
+  fclose(MCOutputFile);
+
   if (GlobalComm.thisMPIrank == 0)
     printf("Exiting Metropolis class... \n");
 
 }
+
 
 void Metropolis::run()
 {
@@ -62,6 +66,8 @@ void Metropolis::run()
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
     printf("Running Metropolis Sampling...\n");
+
+  char fileName[51];
 
   // Thermalization (observables are not accumulated)
   for (unsigned long int MCSteps=0; MCSteps<numberOfThermalizationSteps; MCSteps++) {
@@ -76,7 +82,19 @@ void Metropolis::run()
         physical_system -> acceptMCMove();
       else
         physical_system -> rejectMCMove();
-  
+
+    }
+
+    // Write observables to file
+    writeMCFile(MCSteps);
+    
+    // Write restart files at interval
+    currentTime = MPI_Wtime();
+    if (GlobalComm.thisMPIrank == 0) {
+      if (currentTime - lastBackUpTime > checkPointInterval) {
+        physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+        lastBackUpTime = currentTime;
+      }
     }
  
   }
@@ -100,9 +118,28 @@ void Metropolis::run()
       }
 
     }
-
+    
     // Accumulate observables
     accumulateObservables(); 
+
+    // Write observables to file
+    writeMCFile(MCSteps);
+
+    // Write restart files at interval
+    currentTime = MPI_Wtime();
+    if (GlobalComm.thisMPIrank == 0) {
+
+      if (currentTime - lastBackUpTime > checkPointInterval) {
+        physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+        lastBackUpTime = currentTime;
+      }
+
+      if (MCSteps % configurationWriteInterval == 0) {
+        sprintf(fileName, "configurations/config%012lu.dat", MCSteps);
+        physical_system -> writeConfiguration(1, fileName);
+      } 
+
+    }
 
   }
 
@@ -202,28 +239,47 @@ void Metropolis::calculateAveragesAndVariances()
 }
 
 
-void Metropolis::writeResultsFile(const char* filename)
+void Metropolis::writeMCFile(unsigned long int MCSteps)
 {
 
-  FILE* f;
-  if (filename != NULL) f = fopen(filename, "w");
-  else f = stdout;
-
-  fprintf(f, "\n");
-  fprintf(f, "Statistics of Metropolis sampling \n");
-  fprintf(f, "--------------------------------- \n");
-  fprintf(f, "Simulation temperature:         %8.5f \n", temperature);
-  fprintf(f, "Total number of MC steps:       %lu \n", numberOfMCSteps);
-  fprintf(f, "Number of thermalization steps: %lu \n", numberOfThermalizationSteps);
-  fprintf(f, "Number of MC sweeps per steps:  %lu \n", numberOfMCUpdatesPerStep);
-  fprintf(f, "Number of accepted MC moves:    %lu (%5.2f %%) \n", 
-          acceptedMoves, (double)acceptedMoves / (double)numberOfMCSteps * 100.0);
-  fprintf(f, "Number of rejected MC moves:    %lu (%5.2f %%) \n", 
-          rejectedMoves, (double)rejectedMoves / (double)numberOfMCSteps * 100.0);
+  fprintf(MCOutputFile, "%15lu ", MCSteps);
   
-  fprintf(f, "Observable         Variance \n");
-  fprintf(f, "--------------------------- \n");
+  for (unsigned int i=0; i<physical_system->numObservables; i++)
+    fprintf(MCOutputFile, "%15.6f ", physical_system -> observables[i]);
+
+  fprintf(MCOutputFile, "\n");
+
+}
+
+
+void Metropolis::writeResultsFile(const char* filename) 
+{
+
+  FILE* resultsFile;
+  if (filename != NULL) resultsFile = fopen(filename, "w");
+  else resultsFile = stdout;
+
+  fprintf(resultsFile, "\n");
+  fprintf(resultsFile, "   Statistics of Metropolis sampling \n");
+  fprintf(resultsFile, "   --------------------------------- \n");
+  fprintf(resultsFile, "   Simulation temperature         : %8.5f \n", temperature);
+  fprintf(resultsFile, "   Total number of MC steps       :  %lu \n", numberOfMCSteps);
+  fprintf(resultsFile, "   Number of thermalization steps :  %lu \n", numberOfThermalizationSteps);
+  fprintf(resultsFile, "   Number of MC updates per step  :  %lu \n", numberOfMCUpdatesPerStep);
+  fprintf(resultsFile, "   Number of accepted MC updates  :  %lu (%5.2f %%) \n", 
+          acceptedMoves, double(acceptedMoves) / double(numberOfMCSteps * numberOfMCUpdatesPerStep) * 100.0);
+  fprintf(resultsFile, "   Number of rejected MC updates  :  %lu (%5.2f %%) \n", 
+          rejectedMoves, double(rejectedMoves) / double(numberOfMCSteps * numberOfMCUpdatesPerStep) * 100.0);
+  
+  fprintf(resultsFile, "\n");
+
+  fprintf(resultsFile, "    Observable   Std. deviation \n");
+  fprintf(resultsFile, "   ----------------------------- \n");
   for (unsigned int i=0; i<physical_system -> numObservables; i++)
-    fprintf(f, "%10.5f         %10.5f \n", averagedObservables[i], variances[i]);
+    fprintf(resultsFile, "   %10.5f      %10.5f \n", averagedObservables[i], variances[i]);
+
+  fprintf(resultsFile, "\n");
+
+  if (filename != NULL) fclose(resultsFile);
 
 }

@@ -13,6 +13,7 @@
 CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesystem::path& spinConfigFile, int initial) : lattice(inputFile)
 {
 
+  printf("\n");
   printf("Simulation for customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
 
   assert (lattice.totalNumberOfAtoms > 0);
@@ -54,7 +55,7 @@ CrystalStructure3D::~CrystalStructure3D()
   //delete spin;
   deleteObservables();
 
-  printf("CrystalStructure3D finished\n");
+  printf("Exiting CrystalStructure3D class...\n");
 
 }
 
@@ -67,30 +68,29 @@ CrystalStructure3D::~CrystalStructure3D()
 void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 {
 
-  FILE* f;
-  if (filename != NULL) f = fopen(filename, "w");
-  else f = stdout;
+  FILE* configFile;
+  if (filename != NULL) configFile = fopen(filename, "w");
+  else configFile = stdout;
 
   switch (format) {
 
   default : {
 
-    fprintf(f, "\n");
-    fprintf(f, "Customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
-    fprintf(f, "Total number of atoms: %u \n", lattice.totalNumberOfAtoms);
-    fprintf(f, "Measures:");
+    fprintf(configFile, "Customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
+    fprintf(configFile, "Total number of atoms: %u \n", lattice.totalNumberOfAtoms);
+    fprintf(configFile, "Observables (energy, Mx, My, Mz):");
     for (unsigned int i = 0; i < numObservables; i++)
-      fprintf(f, " %10.5f", observables[i]);
-    fprintf(f, "\n");
+      fprintf(configFile, " %15.8f", observables[i]);
+    fprintf(configFile, "\n");
 
     for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++)
-      fprintf(f, "%8.5f %8.5f %8.5f\n \n", spin[i].x, spin[i].y, spin[i].z);
+      fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
 
   }
 
   }
 
-  if (filename != NULL) fclose(f);
+  if (filename != NULL) fclose(configFile);
 
 }
 
@@ -179,7 +179,7 @@ void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinCon
 
 void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile)
 {
-  std::cout << "CrystalStructure3D class reading input file: " << mainInputFile << "\n";
+  std::cout << "   CrystalStructure3D class reading input file: " << mainInputFile << "\n";
 
   std::ifstream inputFile(mainInputFile);
   std::string line, key;
@@ -196,7 +196,7 @@ void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile
 
             if (key == "InteractionCutoffDistance") {
               lineStream >> interactionCutoffDistance;
-              std::cout << "CrystalStructure3D: interaction cutoff distance = " << interactionCutoffDistance << "\n";
+              std::cout << "   CrystalStructure3D: interaction cutoff distance = " << interactionCutoffDistance << "\n";
               continue;
             }
 
@@ -332,6 +332,8 @@ void CrystalStructure3D::constructPrimaryNeighborList()
   double dy       {0.0};
   double dz       {0.0};
 
+  std::cout << "\n   Construct primary neighbor list:\n";
+
   primaryNeighborList.resize(lattice.unitCell.number_of_atoms);
   unsigned int localUnitCellIndex = lattice.getRelativeUnitCellIndex(0, 0, 0);
 
@@ -376,10 +378,10 @@ void CrystalStructure3D::constructPrimaryNeighborList()
     }
 
     // Print the primary neighbor list for the current atom
-    std::cout << "Primary neighbor list of " << atom1 << ":\n";
-    std::cout << "Atom    distance \n";
+    std::cout << "\n     Primary neighbor list of " << atom1 << ":\n";
+    std::cout << "          Atom      Distance        J_ij          D_ij\n";
     for (auto i : primaryNeighborList[atomID])
-      std::cout << i.atomID << " " << i.distance << " " << i.J_ij << " " << i.D_ij << "\n";
+      printf("     %8d   %12.6f   %12.8f   %12.8f\n", i.atomID, i.distance, i.J_ij, i.D_ij);
 
   }
 
@@ -387,11 +389,11 @@ void CrystalStructure3D::constructPrimaryNeighborList()
   std::sort(neighborDistances.begin(), neighborDistances.end(), 
             [](const auto& a, const auto& b) { return a < b; }
   );
-  std::cout << "Neighboring distances: \n";
+  std::cout << "\n     Neighboring distances: \n";
   for (unsigned int i=0; i<neighborDistances.size(); i++)
-    std::cout << i+1 << "th neighbor : " << neighborDistances[i] << "\n";
+    printf("     %2dth neighbor : %12.6f \n", i, neighborDistances[i]);
 
-  std::cout << "CrystalStructure3D: Constructed primary neighbor lists for all atoms in a unit cell. \n";
+  std::cout << "\n   Constructed primary neighbor lists for all atoms in a unit cell. \n";
 
 }
 
@@ -430,7 +432,7 @@ void CrystalStructure3D::mapPrimaryToAllNeighborLists()
     }
   }
 
-  std::cout << "CrystalStructure3D: Mapped primary neighbor lists to all atoms. \n";
+  std::cout << "   Mapped primary neighbor lists to all atoms in system. \n";
 
 }
 

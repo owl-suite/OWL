@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include "CrystalBase.hpp"
 
@@ -25,6 +26,8 @@
 Lattice::Lattice(const char* inputFile)
 {
   
+  std::cout << "\nInitializing crystal structure... \n";
+
   // Initialize unit cell
   unitCell.lattice_vectors.resize(3, 3);
   if (std::filesystem::exists(inputFile))
@@ -75,7 +78,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
   {
 
     //if (GlobalComm.thisMPIrank == 0)
-      std::cout << "Crystal class reading input file: " << mainInputFile << "\n";
+      std::cout << "\n   Crystal class reading input file: " << mainInputFile << "\n\n";
 
     std::ifstream inputFile(mainInputFile);
     std::string line, key;
@@ -97,7 +100,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
             if (key == "NumberOfAtomsPerUnitCell") {
               lineStream >> unitCell.number_of_atoms;
-              std::cout << "Crystal: number of atoms per unit cell = " << unitCell.number_of_atoms << "\n";
+              std::cout << "\n     Number of atoms per unit cell = " << unitCell.number_of_atoms << "\n";
 
               // Allocate memory for atomic_positions
               unitCell.atomic_positions.resize(3, unitCell.number_of_atoms);
@@ -105,7 +108,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
             }
             else if (key == "LatticeVectors") {
               lineStream >> unitCell.lattice_vectors(0,0) >> unitCell.lattice_vectors(1,0) >> unitCell.lattice_vectors(2,0);
-              std::cout << "Crystal: Lattice vectors (" 
+              std::cout << "     Lattice vectors: (" 
                         << unitCell.lattice_vectors(0,0) << ", " 
                         << unitCell.lattice_vectors(1,0) << ", " 
                         << unitCell.lattice_vectors(2,0) << ") \n";
@@ -116,7 +119,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
                 std::getline(inputFile, line);               
                 if (!line.empty()) lineStream.str(line);
                 lineStream >> unitCell.lattice_vectors(0,i) >> unitCell.lattice_vectors(1,i) >> unitCell.lattice_vectors(2,i);
-                std::cout << "Crystal: Lattice vectors (" 
+                std::cout << "                      (" 
                           << unitCell.lattice_vectors(0,i) << ", " 
                           << unitCell.lattice_vectors(1,i) << ", " 
                           << unitCell.lattice_vectors(2,i) << ") \n";
@@ -138,9 +141,9 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
             }
             else if (key == "UnitCellDimensions") {
               lineStream >> unitCellDimensions[0] >> unitCellDimensions[1] >> unitCellDimensions[2];
-              std::cout << "Crystal: unit cell dimensions = " << unitCellDimensions[0] << " x " 
-                                                              << unitCellDimensions[1] << " x " 
-                                                              << unitCellDimensions[2] << " \n";
+              std::cout << "\n     Unit cell dimensions = " << unitCellDimensions[0] << " x " 
+                                                            << unitCellDimensions[1] << " x " 
+                                                            << unitCellDimensions[2] << " \n";
               continue;
             }
 
@@ -157,11 +160,14 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     // Sanity checks:
     assert(atom_counter == unitCell.number_of_atoms);
 
+    std::cout << "\n     Decorated atoms in a unit cell:\n";
+    std::cout << "     Atom          x              y              z           (unit: lattice constant) \n";
     for (unsigned int i=0; i<unitCell.number_of_atoms; i++) {
-      std::cout << unitCell.atomic_species[i] << " " 
-                << unitCell.atomic_positions(0,i) << " " 
-                << unitCell.atomic_positions(1,i) << " " 
-                << unitCell.atomic_positions(2,i) << "\n";
+      printf("     %s    %12.6f   %12.6f   %12.6f\n", unitCell.atomic_species[i].c_str(), 
+                                                      unitCell.atomic_positions(0,i),
+                                                      unitCell.atomic_positions(1,i),
+                                                      unitCell.atomic_positions(2,i));
+
     }
 
   }
@@ -207,7 +213,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       }
     }
   
-    std::cout << "Class Lattice: Constructed global coordinates. \n";
+    std::cout << "\n   Constructed global coordinates. \n";
 
   }
 
@@ -233,7 +239,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       }
     }
 
-    std::cout << "Class Lattice: Constructed relative coordinates. \n";
+    std::cout << "\n   Constructed relative coordinates. \n";
 
   }
 

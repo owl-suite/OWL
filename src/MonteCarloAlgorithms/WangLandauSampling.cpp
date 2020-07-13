@@ -109,7 +109,7 @@ void WangLandauSampling::run()
         if (GlobalComm.thisMPIrank == 0) {
           if (currentTime - lastBackUpTime > checkPointInterval) {
             h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            physical_system -> writeConfiguration(1, "OWL_restart_input");
+            physical_system -> writeConfiguration(1, "config_checkpoint.dat");
             lastBackUpTime = currentTime;
           }
         }
@@ -132,7 +132,7 @@ void WangLandauSampling::run()
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      physical_system -> writeConfiguration(1, "OWL_restart_input");
+      physical_system -> writeConfiguration(1, "config_checkpoint.dat");
     }
 
     // Go to next iteration

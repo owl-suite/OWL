@@ -1,3 +1,4 @@
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -10,7 +11,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 {
 
   if (GlobalComm.thisMPIrank == 0)
-    printf("Simulation method: Metropolis sampling\n");
+    printf("\nSimulation method: Metropolis sampling \n");
 
   if (std::filesystem::exists(inputFile))
     readMCInputFile(inputFile);
@@ -65,7 +66,7 @@ void Metropolis::run()
 
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
-    printf("Running Metropolis Sampling...\n");
+    printf("   Running Metropolis Sampling...\n");
 
   char fileName[51];
 
@@ -155,7 +156,7 @@ void Metropolis::readMCInputFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "Metropolis class reading input file: " << fileName << std::endl;
+    std::cout << "   Metropolis class reading input file: " << fileName << std::endl;
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;

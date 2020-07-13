@@ -116,7 +116,7 @@ void MulticanonicalSampling::run()
    
       // Write restart files at interval
       currentTime = MPI_Wtime();
-      if (currentTime - lastBackUpTime > 300) {
+      if (currentTime - lastBackUpTime > checkPointInterval) {
         if (GlobalComm.thisMPIrank == 0) {
           h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
           physical_system -> writeConfiguration(1, "OWL_restart_configuration");

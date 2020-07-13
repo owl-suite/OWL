@@ -1,6 +1,7 @@
 #ifndef MC_ALGORITHMS_HPP
 #define MC_ALGORITHMS_HPP
 
+#include <limits>
 #include <mpi.h>
 #include "PhysicalSystems/PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
@@ -30,6 +31,9 @@ protected :
 
   double currentTime;
   double lastBackUpTime;
+  double checkPointInterval {600.0};                           // unit: seconds.
+
+  unsigned long int configurationWriteInterval { std::numeric_limits<unsigned long int>::max() };
 
   // it stores the decision of acceptance for each move
   bool acceptMove {false};

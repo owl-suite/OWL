@@ -154,6 +154,17 @@ void Metropolis::readMCInputFile(const char* fileName)
             //std::cout << "Metropolis: temperature = " << temperature << std::endl;
             continue;
           }
+          else if (key == "checkPointInterval") {
+            lineStream >> checkPointInterval;
+            //std::cout << "Metropolis: checkPointInterval = " << checkPointInterval << " seconds \n";
+            continue;
+          }
+          else if (key == "configurationWriteInterval") {
+            lineStream >> configurationWriteInterval;
+            //std::cout << "Metropolis: configurationWriteInterval = " << configurationWriteInterval << " seconds \n";
+            continue;
+          }
+          
 
         }
 

@@ -78,8 +78,8 @@ void Metropolis::run()
       physical_system -> getObservables();
   
       // Determine acceptance
-      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) * temperature ) > getRandomNumber2() )
-        physical_system -> acceptMCMove();
+      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) / temperature ) > getRandomNumber2() )
+        physical_system -> acceptMCMove(); 
       else
         physical_system -> rejectMCMove();
 
@@ -108,7 +108,7 @@ void Metropolis::run()
       physical_system -> getObservables();
   
       // Determine acceptance
-      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) * temperature ) > getRandomNumber2() ) {
+      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) / temperature ) > getRandomNumber2() ) {
         physical_system -> acceptMCMove();
         acceptedMoves++;
       }
@@ -227,13 +227,16 @@ void Metropolis::accumulateObservables()
 
 }
 
+
 // calculate average and variance of observables
 void Metropolis::calculateAveragesAndVariances()
 {
 
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
-    averagedObservables[i] /= (double)numberOfMCSteps;
-    variances[i] -= averagedObservables[i] * averagedObservables[i];
+    averagedObservables[i] /= double(numberOfMCSteps);
+    variances[i] /= double(numberOfMCSteps);
+    variances[i] = sqrt( variances[i] - averagedObservables[i] * averagedObservables[i] );
+    //variances[i] = sqrt((variances[i] - averagedObservables[i] * averagedObservables[i]) / double(numberOfMCSteps - 1));
   }
 
 }

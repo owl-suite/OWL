@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include "Metropolis.hpp"
@@ -11,7 +12,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   if (GlobalComm.thisMPIrank == 0)
     printf("Simulation method: Metropolis sampling\n");
 
-  if ( file_exists(inputFile) )
+  if (std::filesystem::exists(inputFile))
     readMCInputFile(inputFile);
   else {
     std::cout << "Error: No input file for reading Metropolis simulation info. Quiting... \n";
@@ -25,9 +26,20 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
      averagedObservables = new ObservableType[physical_system->numObservables];
      variances = new ObservableType[physical_system->numObservables];
   }
+
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
     averagedObservables[i] = 0.0;
     variances[i] = 0.0;
+  }
+
+  if (!std::filesystem::exists("configurations"))
+    std::filesystem::create_directory("configurations");
+
+  if (std::filesystem::exists("mc.dat"))
+    MCOutputFile = fopen("mc.dat", "a");
+  else {
+    MCOutputFile = fopen("mc.dat", "w");
+    fprintf(MCOutputFile, "# MC steps           Observables\n");
   }
 
 }

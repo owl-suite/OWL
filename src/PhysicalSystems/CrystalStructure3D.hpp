@@ -1,6 +1,7 @@
 #ifndef GENERAL_3D_CRYSTAL_STRUCTURE_HPP
 #define GENERAL_3D_CRYSTAL_STRUCTURE_HPP
 
+#include <filesystem>
 #include <tuple>
 #include "PhysicalSystemBase.hpp"
 #include "CrystalBase.hpp"
@@ -27,7 +28,7 @@ class CrystalStructure3D : public PhysicalSystem {
 
 public :
 
-  CrystalStructure3D(const char* inputFile, const char* spinConfigFile = NULL, int initial = 0); 
+  CrystalStructure3D(const char* inputFile, const std::filesystem::path& spinConfigFile = std::filesystem::path(), int initial = 0); 
   ~CrystalStructure3D();
 
   void writeConfiguration(int = 0, const char* = NULL)  override;
@@ -62,7 +63,7 @@ private :
   // Private functions
 
   // Initialization:
-  void   readSpinConfigFile(const char* spinConfigFile);
+  void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void   readInteractionCutoffDistance(const char* inputFile);
   void   initializeSpinConfiguration(int initial);
   void   assignRandomSpinDirection(unsigned int currentAtom);

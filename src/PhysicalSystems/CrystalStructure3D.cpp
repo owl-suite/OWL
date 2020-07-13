@@ -3,13 +3,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include "CrystalStructure3D.hpp"
 #include "Utilities/CheckFile.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
 
-CrystalStructure3D::CrystalStructure3D(const char* inputFile, const char* spinConfigFile, int initial) : lattice(inputFile)
+CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesystem::path& spinConfigFile, int initial) : lattice(inputFile)
 {
 
   printf("Simulation for customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
@@ -17,14 +18,16 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const char* spinCo
   assert (lattice.totalNumberOfAtoms > 0);
   spin.resize(lattice.totalNumberOfAtoms);
 
-  if (file_exists(spinConfigFile))
+  if (std::filesystem::exists(spinConfigFile))
     readSpinConfigFile(spinConfigFile);
   else
     initializeSpinConfiguration(initial);
 
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented (July 7, 20)
-  if (file_exists(inputFile))
+  if (std::filesystem::exists(inputFile))
     readInteractionCutoffDistance(inputFile);
+  //else  (TODO)
+  //  printf("   Input file '%s' not found. Interaction cutoff distance will be set to nearest-neighbor only.\n", inputFile);
   
   // Initialize nearest neighbor lists for each atom
   neighborList.resize(lattice.totalNumberOfAtoms);
@@ -167,7 +170,7 @@ void CrystalStructure3D::buildMPIConfigurationType()
 
 
 // TODO: To implement 
-void CrystalStructure3D::readSpinConfigFile(const char* spinConfigFile)
+void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
 {
 
 }

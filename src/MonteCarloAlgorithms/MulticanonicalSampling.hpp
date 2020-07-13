@@ -14,7 +14,7 @@ public :
   MulticanonicalSampling(PhysicalSystem* ps);
   ~MulticanonicalSampling();
 
-  void run();
+  void run()                  override;
 
 private :
 

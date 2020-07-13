@@ -11,7 +11,7 @@ public :
   Metropolis(PhysicalSystem* ps, const char* inputFile);
   ~Metropolis();
 
-  void run();
+  void run()                  override;
 
 private :
 

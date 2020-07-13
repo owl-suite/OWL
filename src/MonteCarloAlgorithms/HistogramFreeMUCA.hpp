@@ -14,7 +14,7 @@ public :
   DiscreteHistogramFreeMUCA(PhysicalSystem* ps);
   ~DiscreteHistogramFreeMUCA();
 
-  void run();
+  void run()  override;
 
 private :
 

@@ -1,0 +1,58 @@
+##########################################
+##   New / restarted simulation?        ##
+##########################################
+# 0: New simulation
+# 1: Restarted simulation
+RestartFlag  0
+
+
+##########################################
+##   Seed for random number generator   ##
+##########################################
+
+RngSeed  183083
+
+
+##########################################
+##   Physical System                    ##
+##########################################
+# 1: QuantumExpresso
+# 2: LSMS
+# 3: Heisenberg 2D
+# 4: Ising 2D
+# 5: Heisenberg 3D
+# 6: Customized crystal structure
+PhysicalSystem  5
+
+
+##### Inputs for PhysicalSystem=3,4,5 (Heisenberg and Ising models) #####
+
+# Lattice size for spin models (in each dimension)
+SpinModelLatticeSize  3
+
+
+
+##########################################
+##   Monte Carlo algorithm              ##
+##########################################
+# 1. Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. (TODO) Parallel Tempering
+# 5. Replica-Exchange Wang-Landau (REWL)
+# 6. Global update MUCA 
+Algorithm  2
+
+
+##### Inputs for Wang-Landau sampling #####
+
+dim                       1
+flatnessCriterion         0.8 
+modFactor                 1.000 
+modFactorFinal            1.25000000e-06
+modFactorReducer          2.000 
+histogramCheckInterval    100000 
+histogramRefreshInterval  10000000
+Emin                      -80
+Emax                      80
+binSize                   1

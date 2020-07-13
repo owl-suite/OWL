@@ -38,23 +38,23 @@
     Matrix(size_type nRows, size_type nCols, size_type ldim=0, const T& val=T()) {
 
       if (ldim < nRows) 
-	ldim = nRows;
+	      ldim = nRows;
 
       if (bool(ldim*nCols)) {
         nRow = nRows; nCol = nCols; lDim = ldim;
         owner = true;
         physicalSize = lDim*nCol;
-	data = new T[physicalSize];
+	      data = new T[physicalSize];
       }
       else { 
-	nRow = 0; nCol = 0; lDim = 0; owner = true; data = 0; physicalSize = 0;
+	      nRow = 0; nCol = 0; lDim = 0; owner = true; data = 0; physicalSize = 0;
       } 
 
       if (val == T(0))
-	memset(data,0,sizeof(T)*lDim*nCol);
+	      memset(data,0,sizeof(T)*lDim*nCol);
       else
-	for (size_type i=0; i<nCol*lDim; i++) 
-	  data[i] = val;
+	      for (size_type i=0; i<nCol*lDim; i++) 
+	        data[i] = val;
     }
 
     // Constructor 3:
@@ -83,10 +83,10 @@
     Matrix(const Matrix<T> & mat) : nRow(mat.nRow), nCol(mat.nCol), lDim(mat.nRow), owner(true) {
 
       if (bool(nRow*nCol)) {
-	owner = true;
+	      owner = true;
         physicalSize = lDim*nCol;
-	data = new T[physicalSize];
-	memcpy(data, mat.data, sizeof(T)*physicalSize);
+	      data = new T[physicalSize];
+	      memcpy(data, mat.data, sizeof(T)*physicalSize);
       }
       else { 
         nRow = 0; nCol = 0; lDim = 0; owner = true; data = 0; physicalSize = 0;
@@ -130,7 +130,7 @@
 
       if (owner && data)
         delete[] data;
-      data = dat;
+        data = dat;
 
       if (ldim < nRows)
         ldim = nRows;
@@ -185,16 +185,16 @@
     {
       if (this == &mat) return *this;   // Gracefully handle self assignment[12.1]
       if(owner && data) delete [] data;
-      nRow=mat.n_row(), nCol=mat.n_col(), lDim=mat.n_row(),owner=true;
+        nRow = mat.n_row(), nCol = mat.n_col(), lDim = mat.n_row(), owner=true;
       if(bool(nRow*nCol)) {
-        physicalSize=lDim*nCol;
-	data=new T[physicalSize];
-	if(mat.lDim==lDim)
-	  memcpy(data,mat.data,sizeof(T)*nCol*lDim);
-	else
-	  for(size_type j=0;j<nCol;j++) for(size_type i=0;i<nRow;i++)
+        physicalSize = lDim*nCol;
+	      data = new T[physicalSize];
+	    if(mat.lDim == lDim)
+	      memcpy(data,mat.data,sizeof(T)*nCol*lDim);
+	    else
+	      for(size_type j=0;j<nCol;j++) for(size_type i=0;i<nRow;i++)
 //					  data[j+i*lDim] = mat(i,j);
-                                          data[i+j*lDim] = mat.data[i+j*mat.l_dim()];
+          data[i+j*lDim] = mat.data[i+j*mat.l_dim()];
       }
       else { nRow=0; nCol=0; lDim=0; owner=true; data=0; physicalSize=0;}
       return *this;
@@ -234,7 +234,7 @@
     ThisType& operator = (const T& val)
     {
       for(size_type i=0;i<nCol*lDim;i++) 
-	data[i]=val;
+	      data[i]=val;
       return *this;
     }
 

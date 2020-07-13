@@ -107,9 +107,9 @@ void WangLandauSampling::run()
         // Write restart files at interval
         currentTime = MPI_Wtime();
         if (GlobalComm.thisMPIrank == 0) {
-          if (currentTime - lastBackUpTime > 300) {
+          if (currentTime - lastBackUpTime > checkPointInterval) {
             h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            physical_system -> writeConfiguration(1, "OWL_restart_input");
+            physical_system -> writeConfiguration(1, "config_checkpoint.dat");
             lastBackUpTime = currentTime;
           }
         }
@@ -124,7 +124,7 @@ void WangLandauSampling::run()
       //  h.refreshHistogram();
     }
 
-    bool KB  = h.checkKullbackLeiblerDivergence();
+    //bool KB  = h.checkKullbackLeiblerDivergence();
 
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);
@@ -132,7 +132,7 @@ void WangLandauSampling::run()
       // Also write restart file here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      physical_system -> writeConfiguration(1, "OWL_restart_input");
+      physical_system -> writeConfiguration(1, "config_checkpoint.dat");
     }
 
     // Go to next iteration

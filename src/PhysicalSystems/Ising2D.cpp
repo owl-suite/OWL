@@ -87,8 +87,6 @@ Ising2D::Ising2D(const char* filename, int initial)
 
   buildMPIConfigurationType();
   pointerToConfiguration = static_cast<void*>(&spin[0]);
-
-  numberOfMCSweepsPerStep = (unsigned long int) LatticeSize; 
  
 }
 
@@ -112,9 +110,6 @@ Ising2D::~Ising2D()
 
 }
 
-
-void Ising2D::readCommandLineOptions()
-{ };
 
 
 void Ising2D::writeConfiguration(int format, const char* filename)

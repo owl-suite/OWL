@@ -1,0 +1,64 @@
+##########################################
+##   New / restarted simulation?        ##
+##########################################
+# 0: New simulation
+# 1: Restarted simulation
+RestartFlag  0
+
+
+##########################################
+##   Seed for random number generator   ##
+##########################################
+
+RngSeed  183083
+
+
+##########################################
+##   Physical System                    ##
+##########################################
+# 1: QuantumExpresso
+# 2: LSMS
+# 3: Heisenberg 2D
+# 4: Ising 2D
+# 5: Heisenberg 3D
+# 6: Customized crystal structure
+PhysicalSystem  6
+
+
+##### Inputs for PhysicalSystem=6 (Customized crystal structure) #####
+
+LatticeVectors  1.0     0.0     0.0
+                0.0     1.0     0.0
+                0.0     0.0     1.0
+
+NumberOfAtomsPerUnitCell        1
+
+atom    Fe    0.0    0.0    0.0
+
+UnitCellDimensions      3 3 3
+
+
+# Interaction cutoff distance (Inclusive. Unit: in lattice constant)
+InteractionCutoffDistance     1.0
+
+
+
+##########################################
+##   Monte Carlo algorithm              ##
+##########################################
+# 1. Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. (TODO) Parallel Tempering
+# 5. Replica-Exchange Wang-Landau (REWL)
+# 6. Global update MUCA 
+Algorithm  1
+
+##### Inputs for Metropolis sampling #####
+
+numberOfThermalizationSteps  10000
+numberOfMCSteps              20000
+numberOfMCUpdatesPerStep     27
+temperature                  3.0
+checkPointInterval           900               # in seconds
+configurationWriteInterval   1000

@@ -153,7 +153,7 @@ void ReplicaExchangeWangLandau::run()
 
       // Write restart files at interval
       currentTime = MPI_Wtime();
-      if (currentTime - lastBackUpTime > 300) {
+      if (currentTime - lastBackUpTime > checkPointInterval) {
         writeCheckPointFiles(checkPoint);
         lastBackUpTime = currentTime;
       }

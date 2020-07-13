@@ -4,100 +4,27 @@
 #include "Heisenberg3D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
-Heisenberg3D::Heisenberg3D(const char* filename, int initial)
+Heisenberg3D::Heisenberg3D(const char* inputFile, const char* coordinatesFile, int initial)
 {
 
-  printf("Simulation for 3D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
-
-  int i, j, k;
-  double r1, r2, rr;
+  printf("Simulation for 3D Heisenberg model: %dx%dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size * Size;
 
   spin = new SpinDirection**[Size];
 
-  for (i = 0; i < Size; i++) {
+  for (unsigned int i = 0; i < Size; i++) {
     spin[i] = new SpinDirection*[Size];
-    for (j = 0; j < Size; j++)
+    for (unsigned int j = 0; j < Size; j++)
       spin[i][j] = new SpinDirection[Size];
   }
   //SpinDirection spinTemp[LatticeSize];
 
-  if (filename != NULL) {
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-      std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-      exit(1);
-    }
-
-    for(i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
-        for (k = 0; k < Size; k++) {
-          //spinIndex = (long) i * Size * Size + j * Size + k;
-          if (fscanf(f, "%lf %lf %lf", &spin[i][j][k].x, &spin[i][j][k].y, &spin[i][j][k].z) != 3) {
-            std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-            exit(1);
-          }
-          //spin[i][j][k] = spinTemp[spinIndex];
-          fscanf(f, "%*c");
-        }
-      }
-    }
-    fclose(f);
-  }
-  else {
-    for (i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
-        for (k = 0; k < Size; k++) {
-
-          //spinIndex = (long) i * Size * Size + j * Size + k;
-  
-          switch (initial) {
-            case 1 : {
-              spin[i][j][k].x = 1.0;
-              spin[i][j][k].y = 0.0;
-              spin[i][j][k].z = 0.0;
-              break;
-            }
-            case 2  : {
-              spin[i][j][k].x = 0.0;
-              spin[i][j][k].y = 1.0;
-              spin[i][j][k].z = 0.0;
-  	        break;
-            }
-            case 3  : {
-              spin[i][j][k].x = 0.0;
-              spin[i][j][k].y = 0.0;
-              spin[i][j][k].z = 1.0;
-  	          break;
-            }
-            case 4  : {
-              spin[i][j][k].x = 0.0;
-              spin[i][j][k].y = 0.0;
-	            if (((i + j) % 2) == 0) spin[i][j][k].z = 1.0;
-	            else spin[i][j][k].z = -1.0;
-	            break;
-            }
-            default  : {
-              do {
-                //r1 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-                //r2 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-                r1 = 2.0 * getRandomNumber();
-                r2 = 2.0 * getRandomNumber();                
-                rr = r1 * r1 + r2 * r2;
-              } while (rr > 1.0);
-
-              spin[i][j][k].x = 2.0 * r1 * sqrt(1.0 - rr);
-              spin[i][j][k].y = 2.0 * r2 * sqrt(1.0 - rr);
-              spin[i][j][k].z = 1.0 - 2.0 * rr;
-            }
-          }
-
-        }
-      }
-    }
-  }
+  if (coordinatesFile != NULL)
+    readCoordinatesFile(coordinatesFile);
+  else
+    initializeSpinConfiguration(initial);
 
   initializeObservables(4);      // observables[0] : energy
                                  // observables[1] : magnetization in x-direction
@@ -125,8 +52,8 @@ Heisenberg3D::~Heisenberg3D()
 }
 
 
-void Heisenberg3D::readCommandLineOptions()
-{ };
+//void Heisenberg3D::readCommandLineOptions()
+//{ };
 
 
 void Heisenberg3D::writeConfiguration(int format, const char* filename)
@@ -343,7 +270,90 @@ void Heisenberg3D::rejectMCMove()
 }
 
 
+/*
 void Heisenberg3D::buildMPIConfigurationType()
 {
 }
+*/
 
+
+void Heisenberg3D::readCoordinatesFile(const char* coordinatesFile)
+{
+
+    FILE* f = fopen(coordinatesFile, "r");
+    if (f == NULL) {
+      std::cout << "Coordinates file " << coordinatesFile << " unreadable!" << std::endl;
+      exit(1);
+    }
+
+    for(unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
+        for (unsigned int k = 0; k < Size; k++) {
+          //spinIndex = (long) i * Size * Size + j * Size + k;
+          if (fscanf(f, "%lf %lf %lf", &spin[i][j][k].x, &spin[i][j][k].y, &spin[i][j][k].z) != 3) {
+            std::cout << "Coordinates file " << coordinatesFile << " unreadable!" << std::endl;
+            exit(1);
+          }
+          //spin[i][j][k] = spinTemp[spinIndex];
+          fscanf(f, "%*c");
+        }
+      }
+    }
+    fclose(f);
+
+}
+
+
+void Heisenberg3D::initializeSpinConfiguration(int initial)
+{
+
+  double r1, r2, rr;
+
+  for (unsigned int i = 0; i < Size; i++) {
+    for (unsigned int j = 0; j < Size; j++) {
+      for (unsigned int k = 0; k < Size; k++) {
+        //spinIndex = (long) i * Size * Size + j * Size + k;
+
+        switch (initial) {
+          case 1 : {
+            spin[i][j][k].x = 1.0;
+            spin[i][j][k].y = 0.0;
+            spin[i][j][k].z = 0.0;
+            break;
+          }
+          case 2  : {
+            spin[i][j][k].x = 0.0;
+            spin[i][j][k].y = 1.0;
+            spin[i][j][k].z = 0.0;
+	        break;
+          }
+          case 3  : {
+            spin[i][j][k].x = 0.0;
+            spin[i][j][k].y = 0.0;
+            spin[i][j][k].z = 1.0;
+	          break;
+          }
+          case 4  : {
+            spin[i][j][k].x = 0.0;
+            spin[i][j][k].y = 0.0;
+            if (((i + j) % 2) == 0) spin[i][j][k].z = 1.0;
+            else spin[i][j][k].z = -1.0;
+            break;
+          }
+          default  : {
+            do {
+              r1 = 2.0 * getRandomNumber();
+              r2 = 2.0 * getRandomNumber();                
+              rr = r1 * r1 + r2 * r2;
+            } while (rr > 1.0);
+            spin[i][j][k].x = 2.0 * r1 * sqrt(1.0 - rr);
+            spin[i][j][k].y = 2.0 * r2 * sqrt(1.0 - rr);
+            spin[i][j][k].z = 1.0 - 2.0 * rr;
+          }
+        }
+
+      }
+    }
+  }
+
+}

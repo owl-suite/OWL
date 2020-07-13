@@ -1,3 +1,5 @@
+#include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include "Metropolis.hpp"
@@ -9,9 +11,9 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 {
 
   if (GlobalComm.thisMPIrank == 0)
-    printf("Simulation method: Metropolis sampling\n");
+    printf("\nSimulation method: Metropolis sampling \n");
 
-  if ( file_exists(inputFile) )
+  if (std::filesystem::exists(inputFile))
     readMCInputFile(inputFile);
   else {
     std::cout << "Error: No input file for reading Metropolis simulation info. Quiting... \n";
@@ -25,12 +27,24 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
      averagedObservables = new ObservableType[physical_system->numObservables];
      variances = new ObservableType[physical_system->numObservables];
   }
+
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
     averagedObservables[i] = 0.0;
     variances[i] = 0.0;
   }
 
+  if (!std::filesystem::exists("configurations"))
+    std::filesystem::create_directory("configurations");
+
+  if (std::filesystem::exists("mc.dat"))
+    MCOutputFile = fopen("mc.dat", "a");
+  else {
+    MCOutputFile = fopen("mc.dat", "w");
+    fprintf(MCOutputFile, "# MC steps           Observables\n");
+  }
+
 }
+
 
 //Destructor
 Metropolis::~Metropolis()
@@ -39,32 +53,49 @@ Metropolis::~Metropolis()
   delete[] averagedObservables;
   delete[] variances;
 
+  fclose(MCOutputFile);
+
   if (GlobalComm.thisMPIrank == 0)
     printf("Exiting Metropolis class... \n");
 
 }
+
 
 void Metropolis::run()
 {
 
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
-    printf("Running Metropolis Sampling...\n");
+    printf("   Running Metropolis Sampling...\n");
+
+  char fileName[51];
 
   // Thermalization (observables are not accumulated)
   for (unsigned long int MCSteps=0; MCSteps<numberOfThermalizationSteps; MCSteps++) {
 
-    for (unsigned long int i=0; i<physical_system -> numberOfMCSweepsPerStep; i++) {
+    for (unsigned long int i=0; i<numberOfMCUpdatesPerStep; i++) {
 
       physical_system -> doMCMove();
       physical_system -> getObservables();
   
       // Determine acceptance
-      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) * temperature ) > getRandomNumber2() )
-        physical_system -> acceptMCMove();
+      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) / temperature ) > getRandomNumber2() )
+        physical_system -> acceptMCMove(); 
       else
         physical_system -> rejectMCMove();
-  
+
+    }
+
+    // Write observables to file
+    writeMCFile(MCSteps);
+    
+    // Write restart files at interval
+    currentTime = MPI_Wtime();
+    if (GlobalComm.thisMPIrank == 0) {
+      if (currentTime - lastBackUpTime > checkPointInterval) {
+        physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+        lastBackUpTime = currentTime;
+      }
     }
  
   }
@@ -72,13 +103,13 @@ void Metropolis::run()
   // Observable accumulation starts here
   for (unsigned long int MCSteps=0; MCSteps<numberOfMCSteps; MCSteps++) {
 
-    for (unsigned long int i=0; i<physical_system -> numberOfMCSweepsPerStep; i++) {
+    for (unsigned long int i=0; i<numberOfMCUpdatesPerStep; i++) {
     
       physical_system -> doMCMove();
       physical_system -> getObservables();
   
       // Determine acceptance
-      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) * temperature ) > getRandomNumber2() ) {
+      if ( exp((physical_system -> oldObservables[0] - physical_system -> observables[0]) / temperature ) > getRandomNumber2() ) {
         physical_system -> acceptMCMove();
         acceptedMoves++;
       }
@@ -88,9 +119,28 @@ void Metropolis::run()
       }
 
     }
-
+    
     // Accumulate observables
     accumulateObservables(); 
+
+    // Write observables to file
+    writeMCFile(MCSteps);
+
+    // Write restart files at interval
+    currentTime = MPI_Wtime();
+    if (GlobalComm.thisMPIrank == 0) {
+
+      if (currentTime - lastBackUpTime > checkPointInterval) {
+        physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+        lastBackUpTime = currentTime;
+      }
+
+      if (MCSteps % configurationWriteInterval == 0) {
+        sprintf(fileName, "configurations/config%012lu.dat", MCSteps);
+        physical_system -> writeConfiguration(1, fileName);
+      } 
+
+    }
 
   }
 
@@ -98,15 +148,15 @@ void Metropolis::run()
 
   writeResultsFile();
 
-
 }
+
 
 // This implementation is similar to the one in Histogram class
 void Metropolis::readMCInputFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "Metropolis class reading input file: " << fileName << std::endl;
+    std::cout << "   Metropolis class reading input file: " << fileName << std::endl;
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;
@@ -127,16 +177,32 @@ void Metropolis::readMCInputFile(const char* fileName)
             //std::cout << "Metropolis: numberOfThermalizationSteps = " << numberOfThermalizationSteps << std::endl;
             continue;
           }
-          if (key == "numberOfMCSteps") {
+          else if (key == "numberOfMCSteps") {
             lineStream >> numberOfMCSteps;
             //std::cout << "Metropolis: numberOfMCSteps = " << numberOfMCSteps << std::endl;
             continue;
           }
-          if (key == "temperature") {
+          else if (key == "numberOfMCUpdatesPerStep") {
+            lineStream >> numberOfMCUpdatesPerStep;
+            //std::cout << "Metropolis: numberOfMCUpdatesPerStep = " << numberOfMCUpdatesPerStep << std::endl;
+            continue;
+          }
+          else if (key == "temperature") {
             lineStream >> temperature;
             //std::cout << "Metropolis: temperature = " << temperature << std::endl;
             continue;
           }
+          else if (key == "checkPointInterval") {
+            lineStream >> checkPointInterval;
+            //std::cout << "Metropolis: checkPointInterval = " << checkPointInterval << " seconds \n";
+            continue;
+          }
+          else if (key == "configurationWriteInterval") {
+            lineStream >> configurationWriteInterval;
+            //std::cout << "Metropolis: configurationWriteInterval = " << configurationWriteInterval << " seconds \n";
+            continue;
+          }
+          
 
         }
 
@@ -153,8 +219,6 @@ void Metropolis::readMCInputFile(const char* fileName)
 void Metropolis::accumulateObservables()
 {
 
-  //TODO: print observables to stdout/file
-
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
     averagedObservables[i] += physical_system -> observables[i];    
     variances[i] += (physical_system -> observables[i]) * (physical_system -> observables[i]);
@@ -162,40 +226,62 @@ void Metropolis::accumulateObservables()
 
 }
 
+
 // calculate average and variance of observables
 void Metropolis::calculateAveragesAndVariances()
 {
 
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
-    averagedObservables[i] /= (double)numberOfMCSteps;
-    variances[i] -= averagedObservables[i] * averagedObservables[i];
+    averagedObservables[i] /= double(numberOfMCSteps);
+    variances[i] /= double(numberOfMCSteps);
+    variances[i] = sqrt( variances[i] - averagedObservables[i] * averagedObservables[i] );
+    //variances[i] = sqrt((variances[i] - averagedObservables[i] * averagedObservables[i]) / double(numberOfMCSteps - 1));
   }
 
 }
 
 
-void Metropolis::writeResultsFile(const char* filename)
+void Metropolis::writeMCFile(unsigned long int MCSteps)
 {
 
-  FILE* f;
-  if (filename != NULL) f = fopen(filename, "w");
-  else f = stdout;
-
-  fprintf(f, "\n");
-  fprintf(f, "Statistics of Metropolis sampling \n");
-  fprintf(f, "--------------------------------- \n");
-  fprintf(f, "Simulation temperature:         %8.5f \n", temperature);
-  fprintf(f, "Total number of MC steps:       %lu \n", numberOfMCSteps);
-  fprintf(f, "Number of thermalization steps: %lu \n", numberOfThermalizationSteps);
-  fprintf(f, "Number of MC sweeps per steps:  %lu \n", physical_system -> numberOfMCSweepsPerStep);
-  fprintf(f, "Number of accepted MC moves:    %lu (%5.2f %%) \n", 
-          acceptedMoves, (double)acceptedMoves / (double)numberOfMCSteps * 100.0);
-  fprintf(f, "Number of rejected MC moves:    %lu (%5.2f %%) \n", 
-          rejectedMoves, (double)rejectedMoves / (double)numberOfMCSteps * 100.0);
+  fprintf(MCOutputFile, "%15lu ", MCSteps);
   
-  fprintf(f, "Observable         Variance \n");
-  fprintf(f, "--------------------------- \n");
+  for (unsigned int i=0; i<physical_system->numObservables; i++)
+    fprintf(MCOutputFile, "%15.6f ", physical_system -> observables[i]);
+
+  fprintf(MCOutputFile, "\n");
+
+}
+
+
+void Metropolis::writeResultsFile(const char* filename) 
+{
+
+  FILE* resultsFile;
+  if (filename != NULL) resultsFile = fopen(filename, "w");
+  else resultsFile = stdout;
+
+  fprintf(resultsFile, "\n");
+  fprintf(resultsFile, "   Statistics of Metropolis sampling \n");
+  fprintf(resultsFile, "   --------------------------------- \n");
+  fprintf(resultsFile, "   Simulation temperature         : %8.5f \n", temperature);
+  fprintf(resultsFile, "   Total number of MC steps       :  %lu \n", numberOfMCSteps);
+  fprintf(resultsFile, "   Number of thermalization steps :  %lu \n", numberOfThermalizationSteps);
+  fprintf(resultsFile, "   Number of MC updates per step  :  %lu \n", numberOfMCUpdatesPerStep);
+  fprintf(resultsFile, "   Number of accepted MC updates  :  %lu (%5.2f %%) \n", 
+          acceptedMoves, double(acceptedMoves) / double(numberOfMCSteps * numberOfMCUpdatesPerStep) * 100.0);
+  fprintf(resultsFile, "   Number of rejected MC updates  :  %lu (%5.2f %%) \n", 
+          rejectedMoves, double(rejectedMoves) / double(numberOfMCSteps * numberOfMCUpdatesPerStep) * 100.0);
+  
+  fprintf(resultsFile, "\n");
+
+  fprintf(resultsFile, "    Observable   Std. deviation \n");
+  fprintf(resultsFile, "   ----------------------------- \n");
   for (unsigned int i=0; i<physical_system -> numObservables; i++)
-    fprintf(f, "%10.5f         %10.5f \n", averagedObservables[i], variances[i]);
+    fprintf(resultsFile, "   %10.5f      %10.5f \n", averagedObservables[i], variances[i]);
+
+  fprintf(resultsFile, "\n");
+
+  if (filename != NULL) fclose(resultsFile);
 
 }

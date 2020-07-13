@@ -11,7 +11,7 @@ public :
   WangLandauSampling(PhysicalSystem* ps);
   ~WangLandauSampling();
 
-  void run();
+  void run()                  override;
 
 private :
 

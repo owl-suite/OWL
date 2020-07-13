@@ -22,7 +22,7 @@ RngSeed  183083
 # 4: Ising 2D
 # 5: Heisenberg 3D
 # 6: Customized crystal structure
-PhysicalSystem  4
+PhysicalSystem  6
 
 
 ##### Inputs for PhysicalSystem=1 (Quantum Espresso) #####
@@ -44,22 +44,44 @@ PhysicalSystem  4
 ##### Inputs for PhysicalSystem=3,4,5 (Heisenberg and Ising models) #####
 
 # Lattice size for spin models
-SpinModelLatticeSize  4
+#SpinModelLatticeSize  4
 
 
 ##### Inputs for PhysicalSystem=6 (Customized crystal structure) #####
-# Example: 2x2x2 BCC iron
 
-#LatticeVectors  1.0     0.0     0.0
-#                0.0     1.0     0.0
-#                0.0     0.0     1.0
-#
-#NumberOfAtomsPerUnitCell        2
-#
-#atom    Fe    0.0    0.0    0.0
-#atom    Fe    0.5    0.5    0.5
-#
-#UnitCellDimensions      2 2 2
+LatticeVectors  1.0     0.0     0.0
+                0.0     1.0     0.0
+                0.0     0.0     1.0
+
+NumberOfAtomsPerUnitCell        1
+
+atom    Fe    0.0    0.0    0.0
+
+UnitCellDimensions      3 3 3
+
+
+# Interaction cutoff distance (Inclusive. Unit: in lattice constant)
+InteractionCutoffDistance     1.0
+
+
+# (TODO) The following generalizations are not implemented yet.
+# Interaction type, number of nearest neighbors to interact with
+# 0 : interaction switched off (no nearest neighbors)
+# 1 : nearest-neighbor interaction only
+# 2 : nearest-neighbor and next-nearest-neighbor interactions
+# 3 : interactions up to the 3rd nearest-neighbor
+# 4 : interactions up to the 4th nearest-neighbor
+# ... and so on
+
+#ExchangeInteraction                 1
+#DzyaloshinskiiMoriyaInteration      0
+
+
+# (TODO) Interaction strength(s)
+# Note: the number of interaction strengths should be the same as the number of nearest neighbors above
+#ExchangeInteractionStrengths     1.0
+#DzyaloshinskiiMoriyaInterationStrengths     (custom in the code)
+
 
 
 ##########################################
@@ -77,20 +99,22 @@ Algorithm  2
 
 #numberOfThermalizationSteps  10000
 #numberOfMCSteps              20000
+#numberOfMCUpdatesPerStep     27
 #temperature                  3.0
-
+#checkPointInterval           900		# in seconds
+#configurationWriteInterval   1000
 
 ##### Inputs for Wang-Landau sampling #####
 
 dim                       1
-flatnessCriterion         0.6 
+flatnessCriterion         0.8 
 modFactor                 1.000 
 modFactorFinal            1.25000000e-06
 modFactorReducer          2.000 
-histogramCheckInterval    10000 
-histogramRefreshInterval  1000000
-Emin                      -32
-Emax                      32
+histogramCheckInterval    100000 
+histogramRefreshInterval  10000000
+Emin                      -80
+Emax                      80
 binSize                   1
 
 ##### Inputs for Replica-Exchange Wang-Landau sampling #####

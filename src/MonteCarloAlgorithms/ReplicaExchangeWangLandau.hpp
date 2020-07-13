@@ -26,7 +26,7 @@ public :
   ReplicaExchangeWangLandau(PhysicalSystem* ps, MPICommunicator PhySystemComm, MPICommunicator MCAlgorithmComm);
   ~ReplicaExchangeWangLandau();
 
-  void run();
+  void run()  override;
 
 private :
 

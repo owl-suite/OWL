@@ -19,6 +19,10 @@ extern std::uniform_real_distribution<double> distribution2;
 // Uniform integer distribution between (0,?)
 extern std::uniform_int_distribution<int> distribution_int; 
 
+// Uniform unsigned integer distribution between (0,?)
+extern std::uniform_int_distribution<unsigned int> distribution_uint; 
+
+
 void initializeRandomNumberGenerator(MPICommunicator, int = -1);
 
 
@@ -38,6 +42,12 @@ inline double getRandomNumber2()
 inline int getIntRandomNumber()
 {
   return distribution_int(rng_engine);
+}
+
+// Returns an integral random number between (0,?)
+inline unsigned int getUnsignedIntRandomNumber()
+{
+  return distribution_uint(rng_engine);
 }
 
 #endif

@@ -130,7 +130,7 @@
 
       if (owner && data)
         delete[] data;
-        data = dat;
+      data = dat;
 
       if (ldim < nRows)
         ldim = nRows;

@@ -314,7 +314,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     int numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell.
     relativeUnitCellVectors.resize(3, numberOfNeighoringUnitCells);
 
-    unsigned int counter {0};
+    int counter {0};
     for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
       for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
         for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {

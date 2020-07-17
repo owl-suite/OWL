@@ -174,10 +174,10 @@ void ReplicaExchangeWangLandau::run()
       if (PhysicalSystemComm.thisMPIrank == 0)
         printf("WalkerID: %05d, Number of iterations performed = %d\n", REWLComm.thisMPIrank, h.iterations);
 
-        // Prepare for the next iteration
-        h.modFactor /= h.modFactorReducer;
-        h.resetHistogram();
-        h.iterations++;
+      // Prepare for the next iteration
+      h.modFactor /= h.modFactorReducer;
+      h.resetHistogram();
+      h.iterations++;
 
     }
 

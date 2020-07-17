@@ -8,7 +8,7 @@ class Heisenberg3D : public PhysicalSystem {
 
 public :
 
-  Heisenberg3D(const char* inputFile, const char* coordinatesFile = NULL, int initial = 0); 
+  Heisenberg3D(const char* inputFile, const char* spinConfigFile = NULL, int initial = 0); 
   ~Heisenberg3D();
 
   //void readCommandLineOptions()                         override;
@@ -22,8 +22,8 @@ public :
 
 private :
 
-  int Size;
-  long LatticeSize;
+  unsigned int Size;
+  unsigned int LatticeSize;
 
   struct SpinDirection {
     double x;
@@ -32,7 +32,7 @@ private :
   };  
 
   // Old configuration
-  int CurX, CurY, CurZ;
+  unsigned int CurX, CurY, CurZ;
   SpinDirection CurType;
 
   // New configuration
@@ -43,7 +43,7 @@ private :
 
   // Private functions
   void GetMeasuresBruteForce();
-  void readCoordinatesFile(const char* coordinatesFile);
+  void readSpinConfigFile(const char* spinConfigFile);
   void initializeSpinConfiguration(int initial);
 
 };

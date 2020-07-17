@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
@@ -41,8 +42,8 @@ Heisenberg3D::Heisenberg3D(const char* inputFile, const char* spinConfigFile, in
 
 Heisenberg3D::~Heisenberg3D()
 {
-  for (int i = 0; i < Size; i++) {
-    for (int j = 0; j < Size; j++)
+  for (unsigned int i = 0; i < Size; i++) {
+    for (unsigned int j = 0; j < Size; j++)
       delete[] spin[i][j];
     delete[] spin[i];
   }
@@ -61,8 +62,6 @@ Heisenberg3D::~Heisenberg3D()
 void Heisenberg3D::writeConfiguration(int format, const char* filename)
 {
 
-  int i, j, k;
-
   FILE* f;
   if (filename != NULL) f = fopen(filename, "w");
   else f = stdout;
@@ -72,14 +71,14 @@ void Heisenberg3D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "\n");
-    fprintf(f, "3D Heisenberg Model : %d x %d x %d (%ld)\n", Size, Size, Size, LatticeSize);
+    fprintf(f, "3D Heisenberg Model : %u x %u x %u (%u)\n", Size, Size, Size, LatticeSize);
     fprintf(f, "Measures:");
-    for (i = 0; i < numObservables; i++)
+    for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
-    for (i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
-        for (k = 0; k < Size; k++)
+    for (unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
+        for (unsigned int k = 0; k < Size; k++)
           fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i][j][k].x, spin[i][j][k].y, spin[i][j][k].z);
         fprintf(f, "\n");
       }
@@ -100,25 +99,20 @@ void Heisenberg3D::GetMeasuresBruteForce()
 {
   //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
 
-  int i, j, k;
-  int xLeft, yBelow, zBackward;
+  unsigned int xLeft, yBelow, zBackward;
 
   // Uncomment this when observables[] are used
   //resetObservables();
-  //double tempE = 0.0;
-  //double tempMx = 0.0;
-  //double tempMy = 0.0;
-  //double tempMz = 0.0;
   ObservableType tempE = 0.0;
   ObservableType tempMx = 0.0;
   ObservableType tempMy = 0.0;
   ObservableType tempMz = 0.0;
 
-  for (i = 0; i < Size; i++) {
+  for (unsigned int i = 0; i < Size; i++) {
     if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
-    for (j= 0; j < Size; j++) {
+    for (unsigned int j = 0; j < Size; j++) {
       if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
-      for (k = 0; k < Size; k++) {
+      for (unsigned int k = 0; k < Size; k++) {
         if (k != 0) zBackward = k - 1; else zBackward = Size - 1;
         //observables[0] += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
         //               spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
@@ -150,21 +144,19 @@ void Heisenberg3D::GetMeasuresBruteForce()
 void Heisenberg3D::getObservables() 
 {
 
-  int i, j, k;
-  int xLeft, yBelow, zBackward;
-  int xRight, yAbove, zForward;
-  //double energyChange;
+  unsigned int xLeft, yBelow, zBackward;
+  unsigned int xRight, yAbove, zForward;
   ObservableType energyChange;
 
   if (firstTimeGetMeasures) {
 
     //resetObservables();
   
-    for (i = 0; i < Size; i++) {
+    for (unsigned int i = 0; i < Size; i++) {
       if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
-      for (j = 0; j < Size; j++) {
+      for (unsigned int j = 0; j < Size; j++) {
         if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
-        for (k = 0; k < Size; k++) {
+        for (unsigned int k = 0; k < Size; k++) {
           if (k != 0) zBackward = k - 1; else zBackward = Size - 1;
           observables[0] += spin[i][j][k].x * (spin[xLeft][j][k].x + spin[i][yBelow][k].x + spin[i][j][zBackward].x) + 
                             spin[i][j][k].y * (spin[xLeft][j][k].y + spin[i][yBelow][k].y + spin[i][j][zBackward].y) +
@@ -223,8 +215,6 @@ void Heisenberg3D::doMCMove()
   //for (int i = 0; i < numObservables; i++)
   //  oldObservables[i] = observables[i];
 
-  //CurX = (int)(gsl_rng_uniform(rng) * Size);
-  //CurY = (int)(gsl_rng_uniform(rng) * Size);
   CurX = getIntRandomNumber() % Size;
   CurY = getIntRandomNumber() % Size;
   CurZ = getIntRandomNumber() % Size;
@@ -232,8 +222,6 @@ void Heisenberg3D::doMCMove()
   CurType = spin[CurX][CurY][CurZ];
 
   do {
-    //r1 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-    //r2 = 1.0 - 2.0 * gsl_rng_uniform(rng);
     r1 = 2.0 * getRandomNumber();
     r2 = 2.0 * getRandomNumber();
     rr = r1 * r1 + r2 * r2;
@@ -259,7 +247,7 @@ void Heisenberg3D::undoMCMove()
 void Heisenberg3D::acceptMCMove()
 {
   // update "old" observables
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i = 0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 }
 
@@ -267,7 +255,7 @@ void Heisenberg3D::acceptMCMove()
 void Heisenberg3D::rejectMCMove()
 {
   spin[CurX][CurY][CurZ] = CurType;
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i = 0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 }
 

@@ -119,8 +119,6 @@ Heisenberg2D::~Heisenberg2D()
 void Heisenberg2D::writeConfiguration(int format, const char* filename)
 {
 
-  int i, j;
-
   FILE* f;
   if (filename != NULL) f = fopen(filename, "w");
   else f = stdout;
@@ -132,11 +130,11 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
     fprintf(f, "\n");
     fprintf(f, "2D Heisenberg Model : %d x %d (%ld)\n", Size, Size, LatticeSize);
     fprintf(f, "Measures:");
-    for (i = 0; i < numObservables; i++)
+    for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
-    for (i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++)
+    for (unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++)
         fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i][j].x, spin[i][j].y, spin[i][j].z);
       fprintf(f, "\n");
     }
@@ -299,7 +297,7 @@ void Heisenberg2D::undoMCMove()
 void Heisenberg2D::acceptMCMove()
 {
   // update "old" observables
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i=0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 }
 
@@ -307,7 +305,7 @@ void Heisenberg2D::acceptMCMove()
 void Heisenberg2D::rejectMCMove()
 {
   spin[CurX][CurY] = CurType;
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i=0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 }
 

@@ -115,7 +115,6 @@ Ising2D::~Ising2D()
 void Ising2D::writeConfiguration(int format, const char* filename)
 {
 
-  int i;
   int x, y;
 
   FILE* f;
@@ -129,7 +128,7 @@ void Ising2D::writeConfiguration(int format, const char* filename)
     fprintf(f, "\n");
     fprintf(f, "2D Ising Model : %d x %d (%ld)\n", Size, Size, LatticeSize);
     fprintf(f, "Measures:");
-    for (i = 0; i < numObservables; i++)
+    for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
       //fprintf(f, " %10d", observables[i]);
     fprintf(f, "\n");
@@ -230,7 +229,7 @@ void Ising2D::doMCMove()
 {
 
   // Need this here since resetObservables() is not called if getObservablesFromScratch = false
-  for (int i = 0; i < numObservables; i++)
+  for (unsigned int i = 0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 
   // randomly choose a site
@@ -261,7 +260,7 @@ void Ising2D::acceptMCMove()
 {
 
   // update "old" observables
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i=0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 
 }
@@ -271,7 +270,7 @@ void Ising2D::rejectMCMove()
 {
 
   spin[CurX*Size+CurY] = CurType;
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i=0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 
 }

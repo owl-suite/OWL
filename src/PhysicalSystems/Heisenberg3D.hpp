@@ -22,8 +22,8 @@ public :
 
 private :
 
-  int Size;
-  long LatticeSize;
+  unsigned int Size;
+  unsigned int LatticeSize;
 
   struct SpinDirection {
     double x;
@@ -32,7 +32,7 @@ private :
   };  
 
   // Old configuration
-  int CurX, CurY, CurZ;
+  unsigned int CurX, CurY, CurZ;
   SpinDirection CurType;
 
   // New configuration

@@ -24,8 +24,8 @@ public :
 
 private :
 
-  int Size;
-  long LatticeSize;
+  unsigned int Size;
+  unsigned int LatticeSize;
 
   struct SpinDirection {
     double x;

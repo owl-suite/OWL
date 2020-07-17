@@ -149,7 +149,7 @@ void CrystalStructure3D::undoMCMove()
 void CrystalStructure3D::acceptMCMove()
 {
   // update "old" observables
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i = 0; i < numObservables; i++)
     oldObservables[i] = observables[i];
 }
 
@@ -158,7 +158,7 @@ void CrystalStructure3D::acceptMCMove()
 void CrystalStructure3D::rejectMCMove()
 {
   spin[currentPosition] = oldSpin;
-  for (int i=0; i<numObservables; i++)
+  for (unsigned int i = 0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 }
 

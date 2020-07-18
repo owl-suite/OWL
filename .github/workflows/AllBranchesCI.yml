@@ -7,6 +7,7 @@ jobs:
   build:    
     runs-on: ubuntu-latest    
     steps:
-      - uses: actions/checkout@v2
-        name: Make barebone, stand-alone OWL  
+      - name: Checkout OWL from github
+        uses: actions/checkout@v2
+      - name: Make barebone, stand-alone OWL  
         run: make owl

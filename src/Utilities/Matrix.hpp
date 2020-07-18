@@ -103,7 +103,7 @@
          std::logic_error("matrix not locally owned in T& Matrix<T>::resize");
 
        if (ldim*n <= physicalSize) {
-         if (bool(ldim*n) && data) {
+         if (ldim*n != 0 && data) {
            nCol = n; nRow = m; lDim = ldim;
          }
          else {

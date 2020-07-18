@@ -34,7 +34,7 @@ private :
   };  
 
   // Old configuration
-  int CurX, CurY;
+  unsigned int CurX, CurY;
   SpinDirection CurType;
 
   // New configuration

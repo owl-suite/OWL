@@ -10,7 +10,6 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
 
   printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
-  int i, j;
   double r1, r2, rr;
 
   Size = simInfo.spinModelLatticeSize;
@@ -18,7 +17,7 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
 
   spin = new SpinDirection*[Size];
 
-  for (i = 0; i < Size; i++) 
+  for (unsigned int i = 0; i < Size; i++) 
     spin[i] = new SpinDirection[Size];
 
   if (filename != NULL) {
@@ -28,8 +27,8 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
       exit(1);
     }
 
-    for(i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
+    for(unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
         if (fscanf(f, "%lf %lf %lf", &spin[i][j].x, &spin[i][j].y, &spin[i][j].z) != 3) {
           std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
           exit(1);
@@ -40,8 +39,8 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
     fclose(f);
   }
   else {
-    for (i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
+    for (unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
 
         switch (initial) {
         case 1  : {
@@ -102,7 +101,7 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
 
 Heisenberg2D::~Heisenberg2D()
 {
-  for (int i = 0; i < Size; i++) 
+  for (unsigned int i = 0; i < Size; i++) 
     delete[] spin[i];
   delete[] spin;
 
@@ -128,7 +127,7 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "\n");
-    fprintf(f, "2D Heisenberg Model : %d x %d (%ld)\n", Size, Size, LatticeSize);
+    fprintf(f, "2D Heisenberg Model : %u x %u (%u)\n", Size, Size, LatticeSize);
     fprintf(f, "Measures:");
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
@@ -153,23 +152,18 @@ void Heisenberg2D::GetMeasuresBruteForce()
 {
   //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
 
-  int i, j;
-  int xLeft, yBelow;
+  unsigned int xLeft, yBelow;
 
   // Uncomment this when observables[] are used
   //resetObservables();
-  //double tempE = 0.0;
-  //double tempMx = 0.0;
-  //double tempMy = 0.0;
-  //double tempMz = 0.0;
   ObservableType tempE = 0.0;
   ObservableType tempMx = 0.0;
   ObservableType tempMy = 0.0;
   ObservableType tempMz = 0.0;
 
-  for (i = 0; i < Size; i++) {
+  for (unsigned int i = 0; i < Size; i++) {
     if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
-    for (j = 0; j < Size; j++) {
+    for (unsigned int j = 0; j < Size; j++) {
       if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
       //observables[0] += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
       //               spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
@@ -200,19 +194,17 @@ void Heisenberg2D::GetMeasuresBruteForce()
 void Heisenberg2D::getObservables()
 {
 
-  int i, j;
-  int xLeft, yBelow;
-  int xRight, yAbove;
-  //double energyChange;
+  unsigned int xLeft, yBelow;
+  unsigned int xRight, yAbove;
   ObservableType energyChange;
 
   if (firstTimeGetMeasures) {
 
     //resetObservables();
   
-    for (i = 0; i < Size; i++) {
+    for (unsigned int i = 0; i < Size; i++) {
       if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
-      for (j = 0; j < Size; j++) {
+      for (unsigned int j = 0; j < Size; j++) {
         if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
         observables[0] += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
                           spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +

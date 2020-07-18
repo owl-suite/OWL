@@ -2,36 +2,44 @@ name: AllBranchesCI
 on:    
   push:    
     branches:    
-      - '*'    
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
 jobs:    
   build:    
     runs-on: ubuntu-latest    
     steps:
-    - name: Checkout OWL from github
-      uses: actions/checkout@v2
-    - name: Link to the Linux architecture file
-      run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
+    - name: Download OpenMPI    
+      run:  wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz    
 
-    - name: Download OpenMPI
-      run:  wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz
-    - name: Extract OpenMPI
-      run:  tar -xvf ./openmpi-4.0.4.tar.gz
-    - name: Configure OpenMPI
-      run:  ./openmpi-4.0.4/configure --prefix="/home/${USER}/openmpi"
-    - name: Install OpenMPI
-      run:  |
-        make -j
-        sudo make install
-    - name: Set OpenMPI's search paths and make OWL
-      run: |
-        export PATH=/home/${USER}/openmpi/bin/:${PATH}
-        export LD_LIBRARY_PATH=/home/${USER}/openmpi/lib/:${LD_LIBRARY_PATH}
-        echo "PATH: " ${PATH}
-        echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
-        if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; which mpicxx; mpicxx --version; fi
-        #- name: Make barebone, stand-alone OWL
-        #run:  |
-        #if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; mpicxx --version; fi 
-        cd /home/${USER}/work/OWL/OWL
-        make owl
+    - name: Extract OpenMPI    
+      run:  tar -xvf ./openmpi-4.0.4.tar.gz    
+    
+    - name: Check C++ compiler and configure OpenMPI    
+      run:  |    
+        if [[ `which g++-9` ]]; then echo "g++-9 compiler found. "; which g++-9; g++-9 --version; fi    
+        ./openmpi-4.0.4/configure CC=gcc-9 CXX=g++-9 F77=gfortran-9 FC=gfortran-9 --prefix="/home/${USER}/openmpi"
+    
+    - name: Install OpenMPI    
+      run:  |    
+        make -j    
+        sudo make install    
+    
+    - name: Checkout OWL from github    
+      uses: actions/checkout@v2    
+    
+    - name: Link to the Linux architecture file    
+      run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc    
+    
+    - name: Set OpenMPI's search paths and make OWL    
+      run: |    
+        export PATH=/home/${USER}/openmpi/bin/:${PATH}    
+        export LD_LIBRARY_PATH=/home/${USER}/openmpi/lib/:${LD_LIBRARY_PATH}    
+        echo "PATH : " ${PATH}    
+        echo "LD_LIBRARY_PATH : " ${LD_LIBRARY_PATH}    
+        if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; which mpicxx; mpicxx --version; fi    
+        cd /home/${USER}/work/OWL/OWL    
+        make -f Makefile owl    
 

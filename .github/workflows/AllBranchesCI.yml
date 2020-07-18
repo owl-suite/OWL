@@ -7,9 +7,29 @@ jobs:
   build:    
     runs-on: ubuntu-latest    
     steps:
-      - name: Checkout OWL from github
-        uses: actions/checkout@v2
-      - name: Link to the Linux architecture file
-        run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
-      - name: Make barebone, stand-alone OWL
-        run: make owl
+    - name: Download OpenMPI
+      run:  wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz
+    - name: Extract OpenMPI
+      run:  tar -xvf ./openmpi-4.0.4.tar.gz
+    - name: Configure Openmpi
+      run:  ./openmpi-4.0.4/configure --prefix="/home/${USER}/openmpi"
+    - name: Install OpenMPI
+      run:  |
+        make -j
+        sudo make install
+    - name: Set OpenMPI's search paths
+      run: |
+        export PATH=${PATH}:/home/${USER}/openmpi/bin/
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/${USER}/openmpi/lib/
+        echo "PATH: " ${PATH}
+        echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
+        if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; mpicxx --version; fi
+        if [[ `which mpicxx` ]]; then echo "MPI compiler mpicx++ found. "; mpic++ --version; fi
+
+    - name: Checkout OWL from github
+      uses: actions/checkout@v2
+    - name: Link to the Linux architecture file
+      run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
+    - name: Make barebone, stand-alone OWL
+      run: make owl
+

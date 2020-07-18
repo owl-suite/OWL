@@ -1,0 +1,33 @@
+name: Manually trigger workflow
+on:    
+  workflow_dispatch:
+    branches:
+      - '*'  
+jobs:    
+  build:    
+    runs-on: ubuntu-latest    
+    steps:
+    - name: Download OpenMPI
+      run:  wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz
+    - name: Extract OpenMPI
+      run:  tar -xvf ./openmpi-4.0.4.tar.gz
+    - name: Configure OpenMPI
+      run:  ./openmpi-4.0.4/configure --prefix="/home/${USER}/openmpi"
+    - name: Install OpenMPI
+      run:  |
+        make -j
+        sudo make install
+    - name: Checkout OWL from github
+      uses: actions/checkout@v2
+    - name: Link to the Linux architecture file
+      run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
+    - name: Set OpenMPI's search paths and make OWL
+      run: |
+        export PATH=/home/${USER}/openmpi/bin/:${PATH}
+        export LD_LIBRARY_PATH=/home/${USER}/openmpi/lib/:${LD_LIBRARY_PATH}
+        echo "PATH: " ${PATH}
+        echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
+        if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; which mpicxx; mpicxx --version; fi
+        cd /home/${USER}/work/OWL/OWL
+        make owl
+

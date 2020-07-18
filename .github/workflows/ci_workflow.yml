@@ -29,5 +29,7 @@ jobs:
         echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
         if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; which mpicxx; mpicxx --version; fi
         cd /home/${USER}/work/OWL/OWL
-        make owl
+        pwd
+        ls -la
+        make -f Makefile owl
 

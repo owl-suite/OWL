@@ -9,5 +9,7 @@ jobs:
     steps:
       - name: Checkout OWL from github
         uses: actions/checkout@v2
-      - name: Make barebone, stand-alone OWL  
+      - name: Link to the Linux architecture file
+        run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
+      - name: Make barebone, stand-alone OWL
         run: make owl

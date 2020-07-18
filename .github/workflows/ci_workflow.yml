@@ -1,4 +1,4 @@
-name: Manually trigger workflow
+name: Manually triggered workflow
 on:    
   workflow_dispatch:
     branches:
@@ -11,25 +11,33 @@ jobs:
       run:  wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz
     - name: Extract OpenMPI
       run:  tar -xvf ./openmpi-4.0.4.tar.gz
+    - name: Check C++ compiler
+      run:  if [[ `which g++-9` ]]; then echo "g++-9 compiler found. "; which g++-9; g++-9 --version; fi
     - name: Configure OpenMPI
-      run:  ./openmpi-4.0.4/configure --prefix="/home/${USER}/openmpi"
+      run:  ./openmpi-4.0.4/configure CC=gcc-9 CXX=g++-9 F77=gfortran-9 FC=gfortran-9 --prefix="/home/${USER}/openmpi"
     - name: Install OpenMPI
       run:  |
         make -j
         sudo make install
+    - name: Set OpenMPI's search paths 
+      run: |
+        export PATH=/home/${USER}/openmpi/bin/:${PATH}
+        export LD_LIBRARY_PATH=/home/${USER}/openmpi/lib/:${LD_LIBRARY_PATH}
+        echo "PATH: " ${PATH}
+        echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
     - name: Checkout OWL from github
       uses: actions/checkout@v2
     - name: Link to the Linux architecture file
       run:  rm architecture.inc; ln -s architecture/generic_linux architecture.inc
     - name: Set OpenMPI's search paths and make OWL
       run: |
+        echo "PATH (before): " ${PATH}
+        echo "LD_LIBRARY_PATH (before): " ${LD_LIBRARY_PATH}
         export PATH=/home/${USER}/openmpi/bin/:${PATH}
         export LD_LIBRARY_PATH=/home/${USER}/openmpi/lib/:${LD_LIBRARY_PATH}
-        echo "PATH: " ${PATH}
-        echo "LD_LIBRARY_PATH: " ${LD_LIBRARY_PATH}
+        echo "PATH (after): " ${PATH}
+        echo "LD_LIBRARY_PATH (after): " ${LD_LIBRARY_PATH}
         if [[ `which mpicxx` ]]; then echo "MPI compiler mpicxx found. "; which mpicxx; mpicxx --version; fi
         cd /home/${USER}/work/OWL/OWL
-        pwd
-        ls -la
         make -f Makefile owl
 

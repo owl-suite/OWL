@@ -40,6 +40,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
     MCOutputFile = fopen("mc.dat", "a");
   else {
     MCOutputFile = fopen("mc.dat", "w");
+    fprintf(MCOutputFile, "# Thermalization: (%lu steps) \n", numberOfThermalizationSteps);
     fprintf(MCOutputFile, "# MC steps           Observables\n");
   }
 
@@ -100,6 +101,10 @@ void Metropolis::run()
  
   }
 
+  fprintf(MCOutputFile, "# End of thermalization. \n\n");
+  fprintf(MCOutputFile, "# Accumulation: (%lu steps) \n", numberOfMCSteps);
+  fprintf(MCOutputFile, "# MC steps           Observables\n");
+
   // Observable accumulation starts here
   for (unsigned long int MCSteps=0; MCSteps<numberOfMCSteps; MCSteps++) {
 
@@ -143,6 +148,8 @@ void Metropolis::run()
     }
 
   }
+
+  fprintf(MCOutputFile, "# End of accumulation. \n\n");
 
   calculateAveragesAndVariances();
 
@@ -258,12 +265,13 @@ void Metropolis::writeResultsFile(const char* filename)
 {
 
   FILE* resultsFile;
-  if (filename != NULL) resultsFile = fopen(filename, "w");
+  if (filename != NULL)
+    resultsFile = fopen(filename, "w");
   else resultsFile = stdout;
 
   fprintf(resultsFile, "\n");
-  fprintf(resultsFile, "   Statistics of Metropolis sampling \n");
-  fprintf(resultsFile, "   --------------------------------- \n");
+  fprintf(resultsFile, "             Statistics of Metropolis sampling \n");
+  fprintf(resultsFile, "   ----------------------------------------------------- \n");
   fprintf(resultsFile, "   Simulation temperature         : %8.5f \n", temperature);
   fprintf(resultsFile, "   Total number of MC steps       :  %lu \n", numberOfMCSteps);
   fprintf(resultsFile, "   Number of thermalization steps :  %lu \n", numberOfThermalizationSteps);

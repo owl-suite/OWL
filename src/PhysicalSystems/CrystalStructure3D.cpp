@@ -38,10 +38,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesys
   //for (unsigned int i=0; i<lattice.totalNumberOfAtoms; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
 
-  initializeObservables(4);      // observables[0] : total energy
-                                 // observables[1] : magnetization in x-direction
-                                 // observables[2] : magnetization in y-direction
-                                 // observables[3] : magnetization in z-direction
+  initializeObservables(5); 
   firstTimeGetMeasures = true;
   getObservablesFromScratch();
 
@@ -100,7 +97,7 @@ void CrystalStructure3D::getObservablesFromScratch()
 {
 
   observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
-  std::tie(observables[1], observables[2], observables[3]) = getMagnetization();
+  std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
 
   firstTimeGetMeasures = false;
 
@@ -111,10 +108,11 @@ void CrystalStructure3D::getObservablesFromScratch()
 void CrystalStructure3D::getObservables() 
 {
 
-  observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();;
+  observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
+  observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
 
 }
 
@@ -124,7 +122,7 @@ void CrystalStructure3D::doMCMove()
 {
 
   // Need this here since resetObservables() is not called if firstTimeGetMeasures = false
-  // for (int i = 0; i < numObservables; i++)
+  // for (unsigned int i = 0; i < numObservables; i++)
   //   oldObservables[i] = observables[i];
 
   currentPosition = getUnsignedIntRandomNumber() % lattice.totalNumberOfAtoms;
@@ -619,12 +617,13 @@ ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
 }
 
 
-std::tuple<ObservableType, ObservableType, ObservableType> CrystalStructure3D::getMagnetization()
+std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> CrystalStructure3D::getMagnetization()
 {
 
   ObservableType m1 {0.0};
   ObservableType m2 {0.0};
   ObservableType m3 {0.0};
+  ObservableType m4 {0.0};
 
   for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
     m1 += spin[atomID].x;
@@ -632,7 +631,9 @@ std::tuple<ObservableType, ObservableType, ObservableType> CrystalStructure3D::g
     m3 += spin[atomID].z;
   }
 
-  return {m1, m2, m3};
+  m4 = sqrt(m1 * m1 + m2 * m2 + m3 * m3);
+
+  return {m1, m2, m3, m4};
 
 }
 

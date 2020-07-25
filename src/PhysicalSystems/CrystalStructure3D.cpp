@@ -39,6 +39,13 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesys
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
 
   initializeObservables(5); 
+  
+  observableName.push_back("Total energy, E");                            // observables[0] : total energy
+  observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
+  observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
+  observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
+  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+
   firstTimeGetMeasures = true;
   getObservablesFromScratch();
 

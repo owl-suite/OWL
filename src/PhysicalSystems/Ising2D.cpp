@@ -80,8 +80,11 @@ Ising2D::Ising2D(const char* filename, int initial)
     }
   }
 
-  initializeObservables(2);      // observables[0] : energy
-                                 // observables[1] : magnetization
+  initializeObservables(2);
+  observableName.push_back("Total energy, E");                            // observables[0] : total energy
+  observableName.push_back("Total magnetization, M");                     // observables[1] : total magnetization
+
+
   getObservablesFromScratch = true;
   getObservables();
 

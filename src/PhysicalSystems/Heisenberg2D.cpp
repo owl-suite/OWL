@@ -88,10 +88,12 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
     }
   }
 
-  initializeObservables(4);      // observables[0] : energy
-                                 // observables[1] : magnetization in x-direction
-                                 // observables[2] : magnetization in y-direction
-                                 // observables[3] : magnetization in z-direction
+  initializeObservables(4);
+  observableName.push_back("Total energy, E");                            // observables[0] : total energy
+  observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
+  observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
+  observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
+
   firstTimeGetMeasures = true;
   getObservables();
 

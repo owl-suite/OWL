@@ -275,10 +275,10 @@ void Metropolis::writeResultsFile(const char* filename)
   
   fprintf(resultsFile, "\n");
 
-  fprintf(resultsFile, "    Observable   Std. deviation \n");
-  fprintf(resultsFile, "   ----------------------------- \n");
+  fprintf(resultsFile, "                        Observable                          Mean          Std. deviation \n");
+  fprintf(resultsFile, "   -------------------------------------------------------------------------------------- \n");
   for (unsigned int i=0; i<physical_system -> numObservables; i++)
-    fprintf(resultsFile, "   %10.5f      %10.5f \n", averagedObservables[i], variances[i]);
+    fprintf(resultsFile, "   %45s :     %12.5f      %12.5f \n", physical_system -> observableName[i].c_str(), averagedObservables[i], variances[i]);
 
   fprintf(resultsFile, "\n");
 

@@ -77,13 +77,13 @@ private :
   void                             mapPrimaryToAllNeighborLists();
 
   // Hamiltonian measurements:
-  void                                                       getObservablesFromScratch();
-  ObservableType                                             getExchangeInterations();
-  ObservableType                                             getDzyaloshinskiiMoriyaInterations();
-  std::tuple<ObservableType, ObservableType, ObservableType> getMagnetization();
+  void                                                                       getObservablesFromScratch();
+  ObservableType                                                             getExchangeInterations();
+  ObservableType                                                             getDzyaloshinskiiMoriyaInterations();
+  std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
 
-  ObservableType                                             getDifferenceInExchangeInterations();
-  ObservableType                                             getDifferenceInDzyaloshinskiiMoriyaInterations();
+  ObservableType                                                             getDifferenceInExchangeInterations();
+  ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInterations();
 };
 
 #endif

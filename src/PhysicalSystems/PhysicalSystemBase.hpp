@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
+#include <vector>
 #include "Main/Globals.hpp"
 #include "Main/Communications.hpp"
 
@@ -32,9 +34,10 @@ public:
   void readHamiltonianTerms(const char* inputFile) {};
 
   // Parameters common to (needed by) all models:
-  unsigned int numObservables;
-  ObservableType* observables;
-  ObservableType* oldObservables;
+  unsigned int             numObservables;
+  ObservableType*          observables;
+  ObservableType*          oldObservables;
+  std::vector<std::string> observableName;
 
   // For systems where energy is calculated from the difference with the previous configuration, 
   // this flag will cause the energy to be calculated from scratch again.

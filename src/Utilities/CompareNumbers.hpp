@@ -2,6 +2,7 @@
 #define COMPARE_NUMBERS_HPP
 
 #include <cmath>
+#include <vector>
 
 const double threshold {0.000001};
 

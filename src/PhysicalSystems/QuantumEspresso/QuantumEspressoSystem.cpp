@@ -12,7 +12,8 @@ QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)
   //oldEnergy   = 0.0;
   //trialEnergy = 0.0;
   
-  initializeObservables(1); // observable[0] = energy
+  initializeObservables(1);
+  observableName.push_back("Total energy, E");                            // observables[0] : total energy
 
   readCommandLineOptions();
 

@@ -86,10 +86,6 @@ void readMainInputFile(const char* FileName)
             //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << simInfo.numMPIranksPerWalker << std::endl;
             continue;
           }
-          else {
-            //std::cout << "Unknown key: " << key << "  in input file " << FileName << std::endl;
-            continue;
-          }
         
         }
 

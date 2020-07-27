@@ -34,7 +34,10 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
           exit(1);
         }
       }
-      fscanf(f, "%*c");
+      if (fscanf(f, "%*c") != 1) {
+         std::cout << "Problem reading coordinates file " << filename << std::endl;
+	 exit(1);
+      }
     }
     fclose(f);
   }

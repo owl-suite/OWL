@@ -330,11 +330,13 @@ void CrystalStructure3D::assignRandomSpinDirection(unsigned int currentAtom)
 
 
 // TODO: To implement
+/*
 void CrystalStructure3D::readHamiltonianTerms(const char* inputFile)
 {
 
   
 }
+*/
 
 
 // Construct the neighbor list for each atom, given the list of neighboring unit cells to check
@@ -427,7 +429,7 @@ void CrystalStructure3D::constructPrimaryNeighborList()
         // Add the atom to neighbor list if within cutoff
         if (distance <= interactionCutoffDistance) {
           J_ij = assignExchangeCouplings(dx, dy, dz, distance);
-          D_ij = assignDzyaloshinskiiMoriyaInteractions(dx, dy, dz, distance);
+          D_ij = assignDzyaloshinskiiMoriyaInteractions(dz, distance);
           //J_ij = assignExchangeCouplings_testing(dx, dy, dz, distance);
           primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
         }
@@ -580,7 +582,7 @@ double CrystalStructure3D::assignExchangeCouplings_testing(double dx, double dy,
 
 
 // TODO: Ad hoc for our system for now.  All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
-double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr)
+double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, double dr)
 {
   
   const double dr_ref1   {0.613054};

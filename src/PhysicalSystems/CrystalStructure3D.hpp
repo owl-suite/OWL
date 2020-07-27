@@ -39,7 +39,7 @@ public :
 
   //void buildMPIConfigurationType()                      override;
 
-  void readHamiltonianTerms(const char* inputFile);
+  //void readHamiltonianTerms(const char* inputFile);
 
   Lattice                                         lattice;
 
@@ -69,7 +69,7 @@ private :
   void   assignRandomSpinDirection(unsigned int currentAtom);
   double assignExchangeCouplings(double dx, double dy, double dz, double dr);
   //double assignExchangeCouplings_testing(double dx, double dy, double dz, double dr);       // temp. testing code
-  double assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr);
+  double assignDzyaloshinskiiMoriyaInteractions(double dz, double dr);
   
   // Neighbor lists:
   std::vector<NeighboringAtomInfo> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);

@@ -8,7 +8,7 @@ class Heisenberg3D : public PhysicalSystem {
 
 public :
 
-  Heisenberg3D(const char* inputFile, const char* spinConfigFile = NULL, int initial = 0); 
+  Heisenberg3D(const char* spinConfigFile = NULL, int initial = 0); 
   ~Heisenberg3D();
 
   //void readCommandLineOptions()                         override;

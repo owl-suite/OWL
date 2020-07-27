@@ -50,7 +50,7 @@ public:
 
   void setEnergyRange (ObservableType E1, ObservableType E2);
   void setBinSize (ObservableType dE);
-  void setNumberOfBins (long int n);
+  void setNumberOfBins (unsigned int n);
   void resetHistogram();
   void refreshHistogram();
   void resetDOS();
@@ -59,8 +59,8 @@ public:
   void updateDOS(ObservableType energy);
   void updateDOSwithHistogram();
 
-  void writeHistogramDOSFile(const char* fileName, int iteration = -1, int walkerID = 0);
-  void writeNormDOSFile(const char* fileName, int walkerID = 0);
+  void writeHistogramDOSFile(const char* fileName);
+  void writeNormDOSFile(const char* fileName);
 
   bool checkEnergyInRange(ObservableType energy);
   bool checkHistogramFlatness();             // for WL
@@ -101,9 +101,9 @@ private:
   int myWindow;
 
   // Private member functions:
-  int getIndex(ObservableType energy);              // Calculate the bin index from an energy
+  int  getIndex(ObservableType energy);              // Calculate the bin index from an energy
   void readHistogramDOSFile(const char* fileName);
-  void readMCInputFile(const char* fileName);       // TODO: this should move to MCAlgorithm base class
+  void readMCInputFile(const char* fileName);        // TODO: this should move to MCAlgorithm base class
 
 };
 

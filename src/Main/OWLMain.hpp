@@ -63,7 +63,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
       break;
 
     case 5 :
-      physical_system = new Heisenberg3D(simInfo.MCInputFile);
+      physical_system = new Heisenberg3D();
       break;
 
     case 6 :

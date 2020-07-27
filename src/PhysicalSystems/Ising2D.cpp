@@ -42,7 +42,10 @@ Ising2D::Ising2D(const char* filename, int initial)
           //default  : { spin[i][j] = DOWN; }
         }
       }
-      fscanf(f, "%*c");
+      if (fscanf(f, "%*c") != 1) {
+         std::cout << "Problem reading coordinates file " << filename << std::endl;
+         exit(1);
+      }
     }
     fclose(f);
   }
@@ -282,7 +285,7 @@ void Ising2D::rejectMCMove()
 void Ising2D::buildMPIConfigurationType()
 {
  
-  MPI_Type_contiguous(LatticeSize, MPI_INT, &MPI_ConfigurationType);
+  MPI_Type_contiguous(int(LatticeSize), MPI_INT, &MPI_ConfigurationType);
   MPI_Type_commit(&MPI_ConfigurationType);
 
 }

@@ -378,7 +378,7 @@ void ReplicaExchangeWangLandau::writeCheckPointFiles(OutputMode output_mode)
 
       case endOfSimulation :
         sprintf(fileName, "dos_walker%05d.dat", REWLComm.thisMPIrank);
-        h.writeNormDOSFile(fileName, REWLComm.thisMPIrank);
+        h.writeNormDOSFile(fileName);
         sprintf(fileName, "hist_dos_final_walker%05d.dat", REWLComm.thisMPIrank);
         break;
 
@@ -390,7 +390,7 @@ void ReplicaExchangeWangLandau::writeCheckPointFiles(OutputMode output_mode)
     
     }
 
-    h.writeHistogramDOSFile(fileName, h.iterations, REWLComm.thisMPIrank);
+    h.writeHistogramDOSFile(fileName);
 
   }
 

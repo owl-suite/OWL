@@ -28,7 +28,7 @@ class CrystalStructure3D : public PhysicalSystem {
 
 public :
 
-  CrystalStructure3D(const char* inputFile, const std::filesystem::path& spinConfigFile = std::filesystem::path(), int initial = 0); 
+  CrystalStructure3D(const char* inputFile, int initial = 0); 
   ~CrystalStructure3D();
 
   void writeConfiguration(int = 0, const char* = NULL)  override;
@@ -39,7 +39,7 @@ public :
 
   //void buildMPIConfigurationType()                      override;
 
-  void readHamiltonianTerms(const char* inputFile);
+  //void readHamiltonianTerms(const char* inputFile);
 
   Lattice                                         lattice;
 
@@ -65,11 +65,11 @@ private :
   // Initialization:
   void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void   readInteractionCutoffDistance(const char* inputFile);
-  void   initializeSpinConfiguration(int initial);
+  void   initializeSpinConfiguration(int initial = 0);
   void   assignRandomSpinDirection(unsigned int currentAtom);
   double assignExchangeCouplings(double dx, double dy, double dz, double dr);
   //double assignExchangeCouplings_testing(double dx, double dy, double dz, double dr);       // temp. testing code
-  double assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr);
+  double assignDzyaloshinskiiMoriyaInteractions(double dz, double dr);
   
   // Neighbor lists:
   std::vector<NeighboringAtomInfo> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);

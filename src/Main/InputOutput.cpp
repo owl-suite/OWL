@@ -12,7 +12,7 @@ void readMainInputFile(const char* FileName)
 {
   
   //std::cout << "Reading main input file: " << FileName << std::endl;
-  int length = strlen(FileName);
+  size_t length = strlen(FileName);
   simInfo.MCInputFile = new char[length+1]();
   strncpy(simInfo.MCInputFile, FileName, length+1);
   //std::cout << "simInfo.MCInputFile set to be: " << simInfo.MCInputFile << std::endl;
@@ -84,10 +84,6 @@ void readMainInputFile(const char* FileName)
           else if (key == "NumberOfMPIranksPerWalker") {
             lineStream >> simInfo.numMPIranksPerWalker;
             //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << simInfo.numMPIranksPerWalker << std::endl;
-            continue;
-          }
-          else {
-            //std::cout << "Unknown key: " << key << "  in input file " << FileName << std::endl;
             continue;
           }
         

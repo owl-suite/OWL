@@ -5,7 +5,7 @@
 #include "Heisenberg3D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
-Heisenberg3D::Heisenberg3D(const char* inputFile, const char* spinConfigFile, int initial)
+Heisenberg3D::Heisenberg3D(const char* spinConfigFile, int initial)
 {
 
   printf("Simulation for 3D Heisenberg model: %dx%dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
@@ -287,7 +287,10 @@ void Heisenberg3D::readSpinConfigFile(const char* spinConfigFile)
             exit(1);
           }
           //spin[i][j][k] = spinTemp[spinIndex];
-          fscanf(f, "%*c");
+          if (fscanf(f, "%*c") != 1) {
+             std::cout << "Problem reading coordinates file " << spinConfigFile << std::endl;
+	     exit(1);
+ 	  }
         }
       }
     }

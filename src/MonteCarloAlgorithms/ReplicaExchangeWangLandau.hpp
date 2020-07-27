@@ -12,12 +12,9 @@
   Reference: Phys. Rev. Lett. 110, 210603 (2013)
 */
 
-
 // TO DO: distinguish WalkerType and WindowType
 typedef int WalkerIDType;
 typedef int WindowIDype;
-
-enum OutputMode {checkPoint, endOfIteration, endOfSimulation};
 
 class ReplicaExchangeWangLandau : public MonteCarloAlgorithm {
 

@@ -221,7 +221,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
   void Lattice::constructRelativeCoordinates()
   {
 
-    totalNumberOfNeighboringAtoms = nearestNeighborUnitCellList.size() * unitCell.number_of_atoms;
+    totalNumberOfNeighboringAtoms = unsigned(nearestNeighborUnitCellList.size()) * unitCell.number_of_atoms;
     relativeAtomicPositions.resize(3, totalNumberOfNeighboringAtoms);
 
     unsigned int counter {0};

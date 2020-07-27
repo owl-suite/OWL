@@ -31,7 +31,7 @@ public:
   void buildMPIConfigurationType() {};
 
   void readCommandLineOptions() {};
-  void readHamiltonianTerms(const char* inputFile) {};
+  //void readHamiltonianTerms(const char* inputFile) {};
 
   // Parameters common to (needed by) all models:
   unsigned int             numObservables;

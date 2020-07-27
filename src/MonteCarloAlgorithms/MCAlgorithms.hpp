@@ -7,6 +7,8 @@
 #include "Main/Globals.hpp"
 
 
+enum OutputMode {checkPoint, endOfIteration, endOfSimulation};
+
 // Base class for all Monte Carlo algorithms
 class MonteCarloAlgorithm {
 
@@ -19,10 +21,6 @@ public :
   virtual ~MonteCarloAlgorithm() {}
 
   virtual void run() = 0;
-
-  // Should they be set directly by I/O? (Now set through constructor)
-  int restartFlag {0};
-  //PhysicalSystem* physical_system;
 
   // MPI Communicator for communications among MC walkers
   //MPICommunicator MCAlgorithmCommunicator;

@@ -50,7 +50,7 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
     myWindow = ( walkerID - (walkerID % numberOfWalkersPerWindow) ) / numberOfWalkersPerWindow;
     Emin     = Emin + double(myWindow) * (1.0 - overlap) * energySubwindowWidth;
     Emax     = Emin + energySubwindowWidth;
-    numBins  = ceil((Emax - Emin) / binSize) + 1;
+    numBins  = unsigned(ceil((Emax - Emin) / binSize)) + 1;
 
     // YingWai's check
     //printf("YingWai's check: Inside Histogram constructor. world_rank = %3d, myWindow = %3d, walkerID = %3d, Emin = %6.3f, Emax = %6.3f \n", GlobalComm.thisMPIrank, myWindow, walkerID, Emin, Emax);
@@ -133,7 +133,7 @@ void Histogram::setBinSize(ObservableType dE)
 }
 
 
-void Histogram::setNumberOfBins(long int n)
+void Histogram::setNumberOfBins(unsigned int n)
 {
   numBins = n;
   // need to resize hist and dos accordingly
@@ -240,7 +240,7 @@ void Histogram::updateDOSwithHistogram()
 {
   for (unsigned int i=0; i<numBins; i++)
     if ((visited[i] == 1) && (hist[i] != 0))
-      dos[i] += log(hist[i]);
+      dos[i] += log(double(hist[i]));
 }
 
 bool Histogram::checkEnergyInRange(ObservableType energy)
@@ -282,7 +282,7 @@ bool Histogram::checkHistogramFlatness()
   numBinsFailingCriterion = 0;
   for (unsigned int i=0; i<numBins; i++) {
     if (visited[i] == 1) {
-      if (hist[i] < flatnessReference) {
+      if (double(hist[i]) < flatnessReference) {
         numBinsFailingCriterion++;
       } 
     }
@@ -303,7 +303,7 @@ bool Histogram::checkHistogramFlatness()
 // It measures the similarity of two probability distributions, P(x) and Q(x).
 bool Histogram::checkKullbackLeiblerDivergence()
 {
-  int numVisitedBins = std::count(visited.begin(), visited.end(), 1);
+  long int numVisitedBins = std::count(visited.begin(), visited.end(), 1);
   //int numVisitedBins = 0;
   //for (unsigned int i=0; i<numBins; i++) {
   //  if (visited[i] == 1)
@@ -332,8 +332,7 @@ bool Histogram::checkKullbackLeiblerDivergence()
 }
 
 
-// TO DO: construct filename from iteration and walkerID  (Sep 25, 2017)
-void Histogram::writeHistogramDOSFile(const char* fileName, int iteration, int walkerID)
+void Histogram::writeHistogramDOSFile(const char* fileName)
 {
 
   FILE *histdos_file;
@@ -386,7 +385,7 @@ bool Histogram::checkIntegrity()
 // Private member functions
 int Histogram::getIndex(ObservableType energy)
 {
-  return floor(static_cast<double>(energy - Emin) / static_cast<double>(binSize));
+  return int( floor(double(energy - Emin) / double(binSize)) );
 }
 
 
@@ -643,8 +642,7 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 }
 
 
-// TO DO: construct filename from walkerID  (Sep 25, 2017)
-void Histogram::writeNormDOSFile(const char* fileName, int walkerID)
+void Histogram::writeNormDOSFile(const char* fileName)
 {
 
   FILE* dosFile;

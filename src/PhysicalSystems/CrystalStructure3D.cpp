@@ -10,7 +10,7 @@
 #include "Utilities/RandomNumberGenerator.hpp"
 
 
-CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesystem::path& spinConfigFile, int initial) : lattice(inputFile)
+CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lattice(inputFile)
 {
 
   printf("\n");
@@ -18,12 +18,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesys
 
   assert (lattice.totalNumberOfAtoms > 0);
   spin.resize(lattice.totalNumberOfAtoms);
-
-  if (std::filesystem::exists(spinConfigFile))
-    readSpinConfigFile(spinConfigFile);
-  else
-    initializeSpinConfiguration(initial);
-
+  
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented (July 7, 20)
   if (std::filesystem::exists(inputFile))
     readInteractionCutoffDistance(inputFile);
@@ -44,6 +39,14 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, const std::filesys
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
   observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+
+  // Initialize configuration from file if applicable
+  if (std::filesystem::exists("config_initial.dat"))
+    readSpinConfigFile("config_initial.dat");
+  else if (simInfo.restartFlag && std::filesystem::exists("configurations/config_checkpoint.dat"))
+    readSpinConfigFile("configurations/config_checkpoint.dat");
+  else
+    initializeSpinConfiguration(initial);
 
   firstTimeGetMeasures = true;
   getObservablesFromScratch();
@@ -79,13 +82,14 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 
   default : {
 
-    fprintf(configFile, "Customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
-    fprintf(configFile, "Total number of atoms: %u \n", lattice.totalNumberOfAtoms);
-    fprintf(configFile, "Observables (energy, Mx, My, Mz):");
+    fprintf(configFile, "# Customized 3D crystal structure: %dx%dx%d unit cells \n\n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
+    fprintf(configFile, "TotalNumberOfAtoms %u \n", lattice.totalNumberOfAtoms);
+    fprintf(configFile, "Observables ");
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(configFile, " %15.8f", observables[i]);
-    fprintf(configFile, "\n");
+    fprintf(configFile, "\n\n");
 
+    fprintf(configFile, "SpinConfiguration\n");
     for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++)
       fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
 
@@ -98,7 +102,6 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 }
 
 
-// TODO: energy (observebles[0]) calculations 
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
@@ -108,7 +111,6 @@ void CrystalStructure3D::getObservablesFromScratch()
   firstTimeGetMeasures = false;
 
 }
-
 
 
 void CrystalStructure3D::getObservables() 
@@ -173,9 +175,61 @@ void CrystalStructure3D::buildMPIConfigurationType()
 */
 
 
-// TODO: To implement 
 void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
 {
+  std::cout << "\n   CrystalStructure3D class reading configuration file: " << spinConfigFile << "\n";
+
+  std::ifstream inputFile(spinConfigFile);
+  std::string line, key;
+  unsigned int numberOfAtoms {0};
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+          std::istringstream lineStream(line);
+          lineStream >> key;
+
+          if (key.compare(0, 1, "#") != 0) {
+
+            if (key == "TotalNumberOfAtoms") {
+              lineStream >> numberOfAtoms;
+              //std::cout << "   CrystalStructure3D: numberOfAtoms = " << numberOfAtoms << "\n";
+              continue;
+            }
+            else if (key == "Observables") {
+              unsigned int counter = 0;
+              while (lineStream && counter < numObservables) {
+                lineStream >> observables[counter];
+                //std::cout << "   CrystalStructure3D: observables[" << counter << "] = " << observables[counter] << std::endl;
+                counter++;
+              }
+              continue;
+            }
+            else if (key == "SpinConfiguration") {
+              //std::cout << "   CrystalStructure3D:  Spin Configuration read: \n";
+              for (unsigned int atomID=0; atomID<numberOfAtoms; atomID++) {
+                lineStream.clear();
+                std::getline(inputFile, line);               
+                if (!line.empty()) lineStream.str(line);
+                lineStream >> spin[atomID].x >> spin[atomID].y >> spin[atomID].z;
+                //printf("      %8.5f %8.5f %8.5f\n", spin[atomID].x, spin[atomID].y, spin[atomID].z);
+              }
+              continue;
+            }
+
+          }
+
+      }
+    }
+
+    inputFile.close();
+
+  }
+
+  // Sanity checks:
+  assert(numberOfAtoms == lattice.totalNumberOfAtoms);
 
 }
 
@@ -276,11 +330,13 @@ void CrystalStructure3D::assignRandomSpinDirection(unsigned int currentAtom)
 
 
 // TODO: To implement
+/*
 void CrystalStructure3D::readHamiltonianTerms(const char* inputFile)
 {
 
   
 }
+*/
 
 
 // Construct the neighbor list for each atom, given the list of neighboring unit cells to check
@@ -373,7 +429,7 @@ void CrystalStructure3D::constructPrimaryNeighborList()
         // Add the atom to neighbor list if within cutoff
         if (distance <= interactionCutoffDistance) {
           J_ij = assignExchangeCouplings(dx, dy, dz, distance);
-          D_ij = assignDzyaloshinskiiMoriyaInteractions(dx, dy, dz, distance);
+          D_ij = assignDzyaloshinskiiMoriyaInteractions(dz, distance);
           //J_ij = assignExchangeCouplings_testing(dx, dy, dz, distance);
           primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
         }
@@ -526,7 +582,7 @@ double CrystalStructure3D::assignExchangeCouplings_testing(double dx, double dy,
 
 
 // TODO: Ad hoc for our system for now.  All the reference dr's and coupling strengths should be read from input file (using readHamiltonianTerms()).
-double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dx, double dy, double dz, double dr)
+double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, double dr)
 {
   
   const double dr_ref1   {0.613054};

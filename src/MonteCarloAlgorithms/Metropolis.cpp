@@ -39,7 +39,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   if (!std::filesystem::exists("configurations"))
     std::filesystem::create_directory("configurations");
 
-  if (std::filesystem::exists("mc.dat"))
+  if (std::filesystem::exists("mc.dat")
     timeSeriesFile = fopen("mc.dat", "a");
   else
     timeSeriesFile = fopen("mc.dat", "w");
@@ -57,7 +57,7 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
       std::cout << "\n   WARNING! Restart file 'metropolis_checkpoint.dat' not found. ";
       std::cout << "\n            Performing a fresh run instead of a restarted run. \n\n";
     }
-    
+
   }
 
 }
@@ -123,7 +123,7 @@ void Metropolis::run()
   fprintf(timeSeriesFile, "# End of thermalization. \n\n");
   fprintf(timeSeriesFile, "# Accumulation: (%lu steps) \n", numberOfMCSteps);
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
-  fprintf(timeSeriesFile, "# MC steps           Observables\n");
+  fprintf(timeSeriesFile, "# MC steps           Observables\n")
 
   // Observable accumulation starts here
   while (MCStepsPerformed < numberOfMCSteps) {
@@ -174,6 +174,7 @@ void Metropolis::run()
   writeCheckPointFiles(checkPoint);
 
   fprintf(timeSeriesFile, "# End of accumulation. \n\n");
+
   calculateAveragesAndVariances();
 
   writeCheckPointFiles(endOfSimulation);
@@ -395,7 +396,7 @@ void Metropolis::writeMCFile(unsigned long int MCSteps)
 
 void Metropolis::writeStatistics(OutputMode output_mode, const char* filename) 
 {
-
+  
   FILE* checkPointFile;
   if (filename != NULL)
     checkPointFile = fopen(filename, "w");

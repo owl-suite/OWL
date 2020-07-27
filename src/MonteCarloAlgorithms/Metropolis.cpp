@@ -36,13 +36,14 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   }
 
   // I/O files
-  if (!std::filesystem::exists("configurations"))
+  if (!std::filesystem::exists("configurations")) 
     std::filesystem::create_directory("configurations");
 
-  if (std::filesystem::exists("mc.dat")
+  if (std::filesystem::exists("mc.dat")) 
     timeSeriesFile = fopen("mc.dat", "a");
-  else
-    timeSeriesFile = fopen("mc.dat", "w");
+  else 
+    timeSeriesFile = fopen("mc.dat", "w"); 
+
   fprintf(timeSeriesFile, "# Thermalization: (%lu steps) \n", numberOfThermalizationSteps);
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
   fprintf(timeSeriesFile, "# MC steps           Observables\n");
@@ -123,7 +124,7 @@ void Metropolis::run()
   fprintf(timeSeriesFile, "# End of thermalization. \n\n");
   fprintf(timeSeriesFile, "# Accumulation: (%lu steps) \n", numberOfMCSteps);
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
-  fprintf(timeSeriesFile, "# MC steps           Observables\n")
+  fprintf(timeSeriesFile, "# MC steps           Observables\n");
 
   // Observable accumulation starts here
   while (MCStepsPerformed < numberOfMCSteps) {

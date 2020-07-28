@@ -261,8 +261,8 @@ void Heisenberg2D::doMCMove()
 
   //CurX = (int)(gsl_rng_uniform(rng) * Size);
   //CurY = (int)(gsl_rng_uniform(rng) * Size);
-  CurX = getIntRandomNumber() % Size;
-  CurY = getIntRandomNumber() % Size;
+  CurX = unsigned(getIntRandomNumber()) % Size;
+  CurY = unsigned(getIntRandomNumber()) % Size;
 
   CurType = spin[CurX][CurY];
 

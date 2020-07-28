@@ -35,7 +35,7 @@ public :
   std::vector< std::vector<unsigned int> > nearestNeighborUnitCellList;     // Each unit cell has a list of nearest neighbors
   Matrix<double>                           relativeAtomicPositions;         // Relative atomic positions in neighboring unit cells (in lattice constant)
   unsigned int                             totalNumberOfNeighboringAtoms;
-  int                                      numAdjacentUnitCells;
+  unsigned int                             numAdjacentUnitCells;
 
   // Constructor 1: initialize unit cell and lattice from input file
   Lattice(const char* inputFile);

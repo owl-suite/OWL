@@ -217,9 +217,9 @@ void Heisenberg3D::doMCMove()
   //for (int i = 0; i < numObservables; i++)
   //  oldObservables[i] = observables[i];
 
-  CurX = getIntRandomNumber() % Size;
-  CurY = getIntRandomNumber() % Size;
-  CurZ = getIntRandomNumber() % Size;
+  CurX = unsigned(getIntRandomNumber()) % Size;
+  CurY = unsigned(getIntRandomNumber()) % Size;
+  CurZ = unsigned(getIntRandomNumber()) % Size;
 
   CurType = spin[CurX][CurY][CurZ];
 

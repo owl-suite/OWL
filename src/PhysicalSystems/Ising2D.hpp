@@ -27,11 +27,11 @@ private :
   //enum SpinDirection {DOWN = -1, UP = +1};
   typedef int SpinDirection;
 
-  int Size;
-  long LatticeSize;
+  unsigned int Size;
+  unsigned int LatticeSize;
 
   // Old configuration
-  int CurX, CurY;
+  unsigned int CurX, CurY;
   SpinDirection CurType;
 
   // New configuration

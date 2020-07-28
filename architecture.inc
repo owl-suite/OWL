@@ -1,1 +1,1 @@
-architecture/generic_linux
+path_to_architecture_file

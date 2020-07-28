@@ -35,6 +35,6 @@ void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
   phy_sys_comm.broadcastScalar(RngSeed, 0);
 
   // Initialize random number generators
-  rng_engine.seed(RngSeed);
+  rng_engine.seed(unsigned(RngSeed));
 
 }

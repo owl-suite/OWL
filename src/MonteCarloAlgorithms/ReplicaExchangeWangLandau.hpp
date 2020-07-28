@@ -45,8 +45,8 @@ private :
   int partnerID;
   int partnerWindow;
 
-  int replicaExchangeInterval;
-  int swapDirection;
+  unsigned int replicaExchangeInterval;
+  int          swapDirection;
 
   int upExchanges;
   int downExchanges;

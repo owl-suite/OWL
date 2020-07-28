@@ -87,7 +87,7 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
   //std::vector<int> walkerLeadersID;
   //walkerLeadersID.assign(simInfo.numWalkers, -1);
   int* walkerLeadersID;
-  walkerLeadersID = new int[simInfo.numWalkers] {-1};
+  walkerLeadersID = new int[unsigned(simInfo.numWalkers)] {-1};
 
   /// exit if the total number of MPI ranks is not consistent with input info
   if (simInfo.numWalkers * simInfo.numMPIranksPerWalker != GlobalComm.totalMPIranks) { 

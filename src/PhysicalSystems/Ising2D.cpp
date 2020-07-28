@@ -10,7 +10,6 @@ Ising2D::Ising2D(const char* filename, int initial)
 
   printf("Simulation for 2D Ising model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
-  int i, j;
   char c;
 
   Size = simInfo.spinModelLatticeSize;
@@ -29,8 +28,8 @@ Ising2D::Ising2D(const char* filename, int initial)
       exit(1);
     }
 
-    for(i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
+    for(unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
         if (fscanf(f, "%c", &c) != 1) {
           std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
           exit(1);
@@ -38,8 +37,6 @@ Ising2D::Ising2D(const char* filename, int initial)
         switch (c) {
           case 'U' : { spin[i*Size+j] = 1; break; }
           default  : { spin[i*Size+j] = -1; }
-          //case 'U' : { spin[i][j] = UP; break; }
-          //default  : { spin[i][j] = DOWN; }
         }
       }
       if (fscanf(f, "%*c") != 1) {
@@ -50,32 +47,26 @@ Ising2D::Ising2D(const char* filename, int initial)
     fclose(f);
   }
   else {
-    for (i = 0; i < Size; i++) {
-      for (j = 0; j < Size; j++) {
+    for (unsigned int i = 0; i < Size; i++) {
+      for (unsigned int j = 0; j < Size; j++) {
 
         switch (initial) {
         case 1  : {
           spin[i*Size+j] = -1;
-          //spin[i][j] = DOWN;
-	  break;
+	        break;
         }
         case 2  : {
           spin[i*Size+j] = 1;
-          //spin[i][j] = UP;
-	  break;
+	        break;
         }
         case 3  : {   // checkerboard
           if (((i + j) % 2) == 0) spin[i*Size+j] = -1;
           else spin[i*Size+j] = 1;
-          //if (((i + j) % 2) == 0) spin[i][j] = DOWN;
-          //else spin[i][j] = UP;
-	  break;
+	        break;
         }
         default : {   // random
           if (getRandomNumber2() < 0.5) spin[i*Size+j] = -1;
           else spin[i*Size+j] = 1;
-          //if (rng() < 0.5) spin[i][j] = DOWN;
-          //else spin[i][j] = UP;
         }
         }
 
@@ -121,8 +112,6 @@ Ising2D::~Ising2D()
 void Ising2D::writeConfiguration(int format, const char* filename)
 {
 
-  int x, y;
-
   FILE* f;
   if (filename != NULL) f = fopen(filename, "w");
   else f = stdout;
@@ -132,16 +121,16 @@ void Ising2D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "\n");
-    fprintf(f, "2D Ising Model : %d x %d (%ld)\n", Size, Size, LatticeSize);
+    fprintf(f, "2D Ising Model : %u x %u (%u)\n", Size, Size, LatticeSize);
     fprintf(f, "Measures:");
+
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
-      //fprintf(f, " %10d", observables[i]);
     fprintf(f, "\n");
-    for (x = 0; x < Size; x++) {
-      for (y = 0; y < Size; y++) 
+ 
+    for (unsigned int x = 0; x < Size; x++) {
+      for (unsigned int y = 0; y < Size; y++) 
         switch (spin[x*Size+y]) {
-          //case UP : {fprintf(f, "U"); break;}
           case 1 : {fprintf(f, "U"); break;}
           default : {fprintf(f, "D");}
         }
@@ -191,17 +180,16 @@ void Ising2D::GetMeasuresBruteForce()
 void Ising2D::getObservables()
 {
 
-  int x, y;
-  int xLeft, yBelow;
-  int xRight, yAbove;
+  unsigned int xLeft, yBelow;
+  unsigned int xRight, yAbove;
 
   if (getObservablesFromScratch) {
 
     resetObservables();
   
-    for (x = 0; x < Size; x++) {
+    for (unsigned int x = 0; x < Size; x++) {
       if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
-      for (y = 0; y < Size; y++) {
+      for (unsigned int y = 0; y < Size; y++) {
         if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
         observables[0] += spin[x*Size+y] * (spin[xLeft*Size+y] + spin[x*Size+yBelow]);
         observables[1] += spin[x*Size+y];
@@ -239,8 +227,8 @@ void Ising2D::doMCMove()
     oldObservables[i] = observables[i];
 
   // randomly choose a site
-  CurX = getIntRandomNumber() % Size;
-  CurY = getIntRandomNumber() % Size;
+  CurX = unsigned(getIntRandomNumber()) % Size;
+  CurY = unsigned(getIntRandomNumber()) % Size;
   CurType = spin[CurX*Size + CurY];
 
   // flip the spin at that site

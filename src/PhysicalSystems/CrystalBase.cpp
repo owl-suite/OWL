@@ -185,9 +185,9 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
         for (unsigned int i=0; i<unitCellDimensions[0]; i++) {
           unsigned int unitCellIndex = getUnitCellIndex(i, j, k);
           assert (unitCellIndex == counter);
-          unitCellVectors(0,unitCellIndex) = i;
-          unitCellVectors(1,unitCellIndex) = j;
-          unitCellVectors(2,unitCellIndex) = k;
+          unitCellVectors(0,unitCellIndex) = int(i);
+          unitCellVectors(1,unitCellIndex) = int(j);
+          unitCellVectors(2,unitCellIndex) = int(k);
           counter++;
         }
       }
@@ -310,14 +310,14 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
   void Lattice::constructRelativeUnitCellVectors()
   {
-    int temp =  2 * numAdjacentUnitCells + 1;
-    int numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell.
+    unsigned long temp =  2 * numAdjacentUnitCells + 1;
+    unsigned long numberOfNeighoringUnitCells = temp * temp * temp;    // 3 dimensions, including own unit cell.
     relativeUnitCellVectors.resize(3, numberOfNeighoringUnitCells);
 
-    int counter {0};
-    for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
-      for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
-        for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+    unsigned long counter {0};
+    for (int k = -int(numAdjacentUnitCells); k <= int(numAdjacentUnitCells); k++) {
+      for (int j = -int(numAdjacentUnitCells); j <= int(numAdjacentUnitCells); j++) {
+        for (int i = -int(numAdjacentUnitCells); i <= int(numAdjacentUnitCells); i++) {
           relativeUnitCellVectors(0, counter) = i;
           relativeUnitCellVectors(1, counter) = j;
           relativeUnitCellVectors(2, counter) = k;
@@ -337,19 +337,19 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     // A neighbor list where pairwise interactions with current unit cell will be checked
     std::vector<unsigned int> unitCellList;
 
-    int nx_new, ny_new, nz_new;
+    unsigned int nx_new, ny_new, nz_new;
     int nx = unitCellVectors(0, currentUnitCell);
     int ny = unitCellVectors(1, currentUnitCell);
     int nz = unitCellVectors(2, currentUnitCell);
 
     // A lambda to calculate neighboring unit cell components considering p.b.c. shift
     auto getUnitCellComponentPBC = [=](int x_new, unsigned int dimension) { 
-      return x_new >= 0 ? (x_new % unitCellDimensions[dimension]) : (x_new + unitCellDimensions[dimension]);
+      return x_new >= 0 ? (unsigned(x_new) % unitCellDimensions[dimension]) : (unsigned(x_new + int(unitCellDimensions[dimension])));
     };
 
-    for (int k=-numAdjacentUnitCells; k<=numAdjacentUnitCells; k++) {
-      for (int j=-numAdjacentUnitCells; j<=numAdjacentUnitCells; j++) {
-        for (int i=-numAdjacentUnitCells; i<=numAdjacentUnitCells; i++) {
+    for (int k = -int(numAdjacentUnitCells); k <= int(numAdjacentUnitCells); k++) {
+      for (int j = -int(numAdjacentUnitCells); j <= int(numAdjacentUnitCells); j++) {
+        for (int i = - int(numAdjacentUnitCells); i <= int(numAdjacentUnitCells); i++) {
 /*
     // Note: The following 4 lines were used to reduce the number of neighboring unit cells by half. 
     for (int k=-numAdjacentUnitCells; k<=0; k++) {

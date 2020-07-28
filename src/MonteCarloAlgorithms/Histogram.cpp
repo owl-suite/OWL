@@ -101,7 +101,7 @@ ObservableType Histogram::getBinSize()
 }
 
 
-int Histogram::getNumberOfBins()
+unsigned int Histogram::getNumberOfBins()
 {
   return numBins;
 }
@@ -111,7 +111,7 @@ double Histogram::getDOS(ObservableType energy)
 {
   idx = getIndex(energy);
   if (idx >= 0)
-    return dos[idx];
+    return dos[unsigned(idx)];
   else {
     std::cerr << "Problem in File " << __FILE__ << " Line " << __LINE__  << std::endl;
     exit(EXIT_FAILURE);
@@ -179,32 +179,33 @@ void Histogram::updateHistogramDOS(ObservableType energy)
   idx = getIndex(energy);
 
   if ( idx >= 0 ) {
+    unsigned int index = unsigned(idx);
     // If it is the first time a bin is visited:
     //   1. see if it can reference the DOS from neighboring bins
     //   2. reset Histogram and start over
-    if ( visited[idx] == 0 ) {
-      int refIdx = idx;
-      if ( static_cast<unsigned>(idx) == 0 )
+    if ( visited[index] == 0 ) {
+      unsigned int refIdx = index;
+      if ( index == 0 )
         refIdx = 1;
-      else if ( static_cast<unsigned>(idx) == (numBins-1) )
-        refIdx = idx - 1;
+      else if ( index == (numBins-1) )
+        refIdx = index - 1;
       else {
-        if ( (visited[idx-1] > 0) && (visited[idx+1] > 0) )
-          refIdx = ( dos[idx-1] < dos[idx+1] ? (idx-1) : (idx+1) );
-        else if ( visited[idx-1] == 0 )
-          refIdx = idx + 1;
-        else if ( visited[idx+1] == 0 )
-          refIdx = idx - 1;
+        if ( (visited[index-1] > 0) && (visited[index+1] > 0) )
+          refIdx = ( dos[index-1] < dos[index+1] ? (index-1) : (index+1) );
+        else if ( visited[index-1] == 0 )
+          refIdx = index + 1;
+        else if ( visited[index+1] == 0 )
+          refIdx = index - 1;
       }
 
-      dos[idx] = dos[refIdx];
-      visited[idx] = 1;
+      dos[index] = dos[refIdx];
+      visited[index] = 1;
       refreshHistogram();
     }
     else {
-      dos[idx] += modFactor;
-      hist[idx]++;
-      //visited[idx] = 1;
+      dos[index] += modFactor;
+      hist[index]++;
+      //visited[index] = 1;
     }
   }
   else { 
@@ -221,8 +222,8 @@ void Histogram::updateHistogramDOS(ObservableType energy)
 void Histogram::updateHistogram(ObservableType energy)
 {
   idx = getIndex(energy);
-  hist[idx]++;
-  visited[idx] = 1;
+  hist[unsigned(idx)]++;
+  visited[unsigned(idx)] = 1;
   //std::cerr << "idx = " << idx << std::endl;
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }
@@ -230,8 +231,8 @@ void Histogram::updateHistogram(ObservableType energy)
 void Histogram::updateDOS(ObservableType energy)
 {
   idx = getIndex(energy);
-  dos[idx] += modFactor;
-  visited[idx] = 1;
+  dos[unsigned(idx)] += modFactor;
+  visited[unsigned(idx)] = 1;
   //std::cerr << "idx = " << idx << std::endl;
   //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
 }

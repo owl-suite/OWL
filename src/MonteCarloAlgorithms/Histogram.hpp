@@ -45,7 +45,7 @@ public:
   
   // Public member functions:
   ObservableType getBinSize();
-  int            getNumberOfBins();
+  unsigned int   getNumberOfBins();
   double         getDOS(ObservableType energy);
 
   void setEnergyRange (ObservableType E1, ObservableType E2);
@@ -73,12 +73,12 @@ private:
  
   int dim;                                   // dimension of the histogram
 
-  //ObservableType Emin;                     // energy range for WL sampling (should they be here?)
-  double Emin;
-  //ObservableType Emax;
-  double Emax;
-  //ObservableType binSize;                  // energy bin size
-  double binSize;
+  ObservableType Emin;                       // energy range for WL sampling (should they be here?)
+  //double Emin;
+  ObservableType Emax;
+  //double Emax;
+  ObservableType binSize;                    // energy bin size
+  //double binSize;
   unsigned int numBins;                      // total number of bins
   unsigned int numBinsFailingCriterion;
 
@@ -101,9 +101,9 @@ private:
   int myWindow;
 
   // Private member functions:
-  int  getIndex(ObservableType energy);              // Calculate the bin index from an energy
-  void readHistogramDOSFile(const char* fileName);
-  void readMCInputFile(const char* fileName);        // TODO: this should move to MCAlgorithm base class
+  int   getIndex(ObservableType energy);              // Calculate the bin index from an energy
+  void  readHistogramDOSFile(const char* fileName);
+  void  readMCInputFile(const char* fileName);        // TODO: this should move to MCAlgorithm base class
 
 };
 

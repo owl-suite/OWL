@@ -105,7 +105,8 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
-  observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
+  observables[0] = getExchangeInterations();
+  //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
 
   firstTimeGetMeasures = false;
@@ -116,7 +117,8 @@ void CrystalStructure3D::getObservablesFromScratch()
 void CrystalStructure3D::getObservables() 
 {
 
-  observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();
+  observables[0] += getDifferenceInExchangeInterations();
+  //observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -553,7 +555,7 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
     else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.468039834;
   }
 
-  return coupling;
+  return -coupling;           // minus sign for antiferromagnetic coupling
 
 }
 
@@ -636,7 +638,7 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, dou
   }
 */
 
-  return coupling;
+  return -coupling;               // minus sign for antiferromagnetic coupling
   
 }
 

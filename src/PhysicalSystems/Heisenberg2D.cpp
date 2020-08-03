@@ -274,7 +274,7 @@ void Heisenberg2D::readSpinConfigFile(const std::filesystem::path& spinConfigFil
             unsigned int counter = 0;
             while (lineStream && counter < numObservables) {
               lineStream >> observables[counter];
-              //std::cout << "   Heisenberg2D: observables[" << counter << "] = " << observables[counter] << std::endl;
+              //std::cout << "   Heisenberg2D: observables[" << counter << "] = " << observables[counter] << "\n";
               counter++;
             }
             continue;

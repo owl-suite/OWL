@@ -28,7 +28,7 @@ void initializeRandomNumberGenerator(MPICommunicator phy_sys_comm, int RngSeed)
   // Make the seeds different for each walker
   if (phy_sys_comm.thisMPIrank == 0) {
     RngSeed += GlobalComm.thisMPIrank;
-    //std::cout << "Rank: " << GlobalComm.thisMPIrank << " Random number seed supplied: " << RngSeed << std::endl;
+    //std::cout << "Rank: " << GlobalComm.thisMPIrank << " Random number seed supplied: " << RngSeed << "\n";
   }
   // Broadcast (synchronize) the random number seed within the same walker
   //MPI_Bcast(&RngSeed, 1, MPI_INT, 0, phy_sys_comm.communicator);

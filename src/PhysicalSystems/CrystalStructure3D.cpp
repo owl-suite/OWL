@@ -206,7 +206,7 @@ void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinCon
               unsigned int counter = 0;
               while (lineStream && counter < numObservables) {
                 lineStream >> observables[counter];
-                //std::cout << "   CrystalStructure3D: observables[" << counter << "] = " << observables[counter] << std::endl;
+                //std::cout << "   CrystalStructure3D: observables[" << counter << "] = " << observables[counter] << "\n";
                 counter++;
               }
               continue;

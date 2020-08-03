@@ -71,7 +71,7 @@ protected:
       }
     }
     else {
-      std::cerr << "Error: Number of observables unphysical." << std::endl;
+      std::cerr << "Error: Number of observables unphysical." << "\n";
       exit(5);
     }
   }

@@ -223,7 +223,7 @@ void Ising2D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
             unsigned int counter = 0;
             while (lineStream && counter < numObservables) {
               lineStream >> observables[counter];
-              //std::cout << "   Ising2D: observables[" << counter << "] = " << observables[counter] << std::endl;
+              //std::cout << "   Ising2D: observables[" << counter << "] = " << observables[counter] << "\n";
               counter++;
             }
             continue;

@@ -114,7 +114,7 @@ double Histogram::getDOS(ObservableType energy)
   if (idx >= 0)
     return dos[unsigned(idx)];
   else {
-    std::cerr << "Problem in File " << __FILE__ << " Line " << __LINE__  << std::endl;
+    std::cerr << "Problem in File " << __FILE__ << " Line " << __LINE__  << "\n";
     exit(EXIT_FAILURE);
   }
   
@@ -214,10 +214,10 @@ void Histogram::updateHistogramDOS(ObservableType energy)
     std::cerr << "Aborting...\n";
     exit(10);
   }
-  //std::cerr << "energy = " << energy << std::endl;
-  //std::cerr << "idx = " << idx << std::endl;
-  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
-  //std::cerr << "hist[idx] = " << hist[idx] << std::endl;
+  //std::cerr << "energy = " << energy << "\n";
+  //std::cerr << "idx = " << idx << "\n";
+  //std::cerr << "visited[idx] = " << visited[idx] << "\n";
+  //std::cerr << "hist[idx] = " << hist[idx] << "\n";
 }
 
 void Histogram::updateHistogram(ObservableType energy)
@@ -225,8 +225,8 @@ void Histogram::updateHistogram(ObservableType energy)
   idx = getIndex(energy);
   hist[unsigned(idx)]++;
   visited[unsigned(idx)] = 1;
-  //std::cerr << "idx = " << idx << std::endl;
-  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "idx = " << idx << "\n";
+  //std::cerr << "visited[idx] = " << visited[idx] << "\n";
 }
 
 void Histogram::updateDOS(ObservableType energy)
@@ -234,8 +234,8 @@ void Histogram::updateDOS(ObservableType energy)
   idx = getIndex(energy);
   dos[unsigned(idx)] += modFactor;
   visited[unsigned(idx)] = 1;
-  //std::cerr << "idx = " << idx << std::endl;
-  //std::cerr << "visited[idx] = " << visited[idx] << std::endl;
+  //std::cerr << "idx = " << idx << "\n";
+  //std::cerr << "visited[idx] = " << visited[idx] << "\n";
 }
 
 void Histogram::updateDOSwithHistogram()
@@ -249,17 +249,17 @@ bool Histogram::checkEnergyInRange(ObservableType energy)
 {
   bool isWithinRange {false};
   if (energy < Emin) {
-    //std::cerr << "Energy below range. Energy = " << energy << std::endl;
+    //std::cerr << "Energy below range. Energy = " << energy << "\n";
     numBelowRange++; 
     isWithinRange = false;
   }
   else if (energy > Emax) {
-    //std::cerr << "Energy above range. Energy = " << energy << std::endl;
+    //std::cerr << "Energy above range. Energy = " << energy << "\n";
     numAboveRange++;
     isWithinRange = false;
   }
   else {
-    //std::cerr << "Energy within range. Energy = " << energy << std::endl;
+    //std::cerr << "Energy within range. Energy = " << energy << "\n";
     isWithinRange = true;
   }
 
@@ -311,7 +311,7 @@ bool Histogram::checkKullbackLeiblerDivergence()
   //  if (visited[i] == 1)
   //    numVisitedBins++;
   //}
-  std::cout << "Number of visited bins = " << numVisitedBins << std::endl;
+  std::cout << "Number of visited bins = " << numVisitedBins << "\n";
 
   double flatnessReference = 1.0 / static_cast<double>( numVisitedBins );
   //double flatnessReference = 1.0 / static_cast<double>( std::max(numVisitedBins, 10) );
@@ -324,7 +324,7 @@ bool Histogram::checkKullbackLeiblerDivergence()
     }
   }
 
-  std::cout << "KullbackLeiblerDivergence = " << KullbackLeiblerDivergence << std::endl;
+  std::cout << "KullbackLeiblerDivergence = " << KullbackLeiblerDivergence << "\n";
 
   if (KullbackLeiblerDivergence <= KullbackLeiblerDivergenceThreshold)
     return true;
@@ -370,7 +370,7 @@ void Histogram::writeHistogramDOSFile(const char* fileName)
   // Write out histogram and DOS
   for (unsigned int i=0; i<numBins; i++) {
     fprintf(histdos_file, "%8d %5d %lu %20.8f\n", i, visited[i], hist[i], dos[i]);
-    //std::cerr << "visited[" << i << "] = " << visited[i] << std::endl;
+    //std::cerr << "visited[" << i << "] = " << visited[i] << "\n";
   }
 
   fprintf(histdos_file, "\n");
@@ -395,11 +395,11 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0)
-    std::cout << "   Reading histogram checkpoint file : " << fileName << std::endl;
+    std::cout << "   Reading histogram checkpoint file : " << fileName << "\n";
 
   FILE *histdos_file = fopen(fileName, "r");
   if (histdos_file == NULL) {
-    std::cerr << "     ERROR! Cannot open histogram checkpoint file "  << fileName << std::endl;
+    std::cerr << "     ERROR! Cannot open histogram checkpoint file "  << fileName << "\n";
     exit(7);    // perhaps can start from wl.input instead of quitting?
   }
 
@@ -504,57 +504,57 @@ void Histogram::readHistogramDOSFile(const char* fileName)
         
         if (key == "dim") {
           lineStream >> dim;
-          std::cerr <<  "YingWai's check for I/O. dim = " << dim << std::endl;
+          std::cerr <<  "YingWai's check for I/O. dim = " << dim << "\n";
           continue;
         }
         if (key == "flatnessCriterion") {
           lineStream >> flatnessCriterion;
-          std::cerr <<  "YingWai's check for I/O. flatnessCriterion = " << flatnessCriterion << std::endl;
+          std::cerr <<  "YingWai's check for I/O. flatnessCriterion = " << flatnessCriterion << "\n";
           continue;
         }
         if (key == "modFactor") {
           lineStream >> modFactor;
-          std::cerr <<  "YingWai's check for I/O. modFactor = " << modFactor << std::endl;
+          std::cerr <<  "YingWai's check for I/O. modFactor = " << modFactor << "\n";
           continue;
         }
         if (key == "modFactorFinal") {
           lineStream >> modFactorFinal;
-          std::cerr <<  "YingWai's check for I/O. modFactorFinal = " << modFactorFinal << std::endl;
+          std::cerr <<  "YingWai's check for I/O. modFactorFinal = " << modFactorFinal << "\n";
           continue;
         }
         if (key == "modFactorReducer") {
           lineStream >> modFactorReducer;
-          std::cerr <<  "YingWai's check for I/O. modFactorReducer = " << modFactorReducer << std::endl;
+          std::cerr <<  "YingWai's check for I/O. modFactorReducer = " << modFactorReducer << "\n";
           continue;
         }
         if (key == "histogramCheckInterval") {
           lineStream >> histogramCheckInterval;
-          std::cerr <<  "YingWai's check for I/O. histogramCheckInterval = " << histogramCheckInterval << std::endl;
+          std::cerr <<  "YingWai's check for I/O. histogramCheckInterval = " << histogramCheckInterval << "\n";
           continue;
         }
         if (key == "histogramRefreshInterval") {
           lineStream >> histogramRefreshInterval;
-          std::cerr <<  "YingWai's check for I/O. histogramRefreshInterval = " << histogramRefreshInterval << std::endl;
+          std::cerr <<  "YingWai's check for I/O. histogramRefreshInterval = " << histogramRefreshInterval << "\n";
           continue;
         }
         if (key == "Emin") {
           lineStream >> Emin;
-          std::cerr <<  "YingWai's check for I/O. Emin = " << Emin << std::endl;
+          std::cerr <<  "YingWai's check for I/O. Emin = " << Emin << "\n";
           continue;
         }
         if (key == "Emax") {
           lineStream >> Emax;
-          std::cerr <<  "YingWai's check for I/O. Emax = " << Emax << std::endl;
+          std::cerr <<  "YingWai's check for I/O. Emax = " << Emax << "\n";
           continue;
         }
         if (key == "binSize") {
           lineStream >> binSize;
-          std::cerr <<  "YingWai's check for I/O. binSize = " << binSize << std::endl;
+          std::cerr <<  "YingWai's check for I/O. binSize = " << binSize << "\n";
           continue;
         }
         if (key == "numBins") {
           lineStream >> numBins;
-          std::cerr <<  "YingWai's check for I/O. numBins = " << numBins << std::endl;
+          std::cerr <<  "YingWai's check for I/O. numBins = " << numBins << "\n";
           hist.assign(numBins, 0);
           dos.assign(numBins, 0.0);
           visited.assign(numBins, 0);
@@ -562,42 +562,42 @@ void Histogram::readHistogramDOSFile(const char* fileName)
         }
         if (key == "totalMCsteps") {
           lineStream >> totalMCsteps;
-          std::cerr <<  "YingWai's check for I/O. totalMCsteps = " << totalMCsteps << std::endl;
+          std::cerr <<  "YingWai's check for I/O. totalMCsteps = " << totalMCsteps << "\n";
           continue;
         }
         if (key == "acceptedMoves") {
           lineStream >> acceptedMoves;
-          std::cerr <<  "YingWai's check for I/O. acceptedMoves = " << acceptedMoves << std::endl;
+          std::cerr <<  "YingWai's check for I/O. acceptedMoves = " << acceptedMoves << "\n";
           continue;
         }
         if (key == "rejectedMoves") {
           lineStream >> rejectedMoves;
-          std::cerr <<  "YingWai's check for I/O. rejectedMoves = " << rejectedMoves << std::endl;
+          std::cerr <<  "YingWai's check for I/O. rejectedMoves = " << rejectedMoves << "\n";
           continue;
         }
         if (key == "iterations") {
           lineStream >> iterations;
-          std::cerr <<  "YingWai's check for I/O. iterations = " << iterations << std::endl;
+          std::cerr <<  "YingWai's check for I/O. iterations = " << iterations << "\n";
           continue;
         }
         if (key == "numBelowRange") {
           lineStream >> numBelowRange;
-          std::cerr <<  "YingWai's check for I/O. numBelowRange = " << numBelowRange << std::endl;
+          std::cerr <<  "YingWai's check for I/O. numBelowRange = " << numBelowRange << "\n";
           continue;
         }
         if (key == "numAboveRange") {
           lineStream >> numAboveRange;
-          std::cerr <<  "YingWai's check for I/O. numAboveRange = " << numAboveRange << std::endl;
+          std::cerr <<  "YingWai's check for I/O. numAboveRange = " << numAboveRange << "\n";
           continue;
         }
         if (key == "numBinsFailingCriterion") {
           lineStream >> numBinsFailingCriterion;
-          std::cerr <<  "YingWai's check for I/O. numBinsFailingCriterion = " << numBinsFailingCriterion << std::endl;
+          std::cerr <<  "YingWai's check for I/O. numBinsFailingCriterion = " << numBinsFailingCriterion << "\n";
           continue;
         }
         // Continue reading these from file
         if (key == std::to_string(i)) {
-          //std::cout << "key = " << stoul(key) << " = " << i << std::endl;
+          //std::cout << "key = " << stoul(key) << " = " << i << "\n";
           lineStream >> visited[i];
           lineStream >> hist[i];
           lineStream >> dos[i];
@@ -615,29 +615,29 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 
 /*
   // YingWai's check, should be removed when things work fine
-  std::cerr <<  "YingWai's check for I/O. dim = " << dim << std::endl;
-  std::cerr <<  "YingWai's check for I/O. flatnessCriterion = " << flatnessCriterion << std::endl;
-  std::cerr <<  "YingWai's check for I/O. modFactor = " << modFactor << std::endl;
-  std::cerr <<  "YingWai's check for I/O. modFactorFinal = " << modFactorFinal << std::endl;
-  std::cerr <<  "YingWai's check for I/O. modFactorReducer = " << modFactorReducer << std::endl;
-  std::cerr <<  "YingWai's check for I/O. histogramCheckInterval = " << histogramCheckInterval << std::endl;
-  std::cerr <<  "YingWai's check for I/O. Emin = " << Emin << std::endl;
-  std::cerr <<  "YingWai's check for I/O. Emax = " << Emax << std::endl;
-  std::cerr <<  "YingWai's check for I/O. binSize = " << binSize << std::endl;
-  std::cerr <<  "YingWai's check for I/O. numBins = " << numBins << std::endl;
+  std::cerr <<  "YingWai's check for I/O. dim = " << dim << "\n";
+  std::cerr <<  "YingWai's check for I/O. flatnessCriterion = " << flatnessCriterion << "\n";
+  std::cerr <<  "YingWai's check for I/O. modFactor = " << modFactor << "\n";
+  std::cerr <<  "YingWai's check for I/O. modFactorFinal = " << modFactorFinal << "\n";
+  std::cerr <<  "YingWai's check for I/O. modFactorReducer = " << modFactorReducer << "\n";
+  std::cerr <<  "YingWai's check for I/O. histogramCheckInterval = " << histogramCheckInterval << "\n";
+  std::cerr <<  "YingWai's check for I/O. Emin = " << Emin << "\n";
+  std::cerr <<  "YingWai's check for I/O. Emax = " << Emax << "\n";
+  std::cerr <<  "YingWai's check for I/O. binSize = " << binSize << "\n";
+  std::cerr <<  "YingWai's check for I/O. numBins = " << numBins << "\n";
   std::cerr <<  "\n";
 
-  std::cerr << "YingWai's check for I/O. totalMCsteps = " << totalMCsteps << std::endl;
-  std::cerr << "YingWai's check for I/O. acceptedMoves = " << acceptedMoves << std::endl;
-  std::cerr << "YingWai's check for I/O. rejectedMoves = " << rejectedMoves << std::endl;
-  std::cerr << "YingWai's check for I/O. iterations = " << iterations << std::endl;
+  std::cerr << "YingWai's check for I/O. totalMCsteps = " << totalMCsteps << "\n";
+  std::cerr << "YingWai's check for I/O. acceptedMoves = " << acceptedMoves << "\n";
+  std::cerr << "YingWai's check for I/O. rejectedMoves = " << rejectedMoves << "\n";
+  std::cerr << "YingWai's check for I/O. iterations = " << iterations << "\n";
   std::cerr << "\n";
 
   // Write out histogram and DOS
   for (int i = 0; i < numBins; i++) {
     std::cerr << "YingWai's check for I/O. " 
               << i       << " " << visited[i] << " " 
-              << hist[i] << " " << dos[i]     << std::endl;
+              << hist[i] << " " << dos[i]     << "\n";
   }
 */
 
@@ -673,7 +673,7 @@ void Histogram::readMCInputFile(char const* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "   Histogram class reading input file: " << fileName << std::endl;
+    std::cout << "   Histogram class reading input file: " << fileName << "\n";
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;
@@ -691,87 +691,87 @@ void Histogram::readMCInputFile(char const* fileName)
           
           if (key == "dim") {
             lineStream >> dim;
-            //std::cout << "WangLandau: dim = " << dim << std::endl;
+            //std::cout << "WangLandau: dim = " << dim << "\n";
             continue;
           }
           if (key == "flatnessCriterion") {
             lineStream >> flatnessCriterion;
-            //std::cout << "WangLandau: flatnessCriterion = " << flatnessCriterion << std::endl;
+            //std::cout << "WangLandau: flatnessCriterion = " << flatnessCriterion << "\n";
             continue;
           }
           if (key == "modFactor") {
             lineStream >> modFactor;
-            //std::cout << "WangLandau: modFactor = " << modFactor << std::endl;
+            //std::cout << "WangLandau: modFactor = " << modFactor << "\n";
             continue;
           }
           if (key == "modFactorFinal") {
             lineStream >> modFactorFinal;
-            //std::cout << "WangLandau: modFactorFinal = " << modFactorFinal << std::endl;
+            //std::cout << "WangLandau: modFactorFinal = " << modFactorFinal << "\n";
             continue;
           }
           if (key == "modFactorReducer") {
             lineStream >> modFactorReducer;
-            //std::cout << "WangLandau: modFactorReducer = " << modFactorReducer << std::endl;
+            //std::cout << "WangLandau: modFactorReducer = " << modFactorReducer << "\n";
             continue;
           }
           if (key == "histogramCheckInterval") {
             lineStream >> histogramCheckInterval;
-            //std::cout << "WangLandau: histogramCheckInterval = " << histogramCheckInterval << std::endl;
+            //std::cout << "WangLandau: histogramCheckInterval = " << histogramCheckInterval << "\n";
             continue;
           }
           if (key == "histogramRefreshInterval") {
             lineStream >> histogramRefreshInterval;
-            //std::cout << "WangLandau: histogramRefreshInterval = " << histogramRefreshInterval << std::endl;
+            //std::cout << "WangLandau: histogramRefreshInterval = " << histogramRefreshInterval << "\n";
             continue;
           }
           if (key == "Emin") {
             lineStream >> Emin;
-            //std::cout << "WangLandau: Emin = " << Emin << std::endl;
+            //std::cout << "WangLandau: Emin = " << Emin << "\n";
             continue;
           }
           if (key == "Emax") {
             lineStream >> Emax;
-            //std::cout << "WangLandau: Emax = " << Emax << std::endl;
+            //std::cout << "WangLandau: Emax = " << Emax << "\n";
             continue;
           }
           if (key == "binSize") {
             lineStream >> binSize;
-            //std::cout << "WangLandau: binSize = " << binSize << std::endl;
+            //std::cout << "WangLandau: binSize = " << binSize << "\n";
             continue;
           }
           if (key == "numberOfWindows") {
             lineStream >> numberOfWindows;
-            //std::cout << "REWL: numberOfWindows = " << numberOfWindows << std::endl;
+            //std::cout << "REWL: numberOfWindows = " << numberOfWindows << "\n";
             continue;
           }
           if (key == "numberOfWalkersPerWindow") {
             lineStream >> numberOfWalkersPerWindow;
-            //std::cout << "REWL: numberOfWalkersPerWindow = " << numberOfWalkersPerWindow << std::endl;
+            //std::cout << "REWL: numberOfWalkersPerWindow = " << numberOfWalkersPerWindow << "\n";
             continue;
           }
           if (key == "overlap") {
             lineStream >> overlap;
-            //std::cout << "REWL: overlap = " << overlap << std::endl;
+            //std::cout << "REWL: overlap = " << overlap << "\n";
             continue;
           }
           if (key == "KullbackLeiblerDivergenceThreshold") {
             lineStream >> KullbackLeiblerDivergenceThreshold;
-            //std::cout << "MUCA: KullbackLeiblerDivergenceThreshold = " << KullbackLeiblerDivergenceThreshold << std::endl;
+            //std::cout << "MUCA: KullbackLeiblerDivergenceThreshold = " << KullbackLeiblerDivergenceThreshold << "\n";
             continue;
           }
           if (key == "numberOfUpdatesPerIteration") {
             lineStream >> numberOfUpdatesPerIteration;
-            //std::cout << "MUCA: numberOfUpdatesPerIteration = " << numberOfUpdatesPerIteration << std::endl;
+            //std::cout << "MUCA: numberOfUpdatesPerIteration = " << numberOfUpdatesPerIteration << "\n";
             continue;
           }
           if (key == "numberOfUpdatesMultiplier") {
             lineStream >> numberOfUpdatesMultiplier;
-            //std::cout << "MUCA: numberOfUpdatesMultiplier = " << numberOfUpdatesMultiplier << std::endl;
+            //std::cout << "MUCA: numberOfUpdatesMultiplier = " << numberOfUpdatesMultiplier << "\n";
             continue;
           }
           if (key == "numberOfThermalizationSteps") {
             lineStream >> numberOfThermalizationSteps;
-            //std::cout << "MUCA: numberOfThermalizationSteps = " << numberOfThermalizationSteps << std::endl;
+            //std::cout << "MUCA: numberOfThermalizationSteps = " << numberOfThermalizationSteps << "\n";
             continue;
           }
 

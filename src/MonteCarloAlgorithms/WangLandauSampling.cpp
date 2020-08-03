@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cmath>
+#include <filesystem>
 #include "WangLandauSampling.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 //#include "Communications.hpp"
@@ -48,8 +49,10 @@ void WangLandauSampling::run()
   h.updateHistogramDOS(physical_system -> observables[0]);
 
   // Write out the energy
-  if (GlobalComm.thisMPIrank == 0) 
-    physical_system -> writeConfiguration(0, "config_initial.dat");
+  if (GlobalComm.thisMPIrank == 0 && std::filesystem::exists("configurations")) {
+    physical_system -> writeConfiguration(0, "configurations/config_initial.dat");
+    printf("done.\n");
+  }
 
 //-------------- End initialization --------------//
 
@@ -109,7 +112,7 @@ void WangLandauSampling::run()
         if (GlobalComm.thisMPIrank == 0) {
           if (currentTime - lastBackUpTime > checkPointInterval) {
             h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
-            physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+            physical_system -> writeConfiguration(1, "configurations/config_checkpoint.dat");
             lastBackUpTime = currentTime;
           }
         }
@@ -129,10 +132,10 @@ void WangLandauSampling::run()
     if (GlobalComm.thisMPIrank == 0) {
       printf("Number of iterations performed = %d\n", h.iterations);
 
-      // Also write restart file here 
+      // Also write restart files here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
       h.writeHistogramDOSFile(fileName);
-      physical_system -> writeConfiguration(1, "config_checkpoint.dat");
+      physical_system -> writeConfiguration(1, "configurations/config_checkpoint.dat");
     }
 
     // Go to next iteration
@@ -143,6 +146,7 @@ void WangLandauSampling::run()
 
   // Write out data at the end of the simulation
   h.writeNormDOSFile("dos.dat");
+  h.writeHistogramDOSFile("hist_dos_checkpoint.dat");
   h.writeHistogramDOSFile("hist_dos_final.dat");
 
 }

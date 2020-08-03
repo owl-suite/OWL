@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <filesystem>
 #include <sstream>
@@ -35,10 +36,6 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 
   }
 
-  // I/O files
-  if (!std::filesystem::exists("configurations")) 
-    std::filesystem::create_directory("configurations");
-
   if (std::filesystem::exists("mc.dat")) 
     timeSeriesFile = fopen("mc.dat", "a");
   else 
@@ -47,7 +44,6 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   fprintf(timeSeriesFile, "# Thermalization: (%lu steps) \n", numberOfThermalizationSteps);
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
   fprintf(timeSeriesFile, "# MC steps           Observables\n");
-
 
   // If it is a restarted run, need to do more...
   if (simInfo.restartFlag) {
@@ -82,11 +78,11 @@ Metropolis::~Metropolis()
 void Metropolis::run() 
 {
 
+  char fileName[51];
+
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
     printf("   Running Metropolis Sampling...\n");
-
-  char fileName[51];
 
   // Thermalization (observables are not accumulated)
   while (thermalizationStepsPerformed < numberOfThermalizationSteps) {
@@ -347,6 +343,9 @@ void Metropolis::readCheckPointFile(const char* fileName)
     std::cout << "\n            No further work will be performed. Quitting OWL...\n\n";
     exit(7);
   }
+
+  // Check consistency: acceptedMoves and rejectedMoves
+  assert (acceptedMoves + rejectedMoves == MCStepsPerformed * numberOfMCUpdatesPerStep);
 
   // Restore averagedObservables and variances for accumulation
   for (unsigned int i=0; i<physical_system->numObservables; i++) {

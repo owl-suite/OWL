@@ -1,6 +1,7 @@
 #ifndef HEISENBERG2D_HPP
 #define HEISENBERG2D_HPP
 
+#include <filesystem>
 #include "PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
 
@@ -9,8 +10,7 @@ class Heisenberg2D : public PhysicalSystem {
 
 public :
 
-  //Heisenberg2D(SimulationInfo& sim_info, const char* = NULL, int = 0); 
-  Heisenberg2D(const char* = NULL, int = 0); 
+  Heisenberg2D(const char* spinConfigFile = "config_initial.dat", int = 0); 
   ~Heisenberg2D();
 
   //void readCommandLineOptions()                         override;
@@ -44,6 +44,8 @@ private :
   bool firstTimeGetMeasures;
 
   void GetMeasuresBruteForce();
+  void readSpinConfigFile(const std::filesystem::path& spinConfigFile);
+  void initializeSpinConfiguration(int initial);
 
 };
 

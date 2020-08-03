@@ -1,6 +1,7 @@
 #ifndef HEISENBERG3D_HPP
 #define HEISENBERG3D_HPP
 
+#include <filesystem>
 #include "PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
 
@@ -8,7 +9,7 @@ class Heisenberg3D : public PhysicalSystem {
 
 public :
 
-  Heisenberg3D(const char* spinConfigFile = NULL, int initial = 0); 
+  Heisenberg3D(const char* spinConfigFile = "config_initial.dat", int initial = 0); 
   ~Heisenberg3D();
 
   //void readCommandLineOptions()                         override;
@@ -43,7 +44,7 @@ private :
 
   // Private functions
   void GetMeasuresBruteForce();
-  void readSpinConfigFile(const char* spinConfigFile);
+  void readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void initializeSpinConfiguration(int initial);
 
 };

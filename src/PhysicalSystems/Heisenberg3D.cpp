@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include "Heisenberg3D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
@@ -22,10 +24,11 @@ Heisenberg3D::Heisenberg3D(const char* spinConfigFile, int initial)
     for (unsigned int j = 0; j < Size; j++)
       spin[i][j] = new SpinDirection[Size];
   }
-  //SpinDirection spinTemp[LatticeSize];
 
-  if (spinConfigFile != NULL)
+  if (std::filesystem::exists(spinConfigFile))
     readSpinConfigFile(spinConfigFile);
+  else if (simInfo.restartFlag && std::filesystem::exists("configurations/config_checkpoint.dat"))
+    readSpinConfigFile("configurations/config_checkpoint.dat");
   else
     initializeSpinConfiguration(initial);
 
@@ -72,19 +75,20 @@ void Heisenberg3D::writeConfiguration(int format, const char* filename)
 
   default : {
 
-    fprintf(f, "\n");
-    fprintf(f, "3D Heisenberg Model : %u x %u x %u (%u)\n", Size, Size, Size, LatticeSize);
-    fprintf(f, "Measures:");
+    fprintf(f, "# 3D Heisenberg Model : %u x %u x %u \n\n", Size, Size, Size);
+    fprintf(f, "TotalNumberOfSpins %u\n", LatticeSize);
+    fprintf(f, "Observables ");
+
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
+
+    fprintf(f, "\nSpinConfiguration\n");
     for (unsigned int i = 0; i < Size; i++) {
       for (unsigned int j = 0; j < Size; j++) {
         for (unsigned int k = 0; k < Size; k++)
           fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i][j][k].x, spin[i][j][k].y, spin[i][j][k].z);
-        fprintf(f, "\n");
       }
-      fprintf(f, "\n");
     }
 
   }
@@ -269,32 +273,74 @@ void Heisenberg3D::buildMPIConfigurationType()
 */
 
 
-void Heisenberg3D::readSpinConfigFile(const char* spinConfigFile)
+void Heisenberg3D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
 {
 
-    FILE* f = fopen(spinConfigFile, "r");
-    if (f == NULL) {
-      std::cout << "Coordinates file " << spinConfigFile << " unreadable!" << std::endl;
-      exit(1);
-    }
+  std::cout << "\n   Heisenberg3D class reading configuration file: " << spinConfigFile << "\n";
 
-    for(unsigned int i = 0; i < Size; i++) {
-      for (unsigned int j = 0; j < Size; j++) {
-        for (unsigned int k = 0; k < Size; k++) {
-          //spinIndex = (long) i * Size * Size + j * Size + k;
-          if (fscanf(f, "%lf %lf %lf", &spin[i][j][k].x, &spin[i][j][k].y, &spin[i][j][k].z) != 3) {
-            std::cout << "Coordinates file " << spinConfigFile << " unreadable!" << std::endl;
-            exit(1);
+  std::ifstream inputFile(spinConfigFile);
+  std::string line, key;
+  unsigned int numberOfSpins {0};
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+        std::istringstream lineStream(line);
+        lineStream >> key;
+
+        if (key.compare(0, 1, "#") != 0) {
+
+          if (key == "TotalNumberOfSpins") {
+            lineStream >> numberOfSpins;
+            //std::cout << "   Heisenberg3D: numberOfSpins = " << numberOfSpins << "\n";
+            continue;
           }
-          //spin[i][j][k] = spinTemp[spinIndex];
-          if (fscanf(f, "%*c") != 1) {
-             std::cout << "Problem reading coordinates file " << spinConfigFile << std::endl;
-	     exit(1);
- 	  }
+          else if (key == "Observables") {
+            unsigned int counter = 0;
+            while (lineStream && counter < numObservables) {
+              lineStream >> observables[counter];
+              //std::cout << "   Heisenberg3D: observables[" << counter << "] = " << observables[counter] << std::endl;
+              counter++;
+            }
+            continue;
+          }
+          else if (key == "SpinConfiguration") {
+            //std::cout << "   Heisenberg3D: Spin Configuration read: \n";
+            for (unsigned int i=0; i<Size; i++) {
+              for (unsigned int j=0; j<Size; j++) {
+                for (unsigned int k=0; k<Size; k++) {
+                  lineStream.clear();
+                  std::getline(inputFile, line);               
+                  if (!line.empty())  lineStream.str(line);
+                  lineStream >> spin[i][j][k].x >> spin[i][j][k].y >> spin[i][j][k].z;
+                  //printf("      %8.5f %8.5f %8.5f\n", spin[i][j][k].x, spin[i][j][k].y, spin[i][j][k].z);
+                }
+              }
+            }
+            continue;
+          }
         }
+
       }
     }
-    fclose(f);
+
+    inputFile.close();
+  }
+
+  // Sanity checks:
+  assert(numberOfSpins == LatticeSize);
+  
+  printf("   Initial configuration read:\n");
+  for (unsigned int i=0; i<Size; i++) {
+    for (unsigned int j=0; j<Size; j++) {
+      for (unsigned int k=0; k<Size; k++)
+        printf("      %8.5f %8.5f %8.5f\n", spin[i][j][k].x, spin[i][j][k].y, spin[i][j][k].z);
+      printf("\n");
+    }
+    printf("\n");
+  }
 
 }
 
@@ -307,7 +353,6 @@ void Heisenberg3D::initializeSpinConfiguration(int initial)
   for (unsigned int i = 0; i < Size; i++) {
     for (unsigned int j = 0; j < Size; j++) {
       for (unsigned int k = 0; k < Size; k++) {
-        //spinIndex = (long) i * Size * Size + j * Size + k;
 
         switch (initial) {
           case 1 : {

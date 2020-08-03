@@ -1,16 +1,17 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include "Heisenberg2D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
-//Heisenberg2D::Heisenberg2D(SimulationInfo& sim_info, const char* filename, int initial)
-Heisenberg2D::Heisenberg2D(const char* filename, int initial)
+Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
 {
 
   printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
-  double r1, r2, rr;
+  //double r1, r2, rr;
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
@@ -20,6 +21,14 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
   for (unsigned int i = 0; i < Size; i++) 
     spin[i] = new SpinDirection[Size];
 
+  if (std::filesystem::exists(spinConfigFile))
+    readSpinConfigFile(spinConfigFile);
+  else if (simInfo.restartFlag && std::filesystem::exists("configurations/config_checkpoint.dat"))
+    readSpinConfigFile("configurations/config_checkpoint.dat");
+  else
+    initializeSpinConfiguration(initial);
+
+/*
   if (filename != NULL) {
     FILE* f = fopen(filename, "r");
     if (f == NULL) {
@@ -90,6 +99,7 @@ Heisenberg2D::Heisenberg2D(const char* filename, int initial)
       }
     }
   }
+*/
 
   initializeObservables(4);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
@@ -131,16 +141,18 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
 
   default : {
 
-    fprintf(f, "\n");
-    fprintf(f, "2D Heisenberg Model : %u x %u (%u)\n", Size, Size, LatticeSize);
-    fprintf(f, "Measures:");
+    fprintf(f, "# 2D Heisenberg Model : %u x %u \n\n", Size, Size);
+    fprintf(f, "TotalNumberOfSpins %u\n", LatticeSize);
+    fprintf(f, "Observables ");
+
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
+
+    fprintf(f, "\nSpinConfiguration\n");
     for (unsigned int i = 0; i < Size; i++) {
       for (unsigned int j = 0; j < Size; j++)
         fprintf(f, "%8.5f %8.5f %8.5f\n", spin[i][j].x, spin[i][j].y, spin[i][j].z);
-      fprintf(f, "\n");
     }
 
   }
@@ -259,16 +271,12 @@ void Heisenberg2D::doMCMove()
   //for (int i = 0; i < numObservables; i++)
   //  oldObservables[i] = observables[i];
 
-  //CurX = (int)(gsl_rng_uniform(rng) * Size);
-  //CurY = (int)(gsl_rng_uniform(rng) * Size);
   CurX = unsigned(getIntRandomNumber()) % Size;
   CurY = unsigned(getIntRandomNumber()) % Size;
 
   CurType = spin[CurX][CurY];
 
   do {
-    //r1 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-    //r2 = 1.0 - 2.0 * gsl_rng_uniform(rng);
     r1 = 2.0 * getRandomNumber();
     r2 = 2.0 * getRandomNumber();
     rr = r1 * r1 + r2 * r2;
@@ -311,3 +319,122 @@ void Heisenberg2D::buildMPIConfigurationType()
 {
 }
 */
+
+
+void Heisenberg2D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
+{
+
+  std::cout << "\n   Heisenberg2D class reading configuration file: " << spinConfigFile << "\n";
+
+  std::ifstream inputFile(spinConfigFile);
+  std::string line, key;
+  unsigned int numberOfSpins {0};
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+        std::istringstream lineStream(line);
+        lineStream >> key;
+
+        if (key.compare(0, 1, "#") != 0) {
+
+          if (key == "TotalNumberOfSpins") {
+            lineStream >> numberOfSpins;
+            //std::cout << "   Heisenberg2D: numberOfSpins = " << numberOfSpins << "\n";
+            continue;
+          }
+          else if (key == "Observables") {
+            unsigned int counter = 0;
+            while (lineStream && counter < numObservables) {
+              lineStream >> observables[counter];
+              //std::cout << "   Heisenberg2D: observables[" << counter << "] = " << observables[counter] << std::endl;
+              counter++;
+            }
+            continue;
+          }
+          else if (key == "SpinConfiguration") {
+            //std::cout << "   Heisenberg2D: Spin Configuration read: \n";
+            for (unsigned int i=0; i<Size; i++) {
+              for (unsigned int j=0; j<Size; j++) {
+                lineStream.clear();
+                std::getline(inputFile, line);               
+                if (!line.empty())  lineStream.str(line);
+                lineStream >> spin[i][j].x >> spin[i][j].y >> spin[i][j].z;
+                //printf("      %8.5f %8.5f %8.5f\n", spin[i][j][k].x, spin[i][j][k].y, spin[i][j][k].z);
+              }
+            }
+            continue;
+          }
+        }
+
+      }
+    }
+
+    inputFile.close();
+  }
+
+  // Sanity checks:
+  assert(numberOfSpins == LatticeSize);
+  
+  printf("   Initial configuration read:\n");
+  for (unsigned int i=0; i<Size; i++) {
+    for (unsigned int j=0; j<Size; j++)
+      printf("      %8.5f %8.5f %8.5f\n", spin[i][j].x, spin[i][j].y, spin[i][j].z);
+    printf("\n");
+  }
+
+}
+
+
+void Heisenberg2D::initializeSpinConfiguration(int initial)
+{
+
+  double r1, r2, rr;
+
+  for (unsigned int i = 0; i < Size; i++) {
+    for (unsigned int j = 0; j < Size; j++) {
+
+      switch (initial) {
+        case 1 : {
+          spin[i][j].x = 1.0;
+          spin[i][j].y = 0.0;
+          spin[i][j].z = 0.0;
+          break;
+        }
+        case 2  : {
+          spin[i][j].x = 0.0;
+          spin[i][j].y = 1.0;
+          spin[i][j].z = 0.0;
+	      break;
+        }
+        case 3  : {
+          spin[i][j].x = 0.0;
+          spin[i][j].y = 0.0;
+          spin[i][j].z = 1.0;
+	        break;
+        }
+        case 4  : {
+          spin[i][j].x = 0.0;
+          spin[i][j].y = 0.0;
+          if (((i + j) % 2) == 0) spin[i][j].z = 1.0;
+          else spin[i][j].z = -1.0;
+          break;
+        }
+        default  : {
+          do {
+            r1 = 2.0 * getRandomNumber();
+            r2 = 2.0 * getRandomNumber();                
+            rr = r1 * r1 + r2 * r2;
+          } while (rr > 1.0);
+          spin[i][j].x = 2.0 * r1 * sqrt(1.0 - rr);
+          spin[i][j].y = 2.0 * r2 * sqrt(1.0 - rr);
+          spin[i][j].z = 1.0 - 2.0 * rr;
+        }
+      }
+
+    }
+  }
+
+}

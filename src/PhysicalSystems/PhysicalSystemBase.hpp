@@ -1,8 +1,9 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
-#include <iostream>
 #include <cstdlib>
+#include <filesystem>
+#include <iostream>
 #include <string>
 #include <vector>
 #include "Main/Globals.hpp"
@@ -15,7 +16,12 @@ class PhysicalSystem {
 public:
   
   // Constructor:
-  PhysicalSystem() {}
+  PhysicalSystem() {
+
+    if (!std::filesystem::exists("configurations")) 
+      std::filesystem::create_directory("configurations");
+
+  }
 
   // Destructor:
   virtual ~PhysicalSystem() {}  

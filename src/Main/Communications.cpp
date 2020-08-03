@@ -134,6 +134,7 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
         exit(7);
       }
 
+    // TODO: this should move to the corresponding MC algorithms that use histograms (WL, REWL, etc.)
     constructHistogramCheckpointFile();
 
   }

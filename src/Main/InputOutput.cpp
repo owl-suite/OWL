@@ -11,7 +11,8 @@
 void readMainInputFile(const char* FileName)
 {
   
-  //std::cout << "Reading main input file: " << FileName << std::endl;
+  std::cout << "Reading main input file: " << FileName << "\n\n";
+  
   size_t length = strlen(FileName);
   simInfo.MCInputFile = new char[length+1]();
   strncpy(simInfo.MCInputFile, FileName, length+1);
@@ -101,17 +102,23 @@ void readMainInputFile(const char* FileName)
 }
 
 
-void writeSimulationInfo()
+void writeBanner()
 {
 
   printf("\n");
   printf("                  ####################################################################\n");
   printf("                  ##                                                                ##\n");
-  printf("                  ##   Oak-Ridge/Open-source Wang-Landau (OWL) simulation package   ##\n");
+  printf("                  ##   Open-source/Oak-Ridge Wang-Landau (OWL) simulation package   ##\n");
   printf("                  ##   Copyright (C) 2015-2020                                      ##\n");
   printf("                  ##                                                                ##\n");
   printf("                  ####################################################################\n");
   printf("\n\n");
+
+}
+
+
+void writeSimulationInfo()
+{
 
   printf("Initializing simulation...\n");
 

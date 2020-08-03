@@ -13,7 +13,7 @@ int main (int argc, char *argv[]) {
   MPICommunicator       physicalSystemComm;
   MPICommunicator       mcAlgorithmComm;
 
-
+  writeBanner();
   readCommandLineArguments(argc, argv);
 
   // Read from input file; store the simulation settings in simInfo

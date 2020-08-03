@@ -11,8 +11,6 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
 
   printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
-  //double r1, r2, rr;
-
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
 
@@ -27,79 +25,6 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
     readSpinConfigFile("configurations/config_checkpoint.dat");
   else
     initializeSpinConfiguration(initial);
-
-/*
-  if (filename != NULL) {
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-      std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-      exit(1);
-    }
-
-    for(unsigned int i = 0; i < Size; i++) {
-      for (unsigned int j = 0; j < Size; j++) {
-        if (fscanf(f, "%lf %lf %lf", &spin[i][j].x, &spin[i][j].y, &spin[i][j].z) != 3) {
-          std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-          exit(1);
-        }
-      }
-      if (fscanf(f, "%*c") != 1) {
-         std::cout << "Problem reading coordinates file " << filename << std::endl;
-	 exit(1);
-      }
-    }
-    fclose(f);
-  }
-  else {
-    for (unsigned int i = 0; i < Size; i++) {
-      for (unsigned int j = 0; j < Size; j++) {
-
-        switch (initial) {
-        case 1  : {
-          spin[i][j].x = 1.0;
-          spin[i][j].y = 0.0;
-          spin[i][j].z = 0.0;
-	        break;
-        }
-        case 2  : {
-          spin[i][j].x = 0.0;
-          spin[i][j].y = 1.0;
-          spin[i][j].z = 0.0;
-	        break;
-        }
-        case 3  : {
-          spin[i][j].x = 0.0;
-          spin[i][j].y = 0.0;
-          spin[i][j].z = 1.0;
-	        break;
-        }
-        case 4  : {
-          spin[i][j].x = 0.0;
-          spin[i][j].y = 0.0;
-	        if (((i + j) % 2) == 0) spin[i][j].z = 1.0;
-	        else spin[i][j].z = -1.0;
-	        break;
-        }
-        default : {
-          do {
-            //r1 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-            //r2 = 1.0 - 2.0 * gsl_rng_uniform(rng);
-            r1 = 2.0 * getRandomNumber();
-            r2 = 2.0 * getRandomNumber();
-            rr = r1 * r1 + r2 * r2;
-          } while (rr > 1.0);
-
-          spin[i][j].x = 2.0 * r1 * sqrt(1.0 - rr);
-          spin[i][j].y = 2.0 * r2 * sqrt(1.0 - rr);
-          spin[i][j].z = 1.0 - 2.0 * rr;
-
-        }
-        }
-
-      }
-    }
-  }
-*/
 
   initializeObservables(4);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy

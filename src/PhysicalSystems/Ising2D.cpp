@@ -43,8 +43,6 @@ Ising2D::Ising2D(const char* spinConfigFile, int initial)
 Ising2D::~Ising2D()
 {
 
-  //for (int i = 0; i < Size; i++) 
-  //  delete[] spin[i];
   delete[] spin;
 
   // Free MPI datatype
@@ -98,37 +96,6 @@ void Ising2D::writeConfiguration(int format, const char* filename)
 }
 
 
-// YingWai: this does not seem to be needed anymore (Oct 10, 2017)
-/*
-void Ising2D::GetMeasuresBruteForce()
-{
-  //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
-
-  int x, y;
-  int xLeft, yBelow;
-
-  // Uncomment this when observables[] are used
-  //resetObservables();
-  int tempE = 0.0;
-  int tempM = 0.0;
-
-  for (x = 0; x < Size; x++) {
-    if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
-    for (y = 0; y < Size; y++) {
-      if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
-      tempE += spin[x][y] * (spin[xLeft][y] + spin[x][yBelow]);
-      tempM += spin[x][y];
-    }
-  }
-  tempE = -tempE;   // ferromagnetic interactions
-
-  if (tempE != observables[0]) printf("Problem! tempE = %8d, observables[0] = %8.5f\n", tempE, observables[0]);
-  if (tempM != observables[1]) printf("Problem! tempM = %8d, observables[1] = %8.5f\n", tempM, observables[1]);
-
-}
-*/
-
-
 void Ising2D::getObservables()
 {
 
@@ -165,8 +132,6 @@ void Ising2D::getObservables()
 
     //printf("observables = %10.5f %10.5f \n", observables[0], observables[1]);
   }
-
-  //GetMeasuresBruteForce();
 
 }
 

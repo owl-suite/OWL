@@ -15,9 +15,10 @@
 //TODO: Markus: Refer to PRE 84, 065702(R) 2011 to set binSize.
 
 // Constructor
-//Histogram::Histogram(int restart, const char* inputFile)
 Histogram::Histogram(int restart, const char* inputFile, const char* checkPointFile)
 {
+
+  std::cout << "\nInitializing histogram...\n";
 
   Emax = std::numeric_limits<ObservableType>::max();
   Emin = std::numeric_limits<ObservableType>::lowest();
@@ -32,7 +33,7 @@ Histogram::Histogram(int restart, const char* inputFile, const char* checkPointF
   if ( file_exists(inputFile) )
     readMCInputFile(inputFile);
   else {
-    std::cout << "Error: No input file for reading histogram's info. Quiting... \n";
+    std::cout << "   Error: No input file for reading histogram's info. Quiting... \n";
     exit(7);
   }
 
@@ -394,77 +395,77 @@ void Histogram::readHistogramDOSFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0)
-    std::cout << "Reading histogram checkpoint file : " << fileName << std::endl;
+    std::cout << "   Reading histogram checkpoint file : " << fileName << std::endl;
 
   FILE *histdos_file = fopen(fileName, "r");
   if (histdos_file == NULL) {
-    std::cerr << "Error: cannot open histogram checkpoint file "  << fileName << std::endl;
+    std::cerr << "     ERROR! Cannot open histogram checkpoint file "  << fileName << std::endl;
     exit(7);    // perhaps can start from wl.input instead of quitting?
   }
 
   // TO DO: need to error-proof if they are not in order / missing...
   if (fscanf(histdos_file, "%*s %d", &dim) != 1)
-    std::cerr << "Cannot read dim \n";    
+    std::cerr << "     ERROR! Cannot read dim \n";    
 
   if (fscanf(histdos_file, "%*s %lf", &flatnessCriterion) != 1)
-    std::cerr << "Cannot read flatnessCriterion \n";
+    std::cerr << "     ERROR! Cannot read flatnessCriterion \n";
 
   if (fscanf(histdos_file, "%*s %lf", &modFactor) != 1)
-    std::cerr << "Cannot read modFactor \n";
+    std::cerr << "     ERROR! Cannot read modFactor \n";
 
   double modFactorFinal_tmp;
   if (fscanf(histdos_file, "%*s %lf", &modFactorFinal_tmp) != 1)
-    std::cerr << "Cannot read modFactorFinal \n";
+    std::cerr << "     ERROR! Cannot read modFactorFinal \n";
   if (modFactorFinal_tmp < modFactorFinal)
-    std::cout << "modFactorFinal read from the checkpoint file is smaller than the input file. Simulation will continue with the new modFactorFinal. \n";
+    std::cout << "     WARNING! modFactorFinal read from the checkpoint file is smaller than the input file. Simulation will continue with the new modFactorFinal. \n";
 
   if (fscanf(histdos_file, "%*s %lf", &modFactorReducer) != 1)
-    std::cerr << "Cannot read modFactorReducer \n";
+    std::cerr << "     ERROR! Cannot read modFactorReducer \n";
 
   if (fscanf(histdos_file, "%*s %u", &histogramCheckInterval) != 1)
-    std::cerr << "Cannot read histogramCheckInterval \n";
+    std::cerr << "     ERROR! Cannot read histogramCheckInterval \n";
 
   if (fscanf(histdos_file, "%*s %u", &histogramRefreshInterval) != 1)
-    std::cerr << "Cannot read histogramRefreshInterval \n";
+    std::cerr << "     ERROR! Cannot read histogramRefreshInterval \n";
 
   if (fscanf(histdos_file, "%*s %lf", &Emin) != 1)
-    std::cerr << "Cannot read Emin \n";
+    std::cerr << "     ERROR! Cannot read Emin \n";
 
   if (fscanf(histdos_file, "%*s %lf", &Emax) != 1)
-    std::cerr << "Cannot read Emax \n";
+    std::cerr << "     ERROR! Cannot read Emax \n";
 
   if (fscanf(histdos_file, "%*s %lf", &binSize) != 1)
-    std::cerr << "Cannot read binSize \n";
+    std::cerr << "     ERROR! Cannot read binSize \n";
 
   if (fscanf(histdos_file, "%*s %u", &numBins) != 1)
-    std::cerr << "Cannot read numBins \n";
+    std::cerr << "     ERROR! Cannot read numBins \n";
 
   if (fscanf(histdos_file, "%*s %lu", &totalMCsteps) != 1)
-    std::cerr << "Cannot read totalMCsteps \n";
+    std::cerr << "     ERROR! Cannot read totalMCsteps \n";
 
   if (fscanf(histdos_file, "%*s %lu", &acceptedMoves) != 1)
-    std::cerr << "Cannot read acceptedMoves \n";
+    std::cerr << "     ERROR! Cannot read acceptedMoves \n";
 
   if (fscanf(histdos_file, "%*s %lu", &rejectedMoves) != 1)
-    std::cerr << "Cannot read rejectedMoves \n";
+    std::cerr << "     ERROR! Cannot read rejectedMoves \n";
 
   if (fscanf(histdos_file, "%*s %d", &iterations) != 1)
-    std::cerr << "Cannot read iterations \n";
+    std::cerr << "     ERROR! Cannot read iterations \n";
 
   if (fscanf(histdos_file, "%*s %lu", &numBelowRange) != 1)
-    std::cerr << "Cannot read numBelowRange \n";
+    std::cerr << "     ERROR! Cannot read numBelowRange \n";
 
   if (fscanf(histdos_file, "%*s %lu", &numAboveRange) != 1)
-    std::cerr << "Cannot read numAboveRange \n";
+    std::cerr << "     ERROR! Cannot read numAboveRange \n";
 
   if (fscanf(histdos_file, "%*s %u", &numBinsFailingCriterion) != 1)
-    std::cerr << "Cannot read numBinsFailingCriterion \n";
+    std::cerr << "     ERROR! Cannot read numBinsFailingCriterion \n";
 
   if (fscanf(histdos_file, "%*s %d", &numHistogramNotImproved) != 1)
-    std::cerr << " cannot read numHistogramNotImproved \n";
+    std::cerr << "     ERROR! Cannot read numHistogramNotImproved \n";
 
   if (fscanf(histdos_file, "%*s %d", &numHistogramRefreshed) != 1)
-    std::cerr << " cannot read numHistogramRefreshed \n";
+    std::cerr << "     ERROR! Cannot read numHistogramRefreshed \n";
 
   // Open up arrays needed to store the mask, histogram and DOS
   hist.assign(numBins, 0);
@@ -476,9 +477,9 @@ void Histogram::readHistogramDOSFile(const char* fileName)
   unsigned int dummy = 0;
   for (unsigned int i = 0; i < numBins; i++) {
     if (fscanf(histdos_file, "%u %d %lu %lf", &dummy, &visited[i], &hist[i], &dos[i]) != 4)
-      std::cerr << "Cannot read histogram and DOS.\n";
+      std::cerr << "     ERROR! Cannot read histogram and DOS.\n";
     if (dummy != i)
-      std::cerr << "Problem reading histogram and DOS. Check!\n";
+      std::cerr << "     ERROR! Problem reading histogram and DOS. Check!\n";
   }
 
   //for (unsigned int i = 0; i < numBins; i++)
@@ -672,7 +673,7 @@ void Histogram::readMCInputFile(char const* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "Histogram class reading input file: " << fileName << std::endl;
+    std::cout << "   Histogram class reading input file: " << fileName << std::endl;
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;

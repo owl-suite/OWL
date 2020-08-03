@@ -38,11 +38,6 @@ private :
   void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void   initializeSpinConfiguration(int initial = 0);
 
-
-  // YingWai: these do not seem to be needed anymore (Oct 10, 2017)
-  //bool firstTimeGetMeasures {true};
-  //void GetMeasuresBruteForce();
-
 };
 
 #endif

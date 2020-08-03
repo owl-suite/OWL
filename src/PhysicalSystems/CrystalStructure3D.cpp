@@ -14,12 +14,14 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
 {
 
   printf("\n");
-  printf("Simulation for customized 3D crystal structure: %dx%dx%d unit cells \n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
+  printf("Simulation for customized 3D crystal structure: %dx%dx%d unit cells \n", 
+         lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
 
   assert (lattice.totalNumberOfAtoms > 0);
   spin.resize(lattice.totalNumberOfAtoms);
   
-  // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented (July 7, 20)
+  // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
+  //       together with the reading of Hamiltonian terms. (July 7, 20)
   if (std::filesystem::exists(inputFile))
     readInteractionCutoffDistance(inputFile);
   //else  (TODO)
@@ -32,7 +34,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
 
   //for (unsigned int i=0; i<lattice.totalNumberOfAtoms; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
-
+  
   initializeObservables(5); 
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction

@@ -11,7 +11,7 @@ WangLandauSampling::WangLandauSampling(PhysicalSystem* ps) : h(simInfo.restartFl
 {
 
   if (GlobalComm.thisMPIrank == 0)
-    printf("Simulation method: Wang-Landau sampling\n");
+    printf("\nStarting Wang-Landau sampling...\n");
 
   physical_system = ps;
 
@@ -31,11 +31,11 @@ WangLandauSampling::~WangLandauSampling()
 void WangLandauSampling::run()
 {
 
+  char fileName[51];
+
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
-    printf("Running WangLandauSampling...\n");
-
-  char fileName[51];
+    printf("   Finding initial configuration within energy range... ");
 
   // Find the first energy that falls within the WL energy range    
   while (!acceptMove) {
@@ -59,6 +59,11 @@ void WangLandauSampling::run()
 // WL procedure starts here
   while (h.modFactor > h.modFactorFinal) {
     h.histogramFlat = false;
+
+    if (GlobalComm.thisMPIrank == 0) {
+      printf("   Running iteration %2d   (f = %12.8e) ... ", h.iterations, h.modFactor);
+      fflush(stdout);
+    }
 
     h.numberOfUpdatesPerIteration = 0;
     while (!(h.histogramFlat)) {
@@ -130,7 +135,7 @@ void WangLandauSampling::run()
     //bool KB  = h.checkKullbackLeiblerDivergence();
 
     if (GlobalComm.thisMPIrank == 0) {
-      printf("Number of iterations performed = %d\n", h.iterations);
+      printf("done.\n");
 
       // Also write restart files here 
       sprintf(fileName, "hist_dos_iteration%02d.dat", h.iterations);
@@ -150,5 +155,4 @@ void WangLandauSampling::run()
   h.writeHistogramDOSFile("hist_dos_final.dat");
 
 }
-
 

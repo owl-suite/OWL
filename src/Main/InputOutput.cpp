@@ -11,11 +11,12 @@
 void readMainInputFile(const char* FileName)
 {
   
-  //std::cout << "Reading main input file: " << FileName << std::endl;
+  std::cout << "Reading main input file: " << FileName << "\n\n";
+  
   size_t length = strlen(FileName);
   simInfo.MCInputFile = new char[length+1]();
   strncpy(simInfo.MCInputFile, FileName, length+1);
-  //std::cout << "simInfo.MCInputFile set to be: " << simInfo.MCInputFile << std::endl;
+  //std::cout << "simInfo.MCInputFile set to be: " << simInfo.MCInputFile << "\n";
 
   std::ifstream inputFile(FileName);
   std::string line, key;
@@ -32,58 +33,58 @@ void readMainInputFile(const char* FileName)
           // Read and set SimulationInfo
           if (key == "RestartFlag") {
             lineStream >> simInfo.restartFlag;
-            //std::cout << "Simulation Info: restartFlag = " << simInfo.restartFlag << std::endl;
+            //std::cout << "Simulation Info: restartFlag = " << simInfo.restartFlag << "\n";
             continue;
           }
           else if (key == "PhysicalSystem") {
             lineStream >> simInfo.system;
-            //std::cout << "Simulation Info: system = " << simInfo.system << std::endl;
+            //std::cout << "Simulation Info: system = " << simInfo.system << "\n";
             continue;
           }
           else if (key == "PhysicalSystemCommandLine") {
   //          lineStream >> simInfo.physicalSystemCommandLine;
             lineStream.getline(simInfo.physicalSystemCommandLine, 256);
-            //std::cout << "Simulation Info: command line = " << simInfo.physicalSystemCommandLine << std::endl;
+            //std::cout << "Simulation Info: command line = " << simInfo.physicalSystemCommandLine << "\n";
             continue;
           }
           else if (key == "Algorithm") {
             lineStream >> simInfo.algorithm;
-            //std::cout << "Simulation Info: algorithm = " << simInfo.algorithm << std::endl;
+            //std::cout << "Simulation Info: algorithm = " << simInfo.algorithm << "\n";
             continue;
           }
           else if (key == "RngSeed"){
             lineStream >> simInfo.rngSeed;
-            //std::cout << "Random number seed = " << simInfo.rngSeed << std::endl;
+            //std::cout << "Random number seed = " << simInfo.rngSeed << "\n";
             continue;
           }
           else if (key == "SpinModelLatticeSize") {
             lineStream >> simInfo.spinModelLatticeSize;
-            //std::cout << "Simulation Info: lattice size = " << simInfo.spinModelLatticeSize << std::endl;
+            //std::cout << "Simulation Info: lattice size = " << simInfo.spinModelLatticeSize << "\n";
             continue;
           }
           else if (key == "QENumberOfAtoms") {
             lineStream >> simInfo.numAtoms;
-            //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << std::endl;
+            //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << "\n";
             continue;
           }
           else if (key == "QEMCMoveSet") {
             lineStream >> simInfo.QEMCMoveSet;
-            //std::cout << "Simulation Info: choice of Monte Carlo move set for Quantum Espresso system= " << simInfo.QEMCMoveSet << std::endl;
+            //std::cout << "Simulation Info: choice of Monte Carlo move set for Quantum Espresso system= " << simInfo.QEMCMoveSet << "\n";
             continue;
           }
           else if (key == "numberOfWindows") {
             lineStream >> simInfo.numberOfWindows;
-            //std::cout << "Simulation Info: number of energy window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWindows << std::endl;
+            //std::cout << "Simulation Info: number of energy window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWindows << "\n";
             continue;
           }
           else if (key == "numberOfWalkersPerWindow") {
             lineStream >> simInfo.numberOfWalkersPerWindow;
-            //std::cout << "Simulation Info: number of random walkers per window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWalkersPerWindow << std::endl;
+            //std::cout << "Simulation Info: number of random walkers per window in Replica-Exchange Wang-Landau = " << simInfo.numberOfWalkersPerWindow << "\n";
             continue;
           }
           else if (key == "NumberOfMPIranksPerWalker") {
             lineStream >> simInfo.numMPIranksPerWalker;
-            //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << simInfo.numMPIranksPerWalker << std::endl;
+            //std::cout << "Simulation Info: Number of MPI ranks random walker = Number of MPI ranks per physical system = " << simInfo.numMPIranksPerWalker << "\n";
             continue;
           }
         
@@ -101,17 +102,23 @@ void readMainInputFile(const char* FileName)
 }
 
 
-void writeSimulationInfo()
+void writeBanner()
 {
 
   printf("\n");
   printf("                  ####################################################################\n");
   printf("                  ##                                                                ##\n");
-  printf("                  ##   Oak-Ridge/Open-source Wang-Landau (OWL) simulation package   ##\n");
+  printf("                  ##   Open-source/Oak-Ridge Wang-Landau (OWL) simulation package   ##\n");
   printf("                  ##   Copyright (C) 2015-2020                                      ##\n");
   printf("                  ##                                                                ##\n");
   printf("                  ####################################################################\n");
   printf("\n\n");
+
+}
+
+
+void writeSimulationInfo()
+{
 
   printf("Initializing simulation...\n");
 

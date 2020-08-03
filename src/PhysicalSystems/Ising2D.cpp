@@ -1,83 +1,34 @@
+#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include "Ising2D.hpp"
 #include "Utilities/RandomNumberGenerator.hpp"
 
-//Ising2D::Ising2D(SimulationInfo& sim_info, const char* filename, int initial)
-Ising2D::Ising2D(const char* filename, int initial)
+
+Ising2D::Ising2D(const char* spinConfigFile, int initial)
 {
 
   printf("Simulation for 2D Ising model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
-
-  char c;
 
   Size = simInfo.spinModelLatticeSize;
   LatticeSize = Size * Size;
  
   spin = new SpinDirection[LatticeSize];
 
-  //spin = new SpinDirection*[Size];
-  //for (i = 0; i < Size; i++) 
-  //  spin[i] = new SpinDirection[Size];
-
-  if (filename != NULL) {
-    FILE* f = fopen(filename, "r");
-    if (f == NULL) {
-      std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-      exit(1);
-    }
-
-    for(unsigned int i = 0; i < Size; i++) {
-      for (unsigned int j = 0; j < Size; j++) {
-        if (fscanf(f, "%c", &c) != 1) {
-          std::cout << "Coordinates file " << filename << " unreadable!" << std::endl;
-          exit(1);
-        }
-        switch (c) {
-          case 'U' : { spin[i*Size+j] = 1; break; }
-          default  : { spin[i*Size+j] = -1; }
-        }
-      }
-      if (fscanf(f, "%*c") != 1) {
-         std::cout << "Problem reading coordinates file " << filename << std::endl;
-         exit(1);
-      }
-    }
-    fclose(f);
-  }
-  else {
-    for (unsigned int i = 0; i < Size; i++) {
-      for (unsigned int j = 0; j < Size; j++) {
-
-        switch (initial) {
-        case 1  : {
-          spin[i*Size+j] = -1;
-	        break;
-        }
-        case 2  : {
-          spin[i*Size+j] = 1;
-	        break;
-        }
-        case 3  : {   // checkerboard
-          if (((i + j) % 2) == 0) spin[i*Size+j] = -1;
-          else spin[i*Size+j] = 1;
-	        break;
-        }
-        default : {   // random
-          if (getRandomNumber2() < 0.5) spin[i*Size+j] = -1;
-          else spin[i*Size+j] = 1;
-        }
-        }
-
-      }
-    }
-  }
+  // Initialize configuration from file if applicable
+  if (std::filesystem::exists(spinConfigFile))
+    readSpinConfigFile(spinConfigFile);
+  else if (simInfo.restartFlag && std::filesystem::exists("configurations/config_checkpoint.dat"))
+    readSpinConfigFile("configurations/config_checkpoint.dat");
+  else
+    initializeSpinConfiguration(initial);
 
   initializeObservables(2);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Total magnetization, M");                     // observables[1] : total magnetization
-
 
   getObservablesFromScratch = true;
   getObservables();
@@ -92,8 +43,6 @@ Ising2D::Ising2D(const char* filename, int initial)
 Ising2D::~Ising2D()
 {
 
-  //for (int i = 0; i < Size; i++) 
-  //  delete[] spin[i];
   delete[] spin;
 
   // Free MPI datatype
@@ -103,7 +52,7 @@ Ising2D::~Ising2D()
   deleteObservables();
 
   if (GlobalComm.thisMPIrank == 0)
-    printf("Ising2D finished\n");
+    printf("\nIsing2D finished\n");
 
 }
 
@@ -120,18 +69,19 @@ void Ising2D::writeConfiguration(int format, const char* filename)
 
   default : {
 
-    fprintf(f, "\n");
-    fprintf(f, "2D Ising Model : %u x %u (%u)\n", Size, Size, LatticeSize);
-    fprintf(f, "Measures:");
+    fprintf(f, "# 2D Ising Model : %u x %u\n\n", Size, Size);
+    fprintf(f, "TotalNumberOfSpins %u)\n", LatticeSize);
+    fprintf(f, "Observables ");
 
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(f, " %10.5f", observables[i]);
     fprintf(f, "\n");
  
+    fprintf(f, "\nSpinConfiguration\n");
     for (unsigned int x = 0; x < Size; x++) {
       for (unsigned int y = 0; y < Size; y++) 
         switch (spin[x*Size+y]) {
-          case 1 : {fprintf(f, "U"); break;}
+          case 1  : {fprintf(f, "U"); break;}
           default : {fprintf(f, "D");}
         }
       fprintf(f, "\n");
@@ -144,37 +94,6 @@ void Ising2D::writeConfiguration(int format, const char* filename)
   if (filename != NULL) fclose(f);
 
 }
-
-
-// YingWai: this does not seem to be needed anymore (Oct 10, 2017)
-/*
-void Ising2D::GetMeasuresBruteForce()
-{
-  //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
-
-  int x, y;
-  int xLeft, yBelow;
-
-  // Uncomment this when observables[] are used
-  //resetObservables();
-  int tempE = 0.0;
-  int tempM = 0.0;
-
-  for (x = 0; x < Size; x++) {
-    if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
-    for (y = 0; y < Size; y++) {
-      if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
-      tempE += spin[x][y] * (spin[xLeft][y] + spin[x][yBelow]);
-      tempM += spin[x][y];
-    }
-  }
-  tempE = -tempE;   // ferromagnetic interactions
-
-  if (tempE != observables[0]) printf("Problem! tempE = %8d, observables[0] = %8.5f\n", tempE, observables[0]);
-  if (tempM != observables[1]) printf("Problem! tempM = %8d, observables[1] = %8.5f\n", tempM, observables[1]);
-
-}
-*/
 
 
 void Ising2D::getObservables()
@@ -213,8 +132,6 @@ void Ising2D::getObservables()
 
     //printf("observables = %10.5f %10.5f \n", observables[0], observables[1]);
   }
-
-  //GetMeasuresBruteForce();
 
 }
 
@@ -278,3 +195,104 @@ void Ising2D::buildMPIConfigurationType()
 
 }
 
+
+void Ising2D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
+{
+
+  std::cout << "\n   Ising2D class reading configuration file: " << spinConfigFile << "\n";
+
+  std::ifstream inputFile(spinConfigFile);
+  std::string line, key;
+  unsigned int numberOfSpins {0};
+  char c;
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+        std::istringstream lineStream(line);
+        lineStream >> key;
+        if (key.compare(0, 1, "#") != 0) {
+          if (key == "TotalNumberOfSpins") {
+            lineStream >> numberOfSpins;
+            //std::cout << "   Ising2D: numberOfSpins = " << numberOfSpins << "\n";
+            continue;
+          }
+          else if (key == "Observables") {
+            unsigned int counter = 0;
+            while (lineStream && counter < numObservables) {
+              lineStream >> observables[counter];
+              //std::cout << "   Ising2D: observables[" << counter << "] = " << observables[counter] << "\n";
+              counter++;
+            }
+            continue;
+          }
+          else if (key == "SpinConfiguration") {
+            //std::cout << "   Ising2D: Spin Configuration read: \n";
+            for (unsigned int i=0; i<Size; i++) {
+              lineStream.clear();
+              std::getline(inputFile, line);               
+              if (!line.empty())  lineStream.str(line);
+              for (unsigned int j=0; j<Size; j++) {
+                lineStream >> c;
+                switch (c) {
+                  case 'U' : { spin[i*Size+j] = 1; break; }
+                  default  : { spin[i*Size+j] = -1; }
+                }
+              }
+            }
+            continue;
+          }
+        }
+
+      }
+    }
+
+    inputFile.close();
+  }
+
+  // Sanity checks:
+  assert(LatticeSize == numberOfSpins);
+
+  printf("   Initial configuration read:\n");
+  for (unsigned int i=0; i<Size; i++) {
+    printf("   ");
+    for (unsigned int j=0; j<Size; j++)
+      printf("%3d ", spin[i*Size+j]);
+    printf("\n");
+  }
+
+}
+
+
+void Ising2D::initializeSpinConfiguration(int initial)
+{
+
+  for (unsigned int i = 0; i < Size; i++) {
+    for (unsigned int j = 0; j < Size; j++) {
+
+      switch (initial) {
+        case 1  : {
+          spin[i*Size+j] = -1;
+          break;
+        }
+        case 2  : {
+          spin[i*Size+j] = 1;
+          break;
+        }
+        case 3  : {   // checkerboard
+          if (((i + j) % 2) == 0) spin[i*Size+j] = -1;
+          else spin[i*Size+j] = 1;
+          break;
+        }
+        default : {   // random
+          if (getRandomNumber2() < 0.5) spin[i*Size+j] = -1;
+          else spin[i*Size+j] = 1;
+        }
+      }
+
+    }
+  }
+
+}

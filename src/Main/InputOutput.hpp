@@ -6,6 +6,8 @@
 
 void readMainInputFile(const char* inputFileName);
 
+void writeBanner();
+
 void writeSimulationInfo();
 
 #endif

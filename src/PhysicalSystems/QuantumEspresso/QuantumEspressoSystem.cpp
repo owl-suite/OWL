@@ -22,12 +22,12 @@ QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)
   owl_qe_startup(&comm_help, &nimage, &npool, &ntg, &nband, &ndiag, QEInputFile);  // Set up the PWscf calculation
   
   if (GlobalComm.thisMPIrank == 0)
-    std::cout << "Initialized QE MPI communications..." << std::endl;
+    std::cout << "Initialized QE MPI communications..." << "\n";
 
   run_pwscf_(&MPI_exit_status);                                // Execute the PWscf calculation
   get_natom_ener(&natom, &observables[0]);                     // Extract the number of atoms and energy
   //observables[0] = trialEnergy;
-  //std::cout << "Here: " << natom << ", " << trialEnergy << std::endl;
+  //std::cout << "Here: " << natom << ", " << trialEnergy << "\n";
 
   trialConfig.atomic_positions.resize(3,natom);                // Resize positions, cell vectors and atomic species
   trialConfig.lattice_vectors.resize(3,3);
@@ -75,7 +75,7 @@ void QuantumEspressoSystem::readCommandLineOptions()
   // TODO: this should be PhysicalSystemComm after Issue #7 is taken care of.  (Feb 13, 19)
   if (GlobalComm.thisMPIrank == 0) {
     std::cout << "Reading the following command line for Quantum Espresso: \"" 
-              << simInfo.physicalSystemCommandLine << "\"" << std::endl;
+              << simInfo.physicalSystemCommandLine << "\"" << "\n";
   }
 
   char* pch;
@@ -147,7 +147,7 @@ void QuantumEspressoSystem::readCommandLineOptions()
         //    continue;
         //}
         std::cerr << "Error when reading QE command line options!!\n "
-                  << std::endl;
+                  << "\n";
 
   }  
 
@@ -355,7 +355,7 @@ void QuantumEspressoSystem::buildMPIConfigurationType()
   numElements[0] = trialConfig.atomic_positions.size();
   numElements[1] = trialConfig.lattice_vectors.size();
   numElements[2] = trialConfig.atomic_species.size();
-  //std::cout << "Debugging check: numElements[0]/[1] = " << numElements[0] << " , " << numElements[1] << std::endl;
+  //std::cout << "Debugging check: numElements[0]/[1] = " << numElements[0] << " , " << numElements[1] << "\n";
 
   // The derived datatype consists of two arrays of MPI_DOUBLE
   types[0] = types[1] = MPI_DOUBLE;

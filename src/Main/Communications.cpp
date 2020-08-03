@@ -13,7 +13,7 @@ void MPICommunicator::initialize(MPI_Comm incomingComm)
   communicator = incomingComm;
   MPI_Comm_rank(communicator, &thisMPIrank);
   MPI_Comm_size(communicator, &totalMPIranks);
-  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << std::endl;
+  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << "\n";
 
 }
 
@@ -31,7 +31,7 @@ void MPICommunicator::initialize()
     totalMPIranks = -1;
   }
 
-  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << std::endl;
+  //std::cout << "MPICommunicator: global rank = " << GlobalComm.thisMPIrank << ", local thisMPIrank = " << thisMPIrank << "\n";
 
 }
 
@@ -134,6 +134,7 @@ void initializeMPICommunication(MPICommunicator& PhysicalSystemComm,
         exit(7);
       }
 
+    // TODO: this should move to the corresponding MC algorithms that use histograms (WL, REWL, etc.)
     constructHistogramCheckpointFile();
 
   }
@@ -190,7 +191,7 @@ void initializeQEMPICommunication()
   //int comm_help = MPI_Comm_c2f(MPI_COMM_WORLD);   // MPI communicator handle for Fortran
   //owl_qe_startup(&comm_help);                     // Set up the PWscf calculation
   
-  std::cout << "Initialized QE MPI communications..." << std::endl;
+  std::cout << "Initialized QE MPI communications..." << "\n";
 }
 
 
@@ -199,7 +200,7 @@ void finalizeQEMPICommunication()
   //int exit_status;                                // Environmental parameter for QE
   //owl_qe_stop(&exit_status);                      // Finish the PWscf calculation
   
-  std::cout << "Finalized QE MPI communications..." << std::endl;
+  std::cout << "Finalized QE MPI communications..." << "\n";
 }
 
 ////////////////////////////////////////////////////////////////////////

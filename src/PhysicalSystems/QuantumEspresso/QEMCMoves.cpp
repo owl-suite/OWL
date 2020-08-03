@@ -174,7 +174,7 @@ void proposeMCmoves(Matrix<double> &atom_positions, Matrix<double> &cell_vectors
       //std::cout << "MCMove: swap atomic species at two sites\n";
       break;
     default:
-      //std::cout << "MCMove: invalid choice. MCmove = %d " << MCmove << std::endl;
+      //std::cout << "MCMove: invalid choice. MCmove = %d " << MCmove << "\n";
       break;
   }
   

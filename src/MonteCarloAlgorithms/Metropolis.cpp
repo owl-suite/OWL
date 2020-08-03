@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <filesystem>
 #include <sstream>
@@ -35,10 +36,6 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 
   }
 
-  // I/O files
-  if (!std::filesystem::exists("configurations")) 
-    std::filesystem::create_directory("configurations");
-
   if (std::filesystem::exists("mc.dat")) 
     timeSeriesFile = fopen("mc.dat", "a");
   else 
@@ -47,7 +44,6 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   fprintf(timeSeriesFile, "# Thermalization: (%lu steps) \n", numberOfThermalizationSteps);
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
   fprintf(timeSeriesFile, "# MC steps           Observables\n");
-
 
   // If it is a restarted run, need to do more...
   if (simInfo.restartFlag) {
@@ -82,11 +78,11 @@ Metropolis::~Metropolis()
 void Metropolis::run() 
 {
 
+  char fileName[51];
+
   currentTime = lastBackUpTime = MPI_Wtime();
   if (GlobalComm.thisMPIrank == 0)
     printf("   Running Metropolis Sampling...\n");
-
-  char fileName[51];
 
   // Thermalization (observables are not accumulated)
   while (thermalizationStepsPerformed < numberOfThermalizationSteps) {
@@ -188,7 +184,7 @@ void Metropolis::readMCInputFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "   Metropolis class reading input file: " << fileName << std::endl;
+    std::cout << "   Metropolis class reading input file: " << fileName << "\n";
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;
@@ -206,22 +202,22 @@ void Metropolis::readMCInputFile(const char* fileName)
 
           if (key == "numberOfThermalizationSteps") {
             lineStream >> numberOfThermalizationSteps;
-            //std::cout << "Metropolis: numberOfThermalizationSteps = " << numberOfThermalizationSteps << std::endl;
+            //std::cout << "Metropolis: numberOfThermalizationSteps = " << numberOfThermalizationSteps << "\n";
             continue;
           }
           else if (key == "numberOfMCSteps") {
             lineStream >> numberOfMCSteps;
-            //std::cout << "Metropolis: numberOfMCSteps = " << numberOfMCSteps << std::endl;
+            //std::cout << "Metropolis: numberOfMCSteps = " << numberOfMCSteps << "\n";
             continue;
           }
           else if (key == "numberOfMCUpdatesPerStep") {
             lineStream >> numberOfMCUpdatesPerStep;
-            //std::cout << "Metropolis: numberOfMCUpdatesPerStep = " << numberOfMCUpdatesPerStep << std::endl;
+            //std::cout << "Metropolis: numberOfMCUpdatesPerStep = " << numberOfMCUpdatesPerStep << "\n";
             continue;
           }
           else if (key == "temperature") {
             lineStream >> temperature;
-            //std::cout << "Metropolis: temperature = " << temperature << std::endl;
+            //std::cout << "Metropolis: temperature = " << temperature << "\n";
             continue;
           }
           else if (key == "checkPointInterval") {
@@ -252,7 +248,7 @@ void Metropolis::readCheckPointFile(const char* fileName)
 {
 
   if (GlobalComm.thisMPIrank == 0) 
-    std::cout << "   Metropolis class reading checkpoint file: " << fileName << std::endl;
+    std::cout << "   Metropolis class reading checkpoint file: " << fileName << "\n";
 
   std::ifstream inputFile(fileName);   // TODO: check if a file stream is initialized
   std::string line, key;
@@ -270,34 +266,34 @@ void Metropolis::readCheckPointFile(const char* fileName)
 
           if (key == "temperature") {
             lineStream >> restartTemperature;
-            //std::cout << "Metropolis: restartTemperature = " << restartTemperature << std::endl;
+            //std::cout << "Metropolis: restartTemperature = " << restartTemperature << "\n";
             continue;
           }
           else if (key == "thermalizationStepsPerformed") {
             lineStream >> thermalizationStepsPerformed;
-            //std::cout << "Metropolis: thermalizationStepsPerformed = " << thermalizationStepsPerformed << std::endl;
+            //std::cout << "Metropolis: thermalizationStepsPerformed = " << thermalizationStepsPerformed << "\n";
             continue;
           }
           else if (key == "MCStepsPerformed") {
             lineStream >> MCStepsPerformed;
-            //std::cout << "Metropolis: MCStepsPerformed = " << MCStepsPerformed << std::endl;
+            //std::cout << "Metropolis: MCStepsPerformed = " << MCStepsPerformed << "\n";
             continue;
           }
           else if (key == "acceptedMoves") {
             lineStream >> acceptedMoves;
-            //std::cout << "Metropolis: acceptedMoves = " << acceptedMoves << std::endl;
+            //std::cout << "Metropolis: acceptedMoves = " << acceptedMoves << "\n";
             continue;
           }
           else if (key == "rejectedMoves") {
             lineStream >> rejectedMoves;
-            //std::cout << "Metropolis: rejectedMoves = " << rejectedMoves << std::endl;
+            //std::cout << "Metropolis: rejectedMoves = " << rejectedMoves << "\n";
             continue;
           }
           else if (key == "averageObservables") {
             unsigned int counter = 0;
             while (lineStream && counter < physical_system->numObservables) {
               lineStream >> averagedObservables[counter];
-              //std::cout << "Metropolis: averageObservables[" << counter << "] = " << averagedObservables[counter] << std::endl;
+              //std::cout << "Metropolis: averageObservables[" << counter << "] = " << averagedObservables[counter] << "\n";
               counter++;
             }
             continue;
@@ -306,7 +302,7 @@ void Metropolis::readCheckPointFile(const char* fileName)
             unsigned int counter = 0;
             while (lineStream && counter < physical_system->numObservables) {
               lineStream >> variances[counter];
-              //std::cout << "Metropolis: variances[" << counter << "] = " << variances[counter] << std::endl;
+              //std::cout << "Metropolis: variances[" << counter << "] = " << variances[counter] << "\n";
               counter++;
             }
             continue;
@@ -347,6 +343,9 @@ void Metropolis::readCheckPointFile(const char* fileName)
     std::cout << "\n            No further work will be performed. Quitting OWL...\n\n";
     exit(7);
   }
+
+  // Check consistency: acceptedMoves and rejectedMoves
+  assert (acceptedMoves + rejectedMoves == MCStepsPerformed * numberOfMCUpdatesPerStep);
 
   // Restore averagedObservables and variances for accumulation
   for (unsigned int i=0; i<physical_system->numObservables; i++) {

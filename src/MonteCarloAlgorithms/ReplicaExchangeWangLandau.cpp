@@ -20,7 +20,7 @@ ReplicaExchangeWangLandau::ReplicaExchangeWangLandau(PhysicalSystem* ps, MPIComm
   REWLComm = MCAlgorithmComm; 
 
   //if (REWLComm.communicator != MPI_COMM_NULL)
-  //  std::cout << "I am Global ID = " << GlobalComm.thisMPIrank << ", REWLComm ID = " << REWLComm.thisMPIrank << std::endl;
+  //  std::cout << "I am Global ID = " << GlobalComm.thisMPIrank << ", REWLComm ID = " << REWLComm.thisMPIrank << "\n";
 
   /// Set initial values for private members
   numWalkers = simInfo.numWalkers;
@@ -400,7 +400,7 @@ void ReplicaExchangeWangLandau::writeCheckPointFiles(OutputMode output_mode)
 void ReplicaExchangeWangLandau::readREWLInputFile(const char* fileName)
 {
   
-  std::cout << "Reading REWL input file: " << fileName << std::endl;
+  std::cout << "Reading REWL input file: " << fileName << "\n";
 
   std::ifstream inputFile(fileName);
   std::string line, key;
@@ -418,22 +418,22 @@ void ReplicaExchangeWangLandau::readREWLInputFile(const char* fileName)
           // Read and set numWindows, numWalkersPerWindow, overlap
           if (key == "numberOfWindows") {
             lineStream >> numWindows;
-            //std::cout << "REWL: numberOfWindows = " << numWindows << std::endl;
+            //std::cout << "REWL: numberOfWindows = " << numWindows << "\n";
             continue;
           }
           if (key == "numberOfWalkersPerWindow") {
             lineStream >> numWalkersPerWindow;
-            //std::cout << "REWL: numberOfWalkersPerWindow = " << numWalkersPerWindow << std::endl;
+            //std::cout << "REWL: numberOfWalkersPerWindow = " << numWalkersPerWindow << "\n";
             continue;
           }
           if (key == "overlap") {
             lineStream >> overlap;
-            //std::cout << "REWL: overlap = " << overlap << std::endl;
+            //std::cout << "REWL: overlap = " << overlap << "\n";
             continue;
           }
           if (key == "replicaExchangeInterval") {
             lineStream >> replicaExchangeInterval;
-            //std::cout << "REWL: replicaExchangeInterval = " << replicaExchangeInterval << std::endl;
+            //std::cout << "REWL: replicaExchangeInterval = " << replicaExchangeInterval << "\n";
             continue;
           }
   

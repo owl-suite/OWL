@@ -43,7 +43,12 @@ private :
   bool firstTimeGetMeasures;
 
   // Private functions
-  void GetMeasuresBruteForce();
+  ObservableType                                                             getExchangeInterations();
+  ObservableType                                                             getExternalFieldEnergy();
+  std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
+  ObservableType                                                             getDifferenceInExchangeInterations();
+  ObservableType                                                             getDifferenceInExternalFieldEnergy();
+
   void readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void initializeSpinConfiguration(int initial);
 

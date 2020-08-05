@@ -27,11 +27,12 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
   else
     initializeSpinConfiguration(initial);
 
-  initializeObservables(4);
+  initializeObservables(5);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
+  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
 
   firstTimeGetMeasures = true;
   getObservables();
@@ -90,101 +91,109 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
 }
 
 
-
-void Heisenberg2D::GetMeasuresBruteForce()
+void Heisenberg2D::getObservables()
 {
-  //printf("!!! CALLING GetMeasuresBruteForce !!! \n");
+
+  if (firstTimeGetMeasures) {
+    //resetObservables();
+    observables[0] = getExchangeInterations() + getExternalFieldEnergy();
+    std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
+
+    firstTimeGetMeasures = false;
+    //printf("First time getObservables. \n");
+  }
+  else {
+    observables[0] += getDifferenceInExchangeInterations() + getDifferenceInExternalFieldEnergy();
+    observables[1] += spin[CurX][CurY].x - CurType.x;
+    observables[2] += spin[CurX][CurY].y - CurType.y;
+    observables[3] += spin[CurX][CurY].z - CurType.z;
+    observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
+
+    //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
+  }
+
+}
+
+
+ObservableType Heisenberg2D::getExchangeInterations()
+{
 
   unsigned int xLeft, yBelow;
-
-  // Uncomment this when observables[] are used
-  //resetObservables();
-  ObservableType tempE = 0.0;
-  ObservableType tempMx = 0.0;
-  ObservableType tempMy = 0.0;
-  ObservableType tempMz = 0.0;
+  ObservableType energy {0.0};
 
   for (unsigned int i = 0; i < Size; i++) {
     if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
     for (unsigned int j = 0; j < Size; j++) {
       if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
-      //observables[0] += spin[x][y].x * (spin[xLeft][y].x + spin[x][yBelow].x) + 
-      //               spin[x][y].y * (spin[xLeft][y].y + spin[x][yBelow].y) +
-      //               spin[x][y].z * (spin[xLeft][y].z + spin[x][yBelow].z);
-      //observables[1] += spin[x][y].x;
-      //observables[2] += spin[x][y].y;
-      //observables[3] += spin[x][y].z;
-      tempE  += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
-                spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +
-                spin[i][j].z * (spin[xLeft][j].z + spin[i][yBelow].z);
-      tempMx += spin[i][j].x;
-      tempMy += spin[i][j].y;
-      tempMz += spin[i][j].z;
-    }
-  }
-  //observables[0] = -observables[0];   // ferromagnetic (FO) coupling
-  tempE = -tempE;
 
-  if ((std::abs(tempE) - std::abs(observables[0])) > 10e-8) printf("Problem! tempE - observables[0] = %15.10f\n", tempE-observables[0]);
-  if ((std::abs(tempMx) - std::abs(observables[1])) > 10e-8) printf("Problem! tempMx - observables[1] = %15.10f\n", tempMx-observables[1]);
-  if ((std::abs(tempMy) - std::abs(observables[2])) > 10e-8) printf("Problem! tempMy - observables[2] = %15.10f\n", tempMy-observables[2]);
-  if ((std::abs(tempMz) - std::abs(observables[3])) > 10e-8) printf("Problem! tempMz - observables[3] = %15.10f\n", tempMz-observables[3]);
+        energy += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
+                  spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +
+                  spin[i][j].z * (spin[xLeft][j].z + spin[i][yBelow].z);
+        
+    }  
+  }
+  
+  return -energy; // ferromagnetic (FO) coupling
 
 }
 
 
+ObservableType Heisenberg2D::getExternalFieldEnergy()
+{
+  return 0.0;
+}
 
-void Heisenberg2D::getObservables()
+
+std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Heisenberg2D::getMagnetization()
+{
+
+  ObservableType m1 {0.0};
+  ObservableType m2 {0.0};
+  ObservableType m3 {0.0};
+  ObservableType m4 {0.0};
+
+  for (unsigned int i = 0; i < Size; i++) {
+    for (unsigned int j = 0; j < Size; j++) {
+      m1 += spin[i][j].x;
+      m2 += spin[i][j].y;
+      m3 += spin[i][j].z;
+    }
+  }
+
+  m4 = sqrt(m1 * m1 + m2 * m2 + m3 * m3);
+
+  return {m1, m2, m3, m4};
+
+}
+
+
+ObservableType Heisenberg2D::getDifferenceInExchangeInterations()
 {
 
   unsigned int xLeft, yBelow;
   unsigned int xRight, yAbove;
-  ObservableType energyChange;
+  ObservableType energyChange {0.0};
 
-  if (firstTimeGetMeasures) {
+  if (CurX != 0) xLeft = CurX - 1; else xLeft = Size - 1;
+  if (CurY != 0) yBelow = CurY - 1; else yBelow = Size - 1;
+  if (CurX != (Size-1) ) xRight = CurX + 1; else xRight = 0;
+  if (CurY != (Size-1) ) yAbove = CurY + 1; else yAbove = 0;
 
-    //resetObservables();
-  
-    for (unsigned int i = 0; i < Size; i++) {
-      if (i != 0) xLeft = i - 1; else xLeft = Size - 1;
-      for (unsigned int j = 0; j < Size; j++) {
-        if (j != 0) yBelow = j - 1; else yBelow = Size - 1;
-        observables[0] += spin[i][j].x * (spin[xLeft][j].x + spin[i][yBelow].x) + 
-                          spin[i][j].y * (spin[xLeft][j].y + spin[i][yBelow].y) +
-                          spin[i][j].z * (spin[xLeft][j].z + spin[i][yBelow].z);
-        observables[1] += spin[i][j].x;
-        observables[2] += spin[i][j].y;
-        observables[3] += spin[i][j].z;
-      }
-    }
-    observables[0] = -observables[0]; // ferromagnetic (FO) coupling
-    firstTimeGetMeasures = false;
-    printf("First time GetMeasures. \n");
-  }
-  else {
-    if (CurX != 0) xLeft = CurX - 1; else xLeft = Size - 1;
-    if (CurY != 0) yBelow = CurY - 1; else yBelow = Size - 1;
-    if (CurX != (Size-1) ) xRight = CurX + 1; else xRight = 0;
-    if (CurY != (Size-1) ) yAbove = CurY + 1; else yAbove = 0;
+  energyChange = (spin[xLeft][CurY].x + spin[xRight][CurY].x + spin[CurX][yBelow].x + spin[CurX][yAbove].x) * 
+                 (spin[CurX][CurY].x - CurType.x) +
+                 (spin[xLeft][CurY].y + spin[xRight][CurY].y + spin[CurX][yBelow].y + spin[CurX][yAbove].y) * 
+                 (spin[CurX][CurY].y - CurType.y) +
+                 (spin[xLeft][CurY].z + spin[xRight][CurY].z + spin[CurX][yBelow].z + spin[CurX][yAbove].z) * 
+                 (spin[CurX][CurY].z - CurType.z) ;
 
-    energyChange = (spin[xLeft][CurY].x + spin[xRight][CurY].x + spin[CurX][yBelow].x + 
-                    spin[CurX][yAbove].x) * (spin[CurX][CurY].x - CurType.x) +
-                   (spin[xLeft][CurY].y + spin[xRight][CurY].y + spin[CurX][yBelow].y + 
-                    spin[CurX][yAbove].y) * (spin[CurX][CurY].y - CurType.y) +
-                   (spin[xLeft][CurY].z + spin[xRight][CurY].z + spin[CurX][yBelow].z + 
-                    spin[CurX][yAbove].z) * (spin[CurX][CurY].z - CurType.z) ;
-    energyChange = -energyChange;     // ferromagnetic (FO) coupling
+  return -energyChange;           // ferromagnetic (FO) coupling
 
-    observables[0] += energyChange;
-    observables[1] += spin[CurX][CurY].x - CurType.x;
-    observables[2] += spin[CurX][CurY].y - CurType.y;
-    observables[3] += spin[CurX][CurY].z - CurType.z;
+}
 
-    //printf("observables = %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3]);
-  }
 
-  //GetMeasuresBruteForce();
-
+ObservableType Heisenberg2D::getDifferenceInExternalFieldEnergy()
+{
+  return 0.0;
 }
 
 

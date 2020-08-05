@@ -5,7 +5,6 @@
 #include "PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
 
-//class Heisenberg2D : public PhysicalSystem<double> {
 class Heisenberg2D : public PhysicalSystem {
 
 public :
@@ -43,7 +42,13 @@ private :
   
   bool firstTimeGetMeasures;
 
-  void GetMeasuresBruteForce();
+  // Private functions
+  ObservableType                                                             getExchangeInterations();
+  ObservableType                                                             getExternalFieldEnergy();
+  std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
+  ObservableType                                                             getDifferenceInExchangeInterations();
+  ObservableType                                                             getDifferenceInExternalFieldEnergy();
+
   void readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void initializeSpinConfiguration(int initial);
 

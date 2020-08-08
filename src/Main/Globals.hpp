@@ -14,6 +14,7 @@ typedef unsigned int indexType;
 typedef double       InteractionConstant;
 
 
+
 struct SimulationInfo
 {
 

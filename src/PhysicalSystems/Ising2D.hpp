@@ -28,7 +28,7 @@ private :
 
   // Old configuration
   unsigned int CurX, CurY;
-  SpinDirection CurType;
+  SpinDirection oldSpin;
 
   // New configuration
   SpinDirection* spin;             // make it a flat array for MPI to operate on

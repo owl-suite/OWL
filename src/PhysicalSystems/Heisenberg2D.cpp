@@ -96,17 +96,17 @@ void Heisenberg2D::getObservables()
 
   if (firstTimeGetMeasures) {
     //resetObservables();
-    observables[0] = getExchangeInterations() + getExternalFieldEnergy();
+    observables[0] = getExchangeInterations() + getZeemanEnergy();
     std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
 
     firstTimeGetMeasures = false;
     //printf("First time getObservables. \n");
   }
   else {
-    observables[0] += getDifferenceInExchangeInterations() + getDifferenceInExternalFieldEnergy();
-    observables[1] += spin[CurX][CurY].x - CurType.x;
-    observables[2] += spin[CurX][CurY].y - CurType.y;
-    observables[3] += spin[CurX][CurY].z - CurType.z;
+    observables[0] += getDifferenceInExchangeInterations() + getDifferenceInZeemanEnergy();
+    observables[1] += spin[CurX][CurY].x - oldSpin.x;
+    observables[2] += spin[CurX][CurY].y - oldSpin.y;
+    observables[3] += spin[CurX][CurY].z - oldSpin.z;
     observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
 
     //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
@@ -138,7 +138,7 @@ ObservableType Heisenberg2D::getExchangeInterations()
 }
 
 
-ObservableType Heisenberg2D::getExternalFieldEnergy()
+ObservableType Heisenberg2D::getZeemanEnergy()
 {
   return 0.0;
 }
@@ -180,18 +180,18 @@ ObservableType Heisenberg2D::getDifferenceInExchangeInterations()
   if (CurY != (Size-1) ) yAbove = CurY + 1; else yAbove = 0;
 
   energyChange = (spin[xLeft][CurY].x + spin[xRight][CurY].x + spin[CurX][yBelow].x + spin[CurX][yAbove].x) * 
-                 (spin[CurX][CurY].x - CurType.x) +
+                 (spin[CurX][CurY].x - oldSpin.x) +
                  (spin[xLeft][CurY].y + spin[xRight][CurY].y + spin[CurX][yBelow].y + spin[CurX][yAbove].y) * 
-                 (spin[CurX][CurY].y - CurType.y) +
+                 (spin[CurX][CurY].y - oldSpin.y) +
                  (spin[xLeft][CurY].z + spin[xRight][CurY].z + spin[CurX][yBelow].z + spin[CurX][yAbove].z) * 
-                 (spin[CurX][CurY].z - CurType.z) ;
+                 (spin[CurX][CurY].z - oldSpin.z) ;
 
   return -energyChange;           // ferromagnetic (FO) coupling
 
 }
 
 
-ObservableType Heisenberg2D::getDifferenceInExternalFieldEnergy()
+ObservableType Heisenberg2D::getDifferenceInZeemanEnergy()
 {
   return 0.0;
 }
@@ -209,7 +209,7 @@ void Heisenberg2D::doMCMove()
   CurX = unsigned(getIntRandomNumber()) % Size;
   CurY = unsigned(getIntRandomNumber()) % Size;
 
-  CurType = spin[CurX][CurY];
+  oldSpin = spin[CurX][CurY];
 
   do {
     r1 = 2.0 * getRandomNumber();
@@ -229,7 +229,7 @@ void Heisenberg2D::doMCMove()
 /*
 void Heisenberg2D::undoMCMove()
 {
-  spin[CurX][CurY] = CurType;
+  spin[CurX][CurY] = oldSpin;
   restoreObservables();
 }
 */
@@ -244,7 +244,7 @@ void Heisenberg2D::acceptMCMove()
 
 void Heisenberg2D::rejectMCMove()
 {
-  spin[CurX][CurY] = CurType;
+  spin[CurX][CurY] = oldSpin;
   for (unsigned int i=0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 }

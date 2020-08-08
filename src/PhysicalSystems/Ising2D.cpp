@@ -125,10 +125,10 @@ void Ising2D::getObservables()
     if (CurY != (Size-1) ) yAbove = CurY + 1; else yAbove = 0;
 
     int sumNeighbor = spin[xLeft*Size+CurY] + spin[xRight*Size+CurY] + spin[CurX*Size+yBelow] + spin[CurX*Size+yAbove];
-    int energyChange = sumNeighbor * CurType * 2;
+    int energyChange = sumNeighbor * oldSpin * 2;
 
     observables[0] += energyChange;
-    observables[1] += spin[CurX*Size+CurY] - CurType;
+    observables[1] += spin[CurX*Size+CurY] - oldSpin;
 
     //printf("observables = %10.5f %10.5f \n", observables[0], observables[1]);
   }
@@ -146,10 +146,10 @@ void Ising2D::doMCMove()
   // randomly choose a site
   CurX = unsigned(getIntRandomNumber()) % Size;
   CurY = unsigned(getIntRandomNumber()) % Size;
-  CurType = spin[CurX*Size + CurY];
+  oldSpin = spin[CurX*Size + CurY];
 
   // flip the spin at that site
-  if (CurType == -1)
+  if (oldSpin == -1)
     spin[CurX*Size+CurY] = 1;
   else
     spin[CurX*Size+CurY] = -1;
@@ -162,7 +162,7 @@ void Ising2D::doMCMove()
 /*
 void Ising2D::undoMCMove()
 {
-  spin[CurX][CurY] = CurType;
+  spin[CurX][CurY] = oldSpin;
   restoreObservables();
 }
 */
@@ -180,7 +180,7 @@ void Ising2D::acceptMCMove()
 void Ising2D::rejectMCMove()
 {
 
-  spin[CurX*Size+CurY] = CurType;
+  spin[CurX*Size+CurY] = oldSpin;
   for (unsigned int i=0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 

@@ -33,7 +33,7 @@ private :
 
   // Old configuration
   unsigned int CurX, CurY;
-  SpinDirection CurType;
+  SpinDirection oldSpin;
 
   // New configuration
   SpinDirection** spin;          // 2D array because it is a 2D model
@@ -43,10 +43,10 @@ private :
 
   // Private functions
   ObservableType                                                             getExchangeInterations();
-  ObservableType                                                             getExternalFieldEnergy();
+  ObservableType                                                             getZeemanEnergy();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
   ObservableType                                                             getDifferenceInExchangeInterations();
-  ObservableType                                                             getDifferenceInExternalFieldEnergy();
+  ObservableType                                                             getDifferenceInZeemanEnergy();
 
   void readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void initializeSpinConfiguration(int initial);

@@ -244,6 +244,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Heise
 
 }
 
+
 /*
 ObservableType Heisenberg3D::getDifferenceInExchangeInteractions()
 {

@@ -27,7 +27,6 @@ public:
   // Destructor
   ~QuantumEspressoSystem();
 
-  void readCommandLineOptions();
   void writeConfiguration(int = 0, const char* = NULL)  override;
   void getObservables()                                 override;
   void doMCMove()                                       override;
@@ -53,6 +52,7 @@ private:
   QEConfiguration oldConfig;                   // Old configuration for restoration after a rejected MC move
 
   // I/O
+  void readCommandLineOptions();
   void writeSystemFile(const char* = NULL);
   void writeQErestartFile(const char* = NULL);
 

@@ -36,7 +36,6 @@ public:
   // Construct data structures for MPI communications. Used in Replica exchanges.
   void buildMPIConfigurationType() {};
 
-  void readCommandLineOptions() {};
   //void readHamiltonianTerms(const char* inputFile) {};
 
   // Parameters common to (needed by) all models:

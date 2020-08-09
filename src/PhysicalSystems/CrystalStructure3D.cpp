@@ -36,12 +36,13 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
   
-  initializeObservables(5); 
+  initializeObservables(6); 
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
-  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+  observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
+  observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))
@@ -111,6 +112,7 @@ void CrystalStructure3D::getObservablesFromScratch()
   observables[0] = getExchangeInterations();
   //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
+  observables[5] = pow(observables[4], 4.0);
 
   firstTimeGetMeasures = false;
 
@@ -125,7 +127,9 @@ void CrystalStructure3D::getObservables()
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
-  observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
+  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
+  observables[4] = sqrt(temp);
+  observables[5] = temp * temp;
 
 }
 

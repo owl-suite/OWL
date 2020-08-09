@@ -23,15 +23,17 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 
   physical_system = ps;
 
-  // Allocate space to store observables and their squares for calculating variances
+  // Allocate space to store observables and other statistics
   if (physical_system->numObservables > 0) {
 
-     averagedObservables = new ObservableType[physical_system->numObservables];
-     variances = new ObservableType[physical_system->numObservables];
+     averagedObservables         = new ObservableType[physical_system->numObservables];
+     averagedObservablesSquared  = new ObservableType[physical_system->numObservables];
+     standardDeviations          = new ObservableType[physical_system->numObservables];
 
     for (unsigned int i=0; i<physical_system->numObservables; i++) {
-      averagedObservables[i] = 0.0;
-      variances[i] = 0.0;
+      averagedObservables[i]         = 0.0;
+      averagedObservablesSquared[i]  = 0.0;
+      standardDeviations[i]          = 0.0;
     }
 
   }
@@ -45,16 +47,13 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
   fprintf(timeSeriesFile, "# Temperature %8.5f\n", temperature);
   fprintf(timeSeriesFile, "# MC steps           Observables\n");
 
-  // If it is a restarted run, need to do more...
   if (simInfo.restartFlag) {
-
     if (std::filesystem::exists("metropolis_checkpoint.dat"))
       readCheckPointFile("metropolis_checkpoint.dat");
     else {
       std::cout << "\n   WARNING! Restart file 'metropolis_checkpoint.dat' not found. ";
       std::cout << "\n            Performing a fresh run instead of a restarted run. \n\n";
     }
-
   }
 
 }
@@ -65,7 +64,8 @@ Metropolis::~Metropolis()
 {
 
   delete[] averagedObservables;
-  delete[] variances;
+  delete[] averagedObservablesSquared;
+  delete[] standardDeviations;
 
   fclose(timeSeriesFile);
 
@@ -167,14 +167,13 @@ void Metropolis::run()
     }
 
   }
-
+  fprintf(timeSeriesFile, "# End of accumulation. \n\n");
   writeCheckPointFiles(checkPoint);
 
-  fprintf(timeSeriesFile, "# End of accumulation. \n\n");
-
   calculateAveragesAndVariances();
-
   writeCheckPointFiles(endOfSimulation);
+  
+  physical_system -> calculateThermodynamics(averagedObservables, averagedObservablesSquared, temperature);
 
 }
 
@@ -289,7 +288,7 @@ void Metropolis::readCheckPointFile(const char* fileName)
             //std::cout << "Metropolis: rejectedMoves = " << rejectedMoves << "\n";
             continue;
           }
-          else if (key == "averageObservables") {
+          else if (key == "averagedObservables") {
             unsigned int counter = 0;
             while (lineStream && counter < physical_system->numObservables) {
               lineStream >> averagedObservables[counter];
@@ -301,8 +300,8 @@ void Metropolis::readCheckPointFile(const char* fileName)
           else if (key == "standardDeviations") {
             unsigned int counter = 0;
             while (lineStream && counter < physical_system->numObservables) {
-              lineStream >> variances[counter];
-              //std::cout << "Metropolis: variances[" << counter << "] = " << variances[counter] << "\n";
+              lineStream >> standardDeviations[counter];
+              //std::cout << "Metropolis: standardDeviations[" << counter << "] = " << standardDeviations[counter] << "\n";
               counter++;
             }
             continue;
@@ -347,9 +346,9 @@ void Metropolis::readCheckPointFile(const char* fileName)
   // Check consistency: acceptedMoves and rejectedMoves
   assert (acceptedMoves + rejectedMoves == MCStepsPerformed * numberOfMCUpdatesPerStep);
 
-  // Restore averagedObservables and variances for accumulation
+  // Restore averagedObservables and averagedObservablesSquared for accumulation
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
-    variances[i] = (variances[i] * variances[i] + averagedObservables[i] * averagedObservables[i]) * double(MCStepsPerformed);
+    averagedObservablesSquared[i] = (standardDeviations[i] * standardDeviations[i] + averagedObservables[i] * averagedObservables[i]) * double(MCStepsPerformed);
     averagedObservables[i] *= double(MCStepsPerformed);
   }
     
@@ -360,22 +359,21 @@ void Metropolis::accumulateObservables()
 {
 
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
-    averagedObservables[i] += physical_system -> observables[i];    
-    variances[i] += (physical_system -> observables[i]) * (physical_system -> observables[i]);
+    averagedObservables[i] += physical_system -> observables[i];
+    averagedObservablesSquared[i]  += physical_system -> observables[i] * physical_system -> observables[i];
   }
 
 }
 
 
-// calculate average and variance of observables
 void Metropolis::calculateAveragesAndVariances()
 {
 
   for (unsigned int i=0; i<physical_system->numObservables; i++) {
     averagedObservables[i] /= double(numberOfMCSteps);
-    variances[i] /= double(numberOfMCSteps);
-    variances[i] = sqrt( variances[i] - averagedObservables[i] * averagedObservables[i] );
-    //variances[i] = sqrt((variances[i] - averagedObservables[i] * averagedObservables[i]) / double(numberOfMCSteps - 1));
+    averagedObservablesSquared[i] /= double(numberOfMCSteps);
+    standardDeviations[i] = sqrt( averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i] );
+    //standardDeviations[i] = sqrt((averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i]) / double(numberOfMCSteps - 1));
   }
 
 }
@@ -410,9 +408,9 @@ void Metropolis::writeStatistics(OutputMode output_mode, const char* filename)
       fprintf(checkPointFile, "             Statistics of Metropolis sampling \n");
       fprintf(checkPointFile, "   ----------------------------------------------------- \n");
       fprintf(checkPointFile, "   Simulation temperature         : %8.5f \n", temperature);
-      fprintf(checkPointFile, "   Number of thermalization steps :  %lu \n", numberOfThermalizationSteps);
-      fprintf(checkPointFile, "   Total number of MC steps       :  %lu \n", numberOfMCSteps);
-      fprintf(checkPointFile, "   Number of MC updates per step  :  %lu \n", numberOfMCUpdatesPerStep);
+      fprintf(checkPointFile, "   Number of thermalization steps :  %lu \n",  numberOfThermalizationSteps);
+      fprintf(checkPointFile, "   Total number of MC steps       :  %lu \n",  numberOfMCSteps);
+      fprintf(checkPointFile, "   Number of MC updates per step  :  %lu \n",  numberOfMCUpdatesPerStep);
       fprintf(checkPointFile, "   Number of accepted MC updates  :  %lu (%5.2f %%) \n", 
               acceptedMoves, double(acceptedMoves) / double(numberOfMCSteps * numberOfMCUpdatesPerStep) * 100.0);
       fprintf(checkPointFile, "   Number of rejected MC updates  :  %lu (%5.2f %%) \n", 
@@ -420,33 +418,33 @@ void Metropolis::writeStatistics(OutputMode output_mode, const char* filename)
       
       fprintf(checkPointFile, "\n");
     
-      fprintf(checkPointFile, "                        Observable                           Mean          Std. deviation \n");
+      fprintf(checkPointFile, "                        Observable                          Mean          Std. deviation \n");
       fprintf(checkPointFile, "   --------------------------------------------------------------------------------------- \n");
       for (unsigned int i=0; i<physical_system -> numObservables; i++)
-        fprintf(checkPointFile, "   %45s :     %12.5f      %12.5f \n", physical_system -> observableName[i].c_str(), averagedObservables[i], variances[i]);
-    
+        fprintf(checkPointFile, "   %45s :     %12.5f      %12.5f \n", physical_system -> observableName[i].c_str(), averagedObservables[i], standardDeviations[i]);    
       fprintf(checkPointFile, "\n"); 
+
       break;
 
     case checkPoint :
 
       fprintf(checkPointFile, "temperature                   %8.5f\n", temperature);
-      fprintf(checkPointFile, "thermalizationStepsPerformed   %lu\n", thermalizationStepsPerformed);
-      fprintf(checkPointFile, "MCStepsPerformed               %lu\n", MCStepsPerformed);
-      fprintf(checkPointFile, "acceptedMoves                  %lu\n", acceptedMoves);
-      fprintf(checkPointFile, "rejectedMoves                  %lu\n", rejectedMoves);
+      fprintf(checkPointFile, "thermalizationStepsPerformed   %lu\n",  thermalizationStepsPerformed);
+      fprintf(checkPointFile, "MCStepsPerformed               %lu\n",  MCStepsPerformed);
+      fprintf(checkPointFile, "acceptedMoves                  %lu\n",  acceptedMoves);
+      fprintf(checkPointFile, "rejectedMoves                  %lu\n",  rejectedMoves);
 
-      fprintf(checkPointFile, "averageObservables   ");
-      for (unsigned int i=0; i<physical_system -> numObservables; i++) {
+      fprintf(checkPointFile, "averagedObservables   ");
+      for (unsigned int i=0; i<physical_system -> numObservables; i++)
         fprintf(checkPointFile, "%12.5f      ", averagedObservables[i] / double(MCStepsPerformed));
-      }
       fprintf(checkPointFile, "\n");
       
       fprintf(checkPointFile, "standardDeviations   ");
       for (unsigned int i=0; i<physical_system -> numObservables; i++) {
-        double temp = variances[i] / double(MCStepsPerformed);
-        temp = sqrt( temp - (averagedObservables[i] / double(MCStepsPerformed)) * (averagedObservables[i] / double(MCStepsPerformed)) );
-        fprintf(checkPointFile, "%12.5f      ", temp);
+        double temp_ave  = averagedObservables[i] / double(MCStepsPerformed);
+        double temp_ave2 = averagedObservablesSquared[i] / double(MCStepsPerformed);
+        standardDeviations[i] = sqrt(temp_ave2 - temp_ave*temp_ave);
+        fprintf(checkPointFile, "%12.5f      ", standardDeviations[i]);
       }
       fprintf(checkPointFile, "\n");
       

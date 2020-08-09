@@ -32,7 +32,7 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
-  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+  observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
 
   firstTimeGetMeasures = true;
   getObservables();

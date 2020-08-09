@@ -1,3 +1,5 @@
+#include <cassert>
+#include <limits>
 #include "PhysicalSystemBase.hpp"
 
 // Specialized for spin models for now
@@ -6,7 +8,7 @@ void PhysicalSystem::calculateThermodynamics(ObservableType* averagedObservables
   ObservableType specificHeat           {0.0};
   ObservableType magneticSusceptibility {0.0};
   ObservableType BinderCumulant         {0.0};
-  unsigned int index;
+  unsigned int index = std::numeric_limits<unsigned int>::max();;
 
   for (unsigned int i=0; i < numObservables; i++) {
 
@@ -26,7 +28,7 @@ void PhysicalSystem::calculateThermodynamics(ObservableType* averagedObservables
       continue;
     }
     else if (observableName[i] == "4th order magnetization, M^4") {
-      assert (index >= 0 && index < numObservables);
+      assert (index < numObservables);
       BinderCumulant = 1.0 - averagedObservables[i] / (3.0 * averagedObservablesSquared[index] * averagedObservablesSquared[index]);
       printf("   Binder Cumulant, U4        : %12.5f \n",                BinderCumulant);
       continue;

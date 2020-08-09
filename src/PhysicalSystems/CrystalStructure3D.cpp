@@ -18,7 +18,8 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
          lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
 
   assert (lattice.totalNumberOfAtoms > 0);
-  spin.resize(lattice.totalNumberOfAtoms);
+  setSystemSize(lattice.totalNumberOfAtoms);
+  spin.resize(systemSize);
   
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
   //       together with the reading of Hamiltonian terms. (July 7, 20)
@@ -28,11 +29,11 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   //  printf("   Input file '%s' not found. Interaction cutoff distance will be set to nearest-neighbor only.\n", inputFile);
   
   // Initialize nearest neighbor lists for each atom
-  neighborList.resize(lattice.totalNumberOfAtoms);
+  neighborList.resize(systemSize);
   constructPrimaryNeighborList();
   mapPrimaryToAllNeighborLists();
 
-  //for (unsigned int i=0; i<lattice.totalNumberOfAtoms; i++)
+  //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
   
   initializeObservables(5); 
@@ -85,14 +86,14 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(configFile, "# Customized 3D crystal structure: %dx%dx%d unit cells \n\n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
-    fprintf(configFile, "TotalNumberOfAtoms %u \n", lattice.totalNumberOfAtoms);
+    fprintf(configFile, "TotalNumberOfAtoms %u \n", systemSize);
     fprintf(configFile, "Observables ");
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(configFile, " %15.8f", observables[i]);
     fprintf(configFile, "\n\n");
 
     fprintf(configFile, "SpinConfiguration\n");
-    for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++)
+    for (unsigned int i = 0; i < systemSize; i++)
       fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
 
   }
@@ -137,7 +138,7 @@ void CrystalStructure3D::doMCMove()
   // for (unsigned int i = 0; i < numObservables; i++)
   //   oldObservables[i] = observables[i];
 
-  currentPosition = getUnsignedIntRandomNumber() % lattice.totalNumberOfAtoms;
+  currentPosition = getUnsignedIntRandomNumber() % systemSize;
   oldSpin = spin[currentPosition];
 
   assignRandomSpinDirection(currentPosition);
@@ -233,7 +234,7 @@ void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinCon
   }
 
   // Sanity checks:
-  assert(numberOfAtoms == lattice.totalNumberOfAtoms);
+  assert(numberOfAtoms == systemSize);
 
 }
 
@@ -278,7 +279,7 @@ void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile
 void CrystalStructure3D::initializeSpinConfiguration(int initial)
 {
 
-  for (unsigned int atomID = 0; atomID < lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID = 0; atomID < systemSize; atomID++) {
 
     switch (initial) {
       case 1 : {
@@ -650,7 +651,7 @@ ObservableType CrystalStructure3D::getExchangeInterations()
 
   ObservableType energy {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : neighborList[atomID]) {
       energy += neighbor.J_ij * (spin[atomID].x * spin[neighbor.atomID].x + 
                                  spin[atomID].y * spin[neighbor.atomID].y + 
@@ -673,7 +674,7 @@ ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
 
   ObservableType energy {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : neighborList[atomID])
       energy += neighbor.D_ij * (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction only 
   }
@@ -691,7 +692,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
   ObservableType m3 {0.0};
   ObservableType m4 {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     m1 += spin[atomID].x;
     m2 += spin[atomID].y;
     m3 += spin[atomID].z;

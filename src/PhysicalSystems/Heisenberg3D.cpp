@@ -15,7 +15,7 @@ Heisenberg3D::Heisenberg3D(const char* spinConfigFile, int initial)
   assert (simInfo.spinModelLatticeSize > 0);
 
   Size = simInfo.spinModelLatticeSize;
-  LatticeSize = Size * Size * Size;
+  setSystemSize(Size * Size * Size);
 
   spin = new SpinDirection**[Size];
 
@@ -77,7 +77,7 @@ void Heisenberg3D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "# 3D Heisenberg Model : %u x %u x %u \n\n", Size, Size, Size);
-    fprintf(f, "TotalNumberOfSpins %u\n", LatticeSize);
+    fprintf(f, "TotalNumberOfSpins %u\n", systemSize);
     fprintf(f, "Observables ");
 
     for (unsigned int i = 0; i < numObservables; i++)
@@ -338,7 +338,7 @@ void Heisenberg3D::readSpinConfigFile(const std::filesystem::path& spinConfigFil
   }
 
   // Sanity checks:
-  assert(numberOfSpins == LatticeSize);
+  assert(numberOfSpins = systemSize);
   
   printf("   Initial configuration read:\n");
   for (unsigned int i=0; i<Size; i++) {

@@ -38,7 +38,9 @@ public:
 
   //void readHamiltonianTerms(const char* inputFile) {};
 
+
   // Parameters common to (needed by) all models:
+  unsigned int             systemSize;
   unsigned int             numObservables;
   ObservableType*          observables;
   ObservableType*          oldObservables;
@@ -58,6 +60,10 @@ public:
 
 
 protected:
+
+  void setSystemSize(unsigned int n) {
+    systemSize = n;
+  }
 
   void initializeObservables(unsigned int n) {
     numObservables = n;

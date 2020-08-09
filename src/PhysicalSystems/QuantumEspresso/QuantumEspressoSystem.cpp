@@ -9,6 +9,7 @@
 QuantumEspressoSystem::QuantumEspressoSystem(MPICommunicator PhysicalSystemComm)
 {
   natom       = simInfo.numAtoms;  // TO DO: this should be cross-checked with QE input file!
+  setSystemSize(natom);
   //oldEnergy   = 0.0;
   //trialEnergy = 0.0;
   

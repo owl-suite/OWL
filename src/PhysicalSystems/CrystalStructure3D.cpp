@@ -18,7 +18,8 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
          lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
 
   assert (lattice.totalNumberOfAtoms > 0);
-  spin.resize(lattice.totalNumberOfAtoms);
+  setSystemSize(lattice.totalNumberOfAtoms);
+  spin.resize(systemSize);
   
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
   //       together with the reading of Hamiltonian terms. (July 7, 20)
@@ -28,19 +29,20 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   //  printf("   Input file '%s' not found. Interaction cutoff distance will be set to nearest-neighbor only.\n", inputFile);
   
   // Initialize nearest neighbor lists for each atom
-  neighborList.resize(lattice.totalNumberOfAtoms);
+  neighborList.resize(systemSize);
   constructPrimaryNeighborList();
   mapPrimaryToAllNeighborLists();
 
-  //for (unsigned int i=0; i<lattice.totalNumberOfAtoms; i++)
+  //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
   
-  initializeObservables(5); 
+  initializeObservables(6); 
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
-  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+  observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
+  observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))
@@ -85,14 +87,14 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(configFile, "# Customized 3D crystal structure: %dx%dx%d unit cells \n\n", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
-    fprintf(configFile, "TotalNumberOfAtoms %u \n", lattice.totalNumberOfAtoms);
+    fprintf(configFile, "TotalNumberOfAtoms %u \n", systemSize);
     fprintf(configFile, "Observables ");
     for (unsigned int i = 0; i < numObservables; i++)
       fprintf(configFile, " %15.8f", observables[i]);
     fprintf(configFile, "\n\n");
 
     fprintf(configFile, "SpinConfiguration\n");
-    for (unsigned int i = 0; i < lattice.totalNumberOfAtoms; i++)
+    for (unsigned int i = 0; i < systemSize; i++)
       fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
 
   }
@@ -110,6 +112,7 @@ void CrystalStructure3D::getObservablesFromScratch()
   observables[0] = getExchangeInterations();
   //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
+  observables[5] = pow(observables[4], 4.0);
 
   firstTimeGetMeasures = false;
 
@@ -124,7 +127,9 @@ void CrystalStructure3D::getObservables()
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
-  observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
+  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
+  observables[4] = sqrt(temp);
+  observables[5] = temp * temp;
 
 }
 
@@ -137,7 +142,7 @@ void CrystalStructure3D::doMCMove()
   // for (unsigned int i = 0; i < numObservables; i++)
   //   oldObservables[i] = observables[i];
 
-  currentPosition = getUnsignedIntRandomNumber() % lattice.totalNumberOfAtoms;
+  currentPosition = getUnsignedIntRandomNumber() % systemSize;
   oldSpin = spin[currentPosition];
 
   assignRandomSpinDirection(currentPosition);
@@ -233,7 +238,7 @@ void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinCon
   }
 
   // Sanity checks:
-  assert(numberOfAtoms == lattice.totalNumberOfAtoms);
+  assert(numberOfAtoms == systemSize);
 
 }
 
@@ -278,7 +283,7 @@ void CrystalStructure3D::readInteractionCutoffDistance(const char* mainInputFile
 void CrystalStructure3D::initializeSpinConfiguration(int initial)
 {
 
-  for (unsigned int atomID = 0; atomID < lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID = 0; atomID < systemSize; atomID++) {
 
     switch (initial) {
       case 1 : {
@@ -650,7 +655,7 @@ ObservableType CrystalStructure3D::getExchangeInterations()
 
   ObservableType energy {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : neighborList[atomID]) {
       energy += neighbor.J_ij * (spin[atomID].x * spin[neighbor.atomID].x + 
                                  spin[atomID].y * spin[neighbor.atomID].y + 
@@ -673,7 +678,7 @@ ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
 
   ObservableType energy {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : neighborList[atomID])
       energy += neighbor.D_ij * (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction only 
   }
@@ -691,7 +696,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
   ObservableType m3 {0.0};
   ObservableType m4 {0.0};
 
-  for (unsigned int atomID=0; atomID<lattice.totalNumberOfAtoms; atomID++) {
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     m1 += spin[atomID].x;
     m2 += spin[atomID].y;
     m3 += spin[atomID].z;

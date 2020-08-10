@@ -24,7 +24,6 @@ public :
 private :
 
   unsigned int Size;
-  unsigned int LatticeSize;
 
   struct SpinDirection {
     double x;
@@ -41,7 +40,7 @@ private :
   //double spinLength;
   
   bool firstTimeGetMeasures;
-
+  
   // Private functions
   ObservableType                                                             getExchangeInterations();
   ObservableType                                                             getExternalFieldEnergy();

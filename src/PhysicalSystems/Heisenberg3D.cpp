@@ -15,7 +15,7 @@ Heisenberg3D::Heisenberg3D(const char* spinConfigFile, int initial)
   assert (simInfo.spinModelLatticeSize > 0);
 
   Size = simInfo.spinModelLatticeSize;
-  LatticeSize = Size * Size * Size;
+  setSystemSize(Size * Size * Size);
 
   spin = new SpinDirection**[Size];
 
@@ -32,12 +32,13 @@ Heisenberg3D::Heisenberg3D(const char* spinConfigFile, int initial)
   else
     initializeSpinConfiguration(initial);
 
-  initializeObservables(5);
+  initializeObservables(6);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
-  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+  observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
+  observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
 
   firstTimeGetMeasures = true;
   getObservables();
@@ -77,7 +78,7 @@ void Heisenberg3D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "# 3D Heisenberg Model : %u x %u x %u \n\n", Size, Size, Size);
-    fprintf(f, "TotalNumberOfSpins %u\n", LatticeSize);
+    fprintf(f, "TotalNumberOfSpins %u\n", systemSize);
     fprintf(f, "Observables ");
 
     for (unsigned int i = 0; i < numObservables; i++)
@@ -108,6 +109,7 @@ void Heisenberg3D::getObservables()
     //resetObservables();
     observables[0] = getExchangeInterations() + getExternalFieldEnergy();
     std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
+    observables[5] = pow(observables[4], 4.0);
 
     firstTimeGetMeasures = false;
     //printf("First time getObservables. \n");
@@ -117,8 +119,9 @@ void Heisenberg3D::getObservables()
     observables[1] += spin[CurX][CurY][CurZ].x - CurType.x;
     observables[2] += spin[CurX][CurY][CurZ].y - CurType.y;
     observables[3] += spin[CurX][CurY][CurZ].z - CurType.z;
-    observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
-
+    ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
+    observables[4] = sqrt(temp);
+    observables[5] = temp * temp;
     //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
   }
 
@@ -338,7 +341,7 @@ void Heisenberg3D::readSpinConfigFile(const std::filesystem::path& spinConfigFil
   }
 
   // Sanity checks:
-  assert(numberOfSpins == LatticeSize);
+  assert(numberOfSpins = systemSize);
   
   printf("   Initial configuration read:\n");
   for (unsigned int i=0; i<Size; i++) {

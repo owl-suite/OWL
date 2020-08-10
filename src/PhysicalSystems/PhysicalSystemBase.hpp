@@ -33,13 +33,16 @@ public:
   virtual void acceptMCMove() = 0;
   virtual void rejectMCMove() = 0;        // restore old observables and old configurations to current ones
   
+  virtual void calculateThermodynamics(ObservableType*, ObservableType*, double);
+
   // Construct data structures for MPI communications. Used in Replica exchanges.
   void buildMPIConfigurationType() {};
 
-  void readCommandLineOptions() {};
   //void readHamiltonianTerms(const char* inputFile) {};
 
+
   // Parameters common to (needed by) all models:
+  unsigned int             systemSize;
   unsigned int             numObservables;
   ObservableType*          observables;
   ObservableType*          oldObservables;
@@ -59,6 +62,10 @@ public:
 
 
 protected:
+
+  void setSystemSize(unsigned int n) {
+    systemSize = n;
+  }
 
   void initializeObservables(unsigned int n) {
     numObservables = n;

@@ -25,7 +25,6 @@ private :
   typedef int SpinDirection;
 
   unsigned int Size;
-  unsigned int LatticeSize;
 
   // Old configuration
   unsigned int CurX, CurY;

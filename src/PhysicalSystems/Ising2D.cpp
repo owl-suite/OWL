@@ -14,9 +14,9 @@ Ising2D::Ising2D(const char* spinConfigFile, int initial)
   printf("Simulation for 2D Ising model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   Size = simInfo.spinModelLatticeSize;
-  LatticeSize = Size * Size;
+  setSystemSize(Size * Size);
  
-  spin = new SpinDirection[LatticeSize];
+  spin = new SpinDirection[systemSize];
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists(spinConfigFile))
@@ -70,7 +70,7 @@ void Ising2D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "# 2D Ising Model : %u x %u\n\n", Size, Size);
-    fprintf(f, "TotalNumberOfSpins %u)\n", LatticeSize);
+    fprintf(f, "TotalNumberOfSpins %u)\n", systemSize);
     fprintf(f, "Observables ");
 
     for (unsigned int i = 0; i < numObservables; i++)
@@ -190,7 +190,7 @@ void Ising2D::rejectMCMove()
 void Ising2D::buildMPIConfigurationType()
 {
  
-  MPI_Type_contiguous(int(LatticeSize), MPI_INT, &MPI_ConfigurationType);
+  MPI_Type_contiguous(int(systemSize), MPI_INT, &MPI_ConfigurationType);
   MPI_Type_commit(&MPI_ConfigurationType);
 
 }
@@ -253,7 +253,7 @@ void Ising2D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
   }
 
   // Sanity checks:
-  assert(LatticeSize == numberOfSpins);
+  assert(systemSize == numberOfSpins);
 
   printf("   Initial configuration read:\n");
   for (unsigned int i=0; i<Size; i++) {

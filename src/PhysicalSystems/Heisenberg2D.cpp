@@ -13,7 +13,7 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
   printf("Simulation for 2D Heisenberg model: %dx%d \n", simInfo.spinModelLatticeSize, simInfo.spinModelLatticeSize);
 
   Size = simInfo.spinModelLatticeSize;
-  LatticeSize = Size * Size;
+  setSystemSize(Size * Size);
 
   spin = new SpinDirection*[Size];
 
@@ -32,7 +32,7 @@ Heisenberg2D::Heisenberg2D(const char* spinConfigFile, int initial)
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
-  observableName.push_back("Total magnetization (directionless), M");     // observables[4] : total magnetization
+  observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
 
   firstTimeGetMeasures = true;
   getObservables();
@@ -69,7 +69,7 @@ void Heisenberg2D::writeConfiguration(int format, const char* filename)
   default : {
 
     fprintf(f, "# 2D Heisenberg Model : %u x %u \n\n", Size, Size);
-    fprintf(f, "TotalNumberOfSpins %u\n", LatticeSize);
+    fprintf(f, "TotalNumberOfSpins %u\n", systemSize);
     fprintf(f, "Observables ");
 
     for (unsigned int i = 0; i < numObservables; i++)
@@ -311,7 +311,7 @@ void Heisenberg2D::readSpinConfigFile(const std::filesystem::path& spinConfigFil
   }
 
   // Sanity checks:
-  assert(numberOfSpins == LatticeSize);
+  assert(numberOfSpins == systemSize);
   
   printf("   Initial configuration read:\n");
   for (unsigned int i=0; i<Size; i++) {

@@ -10,9 +10,9 @@
 
 
 struct SpinDirection {
-  double x;
-  double y;
-  double z;
+  double x {0.0};
+  double y {0.0};
+  double z {0.0};
 };
 
 
@@ -47,6 +47,7 @@ private :
 
   // Overall configuration
   std::vector<SpinDirection>                      spin;
+  std::vector<ObservableType>                     localWindingNumber;
   std::vector< std::vector<NeighboringAtomInfo> > neighborList;                       // Each atom has a list of neighboring atoms
   std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;                // Neighbor list for each atom in a unit cell 
 
@@ -81,6 +82,7 @@ private :
   ObservableType                                                             getExchangeInteractions();
   ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
+  ObservableType                                                             getWindingNumber();
 
   ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();

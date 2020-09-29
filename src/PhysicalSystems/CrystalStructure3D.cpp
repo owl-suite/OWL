@@ -109,8 +109,8 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
-  observables[0] = getExchangeInterations();
-  //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
+  observables[0] = getExchangeInteractions();
+  //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
 
@@ -122,8 +122,8 @@ void CrystalStructure3D::getObservablesFromScratch()
 void CrystalStructure3D::getObservables() 
 {
 
-  observables[0] += getDifferenceInExchangeInterations();
-  //observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();
+  observables[0] += getDifferenceInExchangeInteractions();
+  //observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -650,7 +650,7 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, dou
 }
 
 
-ObservableType CrystalStructure3D::getExchangeInterations()
+ObservableType CrystalStructure3D::getExchangeInteractions()
 {
 
   ObservableType energy {0.0};
@@ -668,13 +668,13 @@ ObservableType CrystalStructure3D::getExchangeInterations()
 }
 
 
-ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
+ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInteractions()
 {
 
   // Cross product between two spins
-  // (spin[atomID].y * spin[neighbor.atomID].z - spin[atomID].z * spin[neighbor.atomID].y) +   // x-direction
-  // (spin[atomID].z * spin[neighbor.atomID].x - spin[atomID].x * spin[neighbor.atomID].z) +   // y-direction
-  // (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction
+  // (spin[atomID].y * spin[neighbor.atomID].z - spin[atomID].z * spin[neighbor.atomID].y)    // x-direction
+  // (spin[atomID].z * spin[neighbor.atomID].x - spin[atomID].x * spin[neighbor.atomID].z)    // y-direction
+  // (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x)    // z-direction
 
   ObservableType energy {0.0};
 
@@ -709,7 +709,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
 }
 
 
-ObservableType CrystalStructure3D::getDifferenceInExchangeInterations()
+ObservableType CrystalStructure3D::getDifferenceInExchangeInteractions()
 {
 
   ObservableType energyChange {0.0};
@@ -725,7 +725,7 @@ ObservableType CrystalStructure3D::getDifferenceInExchangeInterations()
 }
 
 
-ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInterations()
+ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractions()
 {
 
   ObservableType energyChange {0.0};

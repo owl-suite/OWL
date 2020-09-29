@@ -96,14 +96,14 @@ void Heisenberg2D::getObservables()
 
   if (firstTimeGetMeasures) {
     //resetObservables();
-    observables[0] = getExchangeInterations() + getExternalFieldEnergy();
+    observables[0] = getExchangeInteractions() + getExternalFieldEnergy();
     std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
 
     firstTimeGetMeasures = false;
     //printf("First time getObservables. \n");
   }
   else {
-    observables[0] += getDifferenceInExchangeInterations() + getDifferenceInExternalFieldEnergy();
+    observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInExternalFieldEnergy();
     observables[1] += spin[CurX][CurY].x - CurType.x;
     observables[2] += spin[CurX][CurY].y - CurType.y;
     observables[3] += spin[CurX][CurY].z - CurType.z;
@@ -115,7 +115,7 @@ void Heisenberg2D::getObservables()
 }
 
 
-ObservableType Heisenberg2D::getExchangeInterations()
+ObservableType Heisenberg2D::getExchangeInteractions()
 {
 
   unsigned int xLeft, yBelow;
@@ -167,7 +167,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Heise
 }
 
 
-ObservableType Heisenberg2D::getDifferenceInExchangeInterations()
+ObservableType Heisenberg2D::getDifferenceInExchangeInteractions()
 {
 
   unsigned int xLeft, yBelow;

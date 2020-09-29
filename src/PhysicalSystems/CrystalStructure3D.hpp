@@ -78,12 +78,13 @@ private :
 
   // Hamiltonian measurements:
   void                                                                       getObservablesFromScratch();
-  ObservableType                                                             getExchangeInterations();
-  ObservableType                                                             getDzyaloshinskiiMoriyaInterations();
+  ObservableType                                                             getExchangeInteractions();
+  ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
 
-  ObservableType                                                             getDifferenceInExchangeInterations();
-  ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInterations();
+  ObservableType                                                             getDifferenceInExchangeInteractions();
+  ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
+
 };
 
 #endif

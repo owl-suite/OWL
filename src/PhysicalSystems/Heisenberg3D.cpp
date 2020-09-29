@@ -107,7 +107,7 @@ void Heisenberg3D::getObservables()
 
   if (firstTimeGetMeasures) {
     //resetObservables();
-    observables[0] = getExchangeInterations() + getExternalFieldEnergy();
+    observables[0] = getExchangeInteractions() + getExternalFieldEnergy();
     std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
     observables[5] = pow(observables[4], 4.0);
 
@@ -115,7 +115,7 @@ void Heisenberg3D::getObservables()
     //printf("First time getObservables. \n");
   }
   else {
-    observables[0] += getDifferenceInExchangeInterations() + getDifferenceInExternalFieldEnergy();
+    observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInExternalFieldEnergy();
     observables[1] += spin[CurX][CurY][CurZ].x - CurType.x;
     observables[2] += spin[CurX][CurY][CurZ].y - CurType.y;
     observables[3] += spin[CurX][CurY][CurZ].z - CurType.z;
@@ -128,7 +128,7 @@ void Heisenberg3D::getObservables()
 }
 
 
-ObservableType Heisenberg3D::getExchangeInterations()
+ObservableType Heisenberg3D::getExchangeInteractions()
 {
   
   unsigned int xLeft, yBelow, zBackward;
@@ -185,7 +185,7 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Heise
 }
 
 
-ObservableType Heisenberg3D::getDifferenceInExchangeInterations()
+ObservableType Heisenberg3D::getDifferenceInExchangeInteractions()
 {
 
   unsigned int xLeft, yBelow, zBackward;

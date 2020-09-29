@@ -562,7 +562,7 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
     else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.468039834;
   }
 
-  return -coupling;           // minus sign for antiferromagnetic coupling
+  return -coupling;           // minus sign for ferromagnetic coupling
 
 }
 
@@ -645,7 +645,7 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, dou
   }
 */
 
-  return -coupling;               // minus sign for antiferromagnetic coupling
+  return -coupling;               // minus sign for ferromagnetic coupling
   
 }
 

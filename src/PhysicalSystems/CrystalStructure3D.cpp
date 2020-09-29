@@ -20,6 +20,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   assert (lattice.totalNumberOfAtoms > 0);
   setSystemSize(lattice.totalNumberOfAtoms);
   spin.resize(systemSize);
+  localWindingNumber.resize(systemSize);
   
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
   //       together with the reading of Hamiltonian terms. (July 7, 20)
@@ -36,13 +37,14 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
   
-  initializeObservables(6); 
+  initializeObservables(7);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
   observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
   observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
+  observableName.push_back("Total winding number, W");                    // observables[6] : total winding number
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))
@@ -113,6 +115,7 @@ void CrystalStructure3D::getObservablesFromScratch()
   //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
+  observables[6] = getWindingNumber();
 
   firstTimeGetMeasures = false;
 
@@ -130,6 +133,8 @@ void CrystalStructure3D::getObservables()
   ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
   observables[4] = sqrt(temp);
   observables[5] = temp * temp;
+
+  //TODO: observables[6] = getWindingNumber();     //getDifferenceInWindingNumber() ?
 
 }
 
@@ -705,6 +710,68 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
   m4 = sqrt(m1 * m1 + m2 * m2 + m3 * m3);
 
   return {m1, m2, m3, m4};
+
+}
+
+
+ObservableType CrystalStructure3D::getWindingNumber()
+{
+
+  ObservableType windingNumber {0.0};
+  const double   pi            {3.141592653589793};
+
+  SpinDirection  spinDifference;
+  SpinDirection  partialDx;
+  SpinDirection  partialDy;
+  SpinDirection  crossProduct;
+
+  // Get localWindingNumber for each site
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
+
+    partialDx.x = partialDx.y = partialDx.z = 0.0;
+    partialDy.x = partialDy.y = partialDy.z = 0.0;
+
+    // Calculate partial derivatives of spin[atomID]
+    for (auto neighbor : neighborList[atomID]) {
+
+      spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;
+      spinDifference.y = spin[atomID].y - spin[neighbor.atomID].y;
+      spinDifference.z = spin[atomID].z - spin[neighbor.atomID].z;
+
+      double dx = lattice.globalAtomicPositions(0, atomID) - lattice.globalAtomicPositions(0, neighbor.atomID);
+      double dy = lattice.globalAtomicPositions(1, atomID) - lattice.globalAtomicPositions(1, neighbor.atomID);
+
+      partialDx.x += spinDifference.x / dx;
+      partialDx.y += spinDifference.y / dx;
+      partialDx.z += spinDifference.z / dx;
+
+      partialDy.x += spinDifference.x / dy;
+      partialDy.y += spinDifference.y / dy;
+      partialDy.z += spinDifference.z / dy;
+    }
+
+    partialDx.x /= neighborList[atomID].size();
+    partialDx.y /= neighborList[atomID].size();
+    partialDx.z /= neighborList[atomID].size();
+
+    partialDy.x /= neighborList[atomID].size();
+    partialDy.y /= neighborList[atomID].size();
+    partialDy.z /= neighborList[atomID].size();
+
+    // Calculate cross product of partialDx and partialDy
+    crossProduct.x = partialDx.y * partialDy.z - partialDx.z * partialDy.y;
+    crossProduct.y = partialDx.z * partialDy.x - partialDx.x * partialDy.z;
+    crossProduct.z = partialDx.x * partialDy.y - partialDx.y * partialDy.x;
+
+    localWindingNumber[atomID] = 0.25 / pi * (spin[atomID].x * crossProduct.x + 
+                                              spin[atomID].y * crossProduct.y + 
+                                              spin[atomID].z * crossProduct.z );
+
+    windingNumber += localWindingNumber[atomID];
+
+  }
+
+  return windingNumber;
 
 }
 

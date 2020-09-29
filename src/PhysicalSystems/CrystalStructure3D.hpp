@@ -82,10 +82,12 @@ private :
   ObservableType                                                             getExchangeInteractions();
   ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
-  ObservableType                                                             getWindingNumber();
+  ObservableType                                                             getTotalWindingNumber();
 
   ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
+  //ObservableType                                                             getDifferenceInWindingNumber();
+  ObservableType                                                             calculateLocalWindingNumber(unsigned int atomID);
 
 };
 

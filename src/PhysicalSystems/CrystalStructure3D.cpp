@@ -115,7 +115,7 @@ void CrystalStructure3D::getObservablesFromScratch()
   //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
-  observables[6] = getWindingNumber();
+  observables[6] = getTotalWindingNumber();
 
   firstTimeGetMeasures = false;
 
@@ -133,8 +133,8 @@ void CrystalStructure3D::getObservables()
   ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
   observables[4] = sqrt(temp);
   observables[5] = temp * temp;
-
-  //TODO: observables[6] = getWindingNumber();     //getDifferenceInWindingNumber() ?
+  //observables[6] += getDifferenceInWindingNumber();
+  observables[6] = getTotalWindingNumber();
 
 }
 
@@ -714,62 +714,13 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
 }
 
 
-ObservableType CrystalStructure3D::getWindingNumber()
+ObservableType CrystalStructure3D::getTotalWindingNumber()
 {
 
   ObservableType windingNumber {0.0};
-  const double   pi            {3.141592653589793};
 
-  SpinDirection  spinDifference;
-  SpinDirection  partialDx;
-  SpinDirection  partialDy;
-  SpinDirection  crossProduct;
-
-  // Get localWindingNumber for each site
-  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
-
-    partialDx.x = partialDx.y = partialDx.z = 0.0;
-    partialDy.x = partialDy.y = partialDy.z = 0.0;
-
-    // Calculate partial derivatives of spin[atomID]
-    for (auto neighbor : neighborList[atomID]) {
-
-      spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;
-      spinDifference.y = spin[atomID].y - spin[neighbor.atomID].y;
-      spinDifference.z = spin[atomID].z - spin[neighbor.atomID].z;
-
-      double dx = lattice.globalAtomicPositions(0, atomID) - lattice.globalAtomicPositions(0, neighbor.atomID);
-      double dy = lattice.globalAtomicPositions(1, atomID) - lattice.globalAtomicPositions(1, neighbor.atomID);
-
-      partialDx.x += spinDifference.x / dx;
-      partialDx.y += spinDifference.y / dx;
-      partialDx.z += spinDifference.z / dx;
-
-      partialDy.x += spinDifference.x / dy;
-      partialDy.y += spinDifference.y / dy;
-      partialDy.z += spinDifference.z / dy;
-    }
-
-    partialDx.x /= neighborList[atomID].size();
-    partialDx.y /= neighborList[atomID].size();
-    partialDx.z /= neighborList[atomID].size();
-
-    partialDy.x /= neighborList[atomID].size();
-    partialDy.y /= neighborList[atomID].size();
-    partialDy.z /= neighborList[atomID].size();
-
-    // Calculate cross product of partialDx and partialDy
-    crossProduct.x = partialDx.y * partialDy.z - partialDx.z * partialDy.y;
-    crossProduct.y = partialDx.z * partialDy.x - partialDx.x * partialDy.z;
-    crossProduct.z = partialDx.x * partialDy.y - partialDx.y * partialDy.x;
-
-    localWindingNumber[atomID] = 0.25 / pi * (spin[atomID].x * crossProduct.x + 
-                                              spin[atomID].y * crossProduct.y + 
-                                              spin[atomID].z * crossProduct.z );
-
-    windingNumber += localWindingNumber[atomID];
-
-  }
+  for (unsigned int atomID=0; atomID<systemSize; atomID++)
+    windingNumber += calculateLocalWindingNumber(atomID);
 
   return windingNumber;
 
@@ -804,5 +755,61 @@ ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractio
   }
 
   return energyChange;
+
+}
+
+
+
+
+
+// Note: this function also changes localWindingNumber
+ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atomID)
+{
+
+  const double   pi {3.141592653589793};
+
+  SpinDirection  spinDifference;
+  SpinDirection  partialDx;
+  SpinDirection  partialDy;
+  SpinDirection  crossProduct;
+
+  // Calculate partial derivatives of spin[atomID]
+  for (auto neighbor : neighborList[atomID]) {
+
+      spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;
+      spinDifference.y = spin[atomID].y - spin[neighbor.atomID].y;
+      spinDifference.z = spin[atomID].z - spin[neighbor.atomID].z;
+
+      double dx = lattice.globalAtomicPositions(0, atomID) - lattice.globalAtomicPositions(0, neighbor.atomID);
+      double dy = lattice.globalAtomicPositions(1, atomID) - lattice.globalAtomicPositions(1, neighbor.atomID);
+
+      partialDx.x += spinDifference.x / dx;
+      partialDx.y += spinDifference.y / dx;
+      partialDx.z += spinDifference.z / dx;
+
+      partialDy.x += spinDifference.x / dy;
+      partialDy.y += spinDifference.y / dy;
+      partialDy.z += spinDifference.z / dy;
+
+  }
+
+  partialDx.x /= neighborList[atomID].size();
+  partialDx.y /= neighborList[atomID].size();
+  partialDx.z /= neighborList[atomID].size();
+
+  partialDy.x /= neighborList[atomID].size();
+  partialDy.y /= neighborList[atomID].size();
+  partialDy.z /= neighborList[atomID].size();
+
+  // Calculate cross product of partialDx and partialDy
+  crossProduct.x = partialDx.y * partialDy.z - partialDx.z * partialDy.y;
+  crossProduct.y = partialDx.z * partialDy.x - partialDx.x * partialDy.z;
+  crossProduct.z = partialDx.x * partialDy.y - partialDx.y * partialDy.x;
+
+  localWindingNumber[atomID] = 0.25 / pi * (spin[atomID].x * crossProduct.x + 
+                                            spin[atomID].y * crossProduct.y + 
+                                            spin[atomID].z * crossProduct.z );
+
+  return localWindingNumber[atomID];
 
 }

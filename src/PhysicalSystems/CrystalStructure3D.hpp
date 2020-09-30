@@ -37,6 +37,8 @@ public :
   void acceptMCMove()                                   override;
   void rejectMCMove()                                   override;
 
+  void getAdditionalObservables()                       override;
+
   //void buildMPIConfigurationType()                      override;
 
   //void readHamiltonianTerms(const char* inputFile);

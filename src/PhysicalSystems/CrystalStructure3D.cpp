@@ -57,10 +57,11 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   firstTimeGetMeasures = true;
   getObservablesFromScratch();
 
+  writeConfiguration(0, "configurations/config_initial.dat");
+
 }
 
 
-// OK
 CrystalStructure3D::~CrystalStructure3D()
 {
 
@@ -74,7 +75,6 @@ CrystalStructure3D::~CrystalStructure3D()
 
 //void CrystalStructure3D::readCommandLineOptions()
 //{ };
-
 
 
 void CrystalStructure3D::writeConfiguration(int format, const char* filename)
@@ -98,6 +98,12 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
     fprintf(configFile, "SpinConfiguration\n");
     for (unsigned int i = 0; i < systemSize; i++)
       fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
+    fprintf(configFile, "\n");
+
+    fprintf(configFile, "WindingNumber\n");
+    for (unsigned int i = 0; i < systemSize; i++)
+      fprintf(configFile, "%8.5f\n", localWindingNumber[i]);
+    fprintf(configFile, "\n");
 
   }
 
@@ -130,14 +136,20 @@ void CrystalStructure3D::getObservables()
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
-  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
-  observables[4] = sqrt(temp);
-  observables[5] = temp * temp;
-  //observables[6] += getDifferenceInWindingNumber();
-  observables[6] = getTotalWindingNumber();
 
 }
 
+
+void CrystalStructure3D::getAdditionalObservables()
+{
+  
+  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
+  observables[4] = sqrt(temp);
+  observables[5] = temp * temp;
+  observables[6] = getTotalWindingNumber();
+  //observables[6] += getDifferenceInWindingNumber();
+
+}
 
 
 void CrystalStructure3D::doMCMove()
@@ -766,7 +778,9 @@ ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractio
 ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atomID)
 {
 
-  const double   pi {3.141592653589793};
+  const double pi {3.141592653589793};
+  unsigned int counter {0};
+  double       cutoff = 0.5 * (neighborDistances[0] + neighborDistances[1]);
 
   SpinDirection  spinDifference;
   SpinDirection  partialDx;
@@ -776,6 +790,7 @@ ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atom
   // Calculate partial derivatives of spin[atomID]
   for (auto neighbor : neighborList[atomID]) {
 
+    if (neighbor.distance < cutoff) {
       spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;
       spinDifference.y = spin[atomID].y - spin[neighbor.atomID].y;
       spinDifference.z = spin[atomID].z - spin[neighbor.atomID].z;
@@ -791,15 +806,18 @@ ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atom
       partialDy.y += spinDifference.y / dy;
       partialDy.z += spinDifference.z / dy;
 
+      counter++;
+    }
+    
   }
 
-  partialDx.x /= neighborList[atomID].size();
-  partialDx.y /= neighborList[atomID].size();
-  partialDx.z /= neighborList[atomID].size();
+  partialDx.x /= double(counter);
+  partialDx.y /= double(counter);
+  partialDx.z /= double(counter);
 
-  partialDy.x /= neighborList[atomID].size();
-  partialDy.y /= neighborList[atomID].size();
-  partialDy.z /= neighborList[atomID].size();
+  partialDy.x /= double(counter);
+  partialDy.y /= double(counter);
+  partialDy.z /= double(counter);
 
   // Calculate cross product of partialDx and partialDy
   crossProduct.x = partialDx.y * partialDy.z - partialDx.z * partialDy.y;

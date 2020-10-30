@@ -117,8 +117,8 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
-  observables[0] = getExchangeInteractions();
-  //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
+  //observables[0] = getExchangeInteractions();
+  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
   observables[6] = getTotalWindingNumber();
@@ -131,8 +131,8 @@ void CrystalStructure3D::getObservablesFromScratch()
 void CrystalStructure3D::getObservables() 
 {
 
-  observables[0] += getDifferenceInExchangeInteractions();
-  //observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
+  //observables[0] += getDifferenceInExchangeInteractions();
+  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -744,7 +744,8 @@ ObservableType CrystalStructure3D::getDifferenceInExchangeInteractions()
                                      (spin[currentPosition].z - oldSpin.z) * spin[neighbor.atomID].z );
   }
 
-  return energyChange;
+  //return energyChange;
+  return 2.0 * energyChange;
 
 }
 
@@ -760,7 +761,8 @@ ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractio
     energyChange += neighbor.D_ij * (spin[currentPosition].x * spin[neighbor.atomID].y - spin[currentPosition].y * spin[neighbor.atomID].x);       
   }
 
-  return energyChange;
+  //return energyChange;
+  return 2.0 * energyChange;
 
 }
 

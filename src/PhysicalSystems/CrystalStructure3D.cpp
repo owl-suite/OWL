@@ -543,40 +543,41 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
 
   //auto sameMagnitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
 
+  // GGA+U result, where U=1 eV
   if (sameMagnitude(dr, dr_ref1)) {         // nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))             coupling = 5.737246246;
-    else if (sameMagnitude(dx, ref2))        coupling = 5.737112873;
-    else if (sameMagnitude(dx, ref3))        coupling = 5.740528109;
+    if (sameMagnitude(dx, ref1))             coupling = 10.866673962;
+    else if (sameMagnitude(dx, ref2))        coupling = 10.847134471;
+    else if (sameMagnitude(dx, ref3))        coupling = 10.870743577;
   }  
   else if (sameMagnitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))             coupling = -1.285354857;
-    else if (sameMagnitude(dx, ref3))        coupling = -1.283593357;
-    else if (sameMagnitude(dx, ref1+ref3))   coupling = -1.282563990;
+    if (sameMagnitude(dx, ref1))             coupling = -1.834389365;
+    else if (sameMagnitude(dx, ref3))        coupling = -1.824701006;
+    else if (sameMagnitude(dx, ref1+ref3))   coupling = -1.834359770;
   }  
   else if (sameMagnitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
-    if (sameMagnitude(dx, ref2))             coupling = -1.017321802;
-    else if (sameMagnitude(dx, ref3))        coupling = -1.019007206;
-    else if (sameMagnitude(dx, ref2+ref3))   coupling = -1.017030791;
+    if (sameMagnitude(dx, ref2))             coupling = -1.826194242;
+    else if (sameMagnitude(dx, ref3))        coupling = -1.832205716;
+    else if (sameMagnitude(dx, ref2+ref3))   coupling = -1.824127914;
   }  
   else if (sameMagnitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling
-    if (sameMagnitude(dx, dr_ref4))          coupling = 0.234128911;
-    else if (sameMagnitude(dy, dr_ref4))     coupling = 0.235651112;
-    else if (sameMagnitude(dz, dr_ref4))     coupling = 0.236648311;
+    if (sameMagnitude(dx, dr_ref4))          coupling = -0.276785404;
+    else if (sameMagnitude(dy, dr_ref4))     coupling = -0.282247300;
+    else if (sameMagnitude(dz, dr_ref4))     coupling = -0.280883995;
   }
   else if (sameMagnitude(dr, dr_ref5)) {    // 5th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref3))               coupling = 0.343174662;
-    else if (sameMagnitude(dx, ref1+ref3))     coupling = 0.339611863;
-    else if (sameMagnitude(dx, ref2+ref3))     coupling = 0.342872395;
+    if (sameMagnitude(dx, ref3))               coupling = -0.252844336;
+    else if (sameMagnitude(dx, ref1+ref3))     coupling = -0.248703350;
+    else if (sameMagnitude(dx, ref2+ref3))     coupling = -0.249381433;
   }
   else if (sameMagnitude(dr, dr_ref6)) {    // 6th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref2))               coupling = 0.704679265;
-    else if (sameMagnitude(dx, ref3))          coupling = 0.697818134;
-    else if (sameMagnitude(dx, dr_ref4+ref1))  coupling = 0.703107429;
+    if (sameMagnitude(dx, ref2))               coupling = 1.049281429;
+    else if (sameMagnitude(dx, ref3))          coupling = 1.038238748;
+    else if (sameMagnitude(dx, dr_ref4+ref1))  coupling = 1.044453134;
   }
   else if (sameMagnitude(dr, dr_ref7)) {    // 7th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))               coupling = 0.464462095;
-    else if (sameMagnitude(dx, ref3))          coupling = 0.467291989;
-    else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.468039834;
+    if (sameMagnitude(dx, ref1))               coupling = 0.901301594;
+    else if (sameMagnitude(dx, ref3))          coupling = 0.908887186;
+    else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.909974276;
   }
 
   return -coupling;           // minus sign for ferromagnetic coupling
@@ -627,40 +628,31 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, dou
   //auto sameMagnitude = [=](double a, double b) -> bool { return fabs(fabs(a) - fabs(b)) < threshold; };
   //auto sameSign      = [=](double a, double b) -> bool { return a * b > 0.0; };
 
+  // GGA+U result, where U=1 eV
   if (sameMagnitude(dr, dr_ref1)) {         // nearest-neighbor coupling
     if (sameMagnitude(dz, ref1))
-      coupling = (dz > 0.0) ? -0.071692682 : 0.071692682;
+      coupling = (dz > 0.0) ? -0.083213711 : 0.083213711;
     else if (sameMagnitude(dz, ref2))
-      coupling = (dz > 0.0) ? -0.177878866 : 0.177878866;
+      coupling = (dz > 0.0) ? -0.181327904 : 0.181327904;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? 0.089626860 : -0.089626860;
+      coupling = (dz > 0.0) ? 0.208896713 : -0.208896713;
   }
   else if (sameMagnitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
     if (sameMagnitude(dz, ref1))
-      coupling = (dz > 0.0) ? -0.047653359 : 0.047653359;
+      coupling = (dz > 0.0) ? -0.104486989 : 0.104486989;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? -0.069320477 : 0.069320477;
+      coupling = (dz > 0.0) ? -0.102627921 : 0.102627921;
     else if (sameMagnitude(dz, ref1+ref3))
-      coupling = (dz > 0.0) ? 0.055421967 : -0.055421967;
+      coupling = (dz > 0.0) ? 0.111201693 : -0.111201693;
   }
   else if (sameMagnitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
     if (sameMagnitude(dz, ref2))
-      coupling = (dz > 0.0) ? -0.021778776 : 0.021778776;
+      coupling = (dz > 0.0) ? -0.038865599 : 0.038865599;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? -0.099840235 : 0.099840235;
+      coupling = (dz > 0.0) ? -0.129034639 : 0.129034639;
     else if (sameMagnitude(dz, ref2+ref3))
-      coupling = (dz > 0.0) ? 0.024074747 : -0.024074747;
+      coupling = (dz > 0.0) ? 0.023891065 : -0.023891065;
   }
-/*
-  else if (sameMagnitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling (sign to be confirmed)
-    if (sameMagnitude(dx, dr_ref4))         // <-- sign problem!
-      coupling = (dx > 0.0) ? -0.066329338 : 0.066329338;
-    else if (sameMagnitude(dy, dr_ref4))    // <-- sign problem!
-      coupling = (dy > 0.0) ? -0.046879378 : 0.046879378;
-    else if (sameMagnitude(dz, dr_ref4))
-      coupling = (dz > 0.0) ? 0.000973312 : -0.000973312;
-  }
-*/
 
   return -coupling;               // minus sign for ferromagnetic coupling
   
@@ -680,7 +672,8 @@ ObservableType CrystalStructure3D::getExchangeInteractions()
     }
   } 
 
-  return 0.5 * energy;          // the factor of 0.5 is for correcting double counting
+  //return 0.5 * energy;          // the factor of 0.5 is for correcting double counting
+  return energy;                  // use this when the exchange term is defined as: H=-\sum_{ij} J_{ij} {\vec e_i}{\vec e_j}
 
 }
 
@@ -700,7 +693,8 @@ ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInteractions()
       energy += neighbor.D_ij * (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction only 
   }
 
-  return 0.5 * energy;           // the factor of 0.5 is for correcting double counting
+  //return 0.5 * energy;           // the factor of 0.5 is for correcting double counting
+  return energy;                  // use this when DM term is defined as: H=-\sum_{ij} D^z_{ij}[{\vec e_i}\times{\vec e_j}]_z
 
 }
 

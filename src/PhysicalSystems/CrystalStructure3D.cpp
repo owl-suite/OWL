@@ -771,7 +771,25 @@ ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractio
 }
 
 
+ObservableType CrystalStructure3D::getDifferenceInWindingNumber()
+{
 
+  ObservableType oldSumOfWindingNumber     {0.0};
+  ObservableType currentSumOfWindingNumber {0.0};
+
+  // Update the local winding number for the current atom
+  oldSumOfWindingNumber     += localWindingNumber[currentPosition];
+  currentSumOfWindingNumber += calculateLocalWindingNumber(currentPosition);
+
+  // Update the local winding numbers of the neigboring atoms that are affected by the MC move on the current atom
+  //for (auto neighbor : neighborList[currentPosition]) {
+  //  oldSumOfWindingNumber     += localWindingNumber[neighbor.atomID];
+  //  currentSumOfWindingNumber += calculateLocalWindingNumber(neighbor.atomID);
+  //}
+
+  return currentSumOfWindingNumber - oldSumOfWindingNumber;
+
+}
 
 
 // Note: this function also changes localWindingNumber

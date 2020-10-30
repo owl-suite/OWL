@@ -88,7 +88,7 @@ private :
 
   ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
-  //ObservableType                                                             getDifferenceInWindingNumber();
+  ObservableType                                                             getDifferenceInWindingNumber();
   ObservableType                                                             calculateLocalWindingNumber(unsigned int atomID);
 
 };

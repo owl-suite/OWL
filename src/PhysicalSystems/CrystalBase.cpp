@@ -44,6 +44,8 @@ Lattice::Lattice(const char* inputFile)
   // Initialize crystal
   totalNumberOfAtoms = numberOfUnitCells * unitCell.number_of_atoms;
   constructGlobalCoordinates();
+  writeAtomicPositions();
+  writeAtomicPositions("configurations/atomic_positions.dat");
   // Check:
   //printAllPairwiseDistances();
 
@@ -75,7 +77,7 @@ Lattice::Lattice(const char* inputFile)
 //     |    ay  by  cy
 //     v    az  bz  cz
 void Lattice::readUnitCellInfo(const char* mainInputFile)
-  {
+{
 
     //if (GlobalComm.thisMPIrank == 0)
       std::cout << "\n   Crystal class reading input file: " << mainInputFile << "\n\n";
@@ -170,11 +172,11 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
     }
 
-  }
+}
 
 
-  void Lattice::constructUnitCellVectors()
-  {
+void Lattice::constructUnitCellVectors()
+{
  
     unitCellVectors.resize(3, numberOfUnitCells);
 
@@ -193,11 +195,11 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
       }
     }
 
-  }
+}
 
 
-  void Lattice::constructGlobalCoordinates()
-  {
+void Lattice::constructGlobalCoordinates()
+{
    
     globalAtomicPositions.resize(3, totalNumberOfAtoms);
     
@@ -217,9 +219,31 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
   }
 
-  // Note: Assume the reference unit cell is (0,0,0)
-  void Lattice::constructRelativeCoordinates()
-  {
+
+void Lattice::writeAtomicPositions(const char* filename)
+{
+
+  FILE* atomicPositionFile;
+  if (filename != NULL)
+    atomicPositionFile = fopen(filename, "w");
+  else {
+    atomicPositionFile = stdout;
+    fprintf(atomicPositionFile, "\n   Atomic Positions:\n");
+  }
+
+  fprintf(atomicPositionFile, "     Atom          x              y              z\n");
+  for (unsigned int atomID = 0; atomID < totalNumberOfAtoms; atomID++)
+    fprintf(atomicPositionFile, "   %5d   %12.6f   %12.6f   %12.6f\n", atomID, globalAtomicPositions(0, atomID), globalAtomicPositions(1, atomID), globalAtomicPositions(2, atomID));
+
+  if (filename != NULL) fclose(atomicPositionFile);
+
+
+}
+
+
+// Note: Assume the reference unit cell is (0,0,0)
+void Lattice::constructRelativeCoordinates()
+{
 
     totalNumberOfNeighboringAtoms = unsigned(nearestNeighborUnitCellList.size()) * unitCell.number_of_atoms;
     relativeAtomicPositions.resize(3, totalNumberOfNeighboringAtoms);
@@ -241,11 +265,11 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
     std::cout << "\n   Constructed relative coordinates. \n";
 
-  }
+}
 
 
-  double Lattice::getPairwiseDistance(unsigned int atom1, unsigned int atom2)
-  {  
+double Lattice::getPairwiseDistance(unsigned int atom1, unsigned int atom2)
+{  
 
     double distance = 0.0;
     for (unsigned int i=0; i<3; i++)
@@ -253,11 +277,11 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 
     return sqrt(distance);  
 
-  }  
+}  
   
 
-  double Lattice::getRelativePairwiseDistance(unsigned int atom1, unsigned int atom2)
-  {  
+double Lattice::getRelativePairwiseDistance(unsigned int atom1, unsigned int atom2)
+{  
 
     double distance = 0.0;
     for (unsigned int i=0; i<3; i++)

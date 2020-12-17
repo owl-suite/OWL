@@ -51,6 +51,7 @@ public :
   void readUnitCellInfo(const char* mainInputFile);
   void constructUnitCellVectors();
   void constructGlobalCoordinates();
+  void writeAtomicPositions(const char* filename = NULL);
 
   inline unsigned int getUnitCellIndex(unsigned int x, unsigned int y, unsigned int z)          // returns a unique ID for a unit cell
   { return z * unitCellDimensions[0] * unitCellDimensions[1] + y * unitCellDimensions[0] + x; }

@@ -42,10 +42,10 @@ private :
   bool firstTimeGetMeasures;
 
   // Private functions
-  ObservableType                                                             getExchangeInterations();
+  ObservableType                                                             getExchangeInteractions();
   ObservableType                                                             getExternalFieldEnergy();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
-  ObservableType                                                             getDifferenceInExchangeInterations();
+  ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInExternalFieldEnergy();
 
   void readSpinConfigFile(const std::filesystem::path& spinConfigFile);

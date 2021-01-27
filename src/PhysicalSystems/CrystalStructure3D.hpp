@@ -10,9 +10,9 @@
 
 
 struct SpinDirection {
-  double x;
-  double y;
-  double z;
+  double x {0.0};
+  double y {0.0};
+  double z {0.0};
 };
 
 
@@ -37,6 +37,8 @@ public :
   void acceptMCMove()                                   override;
   void rejectMCMove()                                   override;
 
+  void getAdditionalObservables()                       override;
+
   //void buildMPIConfigurationType()                      override;
 
   //void readHamiltonianTerms(const char* inputFile);
@@ -47,6 +49,7 @@ private :
 
   // Overall configuration
   std::vector<SpinDirection>                      spin;
+  std::vector<ObservableType>                     localWindingNumber;
   std::vector< std::vector<NeighboringAtomInfo> > neighborList;                       // Each atom has a list of neighboring atoms
   std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;                // Neighbor list for each atom in a unit cell 
 
@@ -78,12 +81,16 @@ private :
 
   // Hamiltonian measurements:
   void                                                                       getObservablesFromScratch();
-  ObservableType                                                             getExchangeInterations();
-  ObservableType                                                             getDzyaloshinskiiMoriyaInterations();
+  ObservableType                                                             getExchangeInteractions();
+  ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
+  ObservableType                                                             getTotalWindingNumber();
 
-  ObservableType                                                             getDifferenceInExchangeInterations();
-  ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInterations();
+  ObservableType                                                             getDifferenceInExchangeInteractions();
+  ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
+  ObservableType                                                             getDifferenceInWindingNumber();
+  ObservableType                                                             calculateLocalWindingNumber(unsigned int atomID);
+
 };
 
 #endif

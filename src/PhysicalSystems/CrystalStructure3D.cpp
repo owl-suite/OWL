@@ -20,6 +20,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   assert (lattice.totalNumberOfAtoms > 0);
   setSystemSize(lattice.totalNumberOfAtoms);
   spin.resize(systemSize);
+  localWindingNumber.resize(systemSize);
   
   // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
   //       together with the reading of Hamiltonian terms. (July 7, 20)
@@ -36,13 +37,14 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
   
-  initializeObservables(6); 
+  initializeObservables(7);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
   observableName.push_back("Magnetization in z-direction, M_z");          // observables[3] : magnetization in z-direction
   observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
   observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
+  observableName.push_back("Total winding number, W");                    // observables[6] : total winding number
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))
@@ -55,10 +57,11 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   firstTimeGetMeasures = true;
   getObservablesFromScratch();
 
+  writeConfiguration(0, "configurations/config_initial.dat");
+
 }
 
 
-// OK
 CrystalStructure3D::~CrystalStructure3D()
 {
 
@@ -72,7 +75,6 @@ CrystalStructure3D::~CrystalStructure3D()
 
 //void CrystalStructure3D::readCommandLineOptions()
 //{ };
-
 
 
 void CrystalStructure3D::writeConfiguration(int format, const char* filename)
@@ -96,6 +98,12 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
     fprintf(configFile, "SpinConfiguration\n");
     for (unsigned int i = 0; i < systemSize; i++)
       fprintf(configFile, "%8.5f %8.5f %8.5f\n", spin[i].x, spin[i].y, spin[i].z);
+    fprintf(configFile, "\n");
+
+    fprintf(configFile, "WindingNumber\n");
+    for (unsigned int i = 0; i < systemSize; i++)
+      fprintf(configFile, "%8.5f\n", localWindingNumber[i]);
+    fprintf(configFile, "\n");
 
   }
 
@@ -109,10 +117,11 @@ void CrystalStructure3D::writeConfiguration(int format, const char* filename)
 void CrystalStructure3D::getObservablesFromScratch() 
 {
 
-  observables[0] = getExchangeInterations();
-  //observables[0] = getExchangeInterations() + getDzyaloshinskiiMoriyaInterations();
+  //observables[0] = getExchangeInteractions();
+  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
+  observables[6] = getTotalWindingNumber();
 
   firstTimeGetMeasures = false;
 
@@ -122,17 +131,25 @@ void CrystalStructure3D::getObservablesFromScratch()
 void CrystalStructure3D::getObservables() 
 {
 
-  observables[0] += getDifferenceInExchangeInterations();
-  //observables[0] += getDifferenceInExchangeInterations() + getDifferenceInDzyaloshinskiiMoriyaInterations();
+  //observables[0] += getDifferenceInExchangeInteractions();
+  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
-  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
-  observables[4] = sqrt(temp);
-  observables[5] = temp * temp;
 
 }
 
+
+void CrystalStructure3D::getAdditionalObservables()
+{
+  
+  ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
+  observables[4] = sqrt(temp);
+  observables[5] = temp * temp;
+  observables[6] = getTotalWindingNumber();
+  //observables[6] += getDifferenceInWindingNumber();
+
+}
 
 
 void CrystalStructure3D::doMCMove()
@@ -526,43 +543,44 @@ double CrystalStructure3D::assignExchangeCouplings(double dx, double dy, double 
 
   //auto sameMagnitude = [=](double a, double b) -> bool {return fabs(fabs(a) - fabs(b)) < threshold; }; 
 
+  // GGA+U result, where U=1 eV
   if (sameMagnitude(dr, dr_ref1)) {         // nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))             coupling = 5.737246246;
-    else if (sameMagnitude(dx, ref2))        coupling = 5.737112873;
-    else if (sameMagnitude(dx, ref3))        coupling = 5.740528109;
+    if (sameMagnitude(dx, ref1))             coupling = 10.866673962;
+    else if (sameMagnitude(dx, ref2))        coupling = 10.847134471;
+    else if (sameMagnitude(dx, ref3))        coupling = 10.870743577;
   }  
   else if (sameMagnitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))             coupling = -1.285354857;
-    else if (sameMagnitude(dx, ref3))        coupling = -1.283593357;
-    else if (sameMagnitude(dx, ref1+ref3))   coupling = -1.282563990;
+    if (sameMagnitude(dx, ref1))             coupling = -1.834389365;
+    else if (sameMagnitude(dx, ref3))        coupling = -1.824701006;
+    else if (sameMagnitude(dx, ref1+ref3))   coupling = -1.834359770;
   }  
   else if (sameMagnitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
-    if (sameMagnitude(dx, ref2))             coupling = -1.017321802;
-    else if (sameMagnitude(dx, ref3))        coupling = -1.019007206;
-    else if (sameMagnitude(dx, ref2+ref3))   coupling = -1.017030791;
+    if (sameMagnitude(dx, ref2))             coupling = -1.826194242;
+    else if (sameMagnitude(dx, ref3))        coupling = -1.832205716;
+    else if (sameMagnitude(dx, ref2+ref3))   coupling = -1.824127914;
   }  
   else if (sameMagnitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling
-    if (sameMagnitude(dx, dr_ref4))          coupling = 0.234128911;
-    else if (sameMagnitude(dy, dr_ref4))     coupling = 0.235651112;
-    else if (sameMagnitude(dz, dr_ref4))     coupling = 0.236648311;
+    if (sameMagnitude(dx, dr_ref4))          coupling = -0.276785404;
+    else if (sameMagnitude(dy, dr_ref4))     coupling = -0.282247300;
+    else if (sameMagnitude(dz, dr_ref4))     coupling = -0.280883995;
   }
   else if (sameMagnitude(dr, dr_ref5)) {    // 5th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref3))               coupling = 0.343174662;
-    else if (sameMagnitude(dx, ref1+ref3))     coupling = 0.339611863;
-    else if (sameMagnitude(dx, ref2+ref3))     coupling = 0.342872395;
+    if (sameMagnitude(dx, ref3))               coupling = -0.252844336;
+    else if (sameMagnitude(dx, ref1+ref3))     coupling = -0.248703350;
+    else if (sameMagnitude(dx, ref2+ref3))     coupling = -0.249381433;
   }
   else if (sameMagnitude(dr, dr_ref6)) {    // 6th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref2))               coupling = 0.704679265;
-    else if (sameMagnitude(dx, ref3))          coupling = 0.697818134;
-    else if (sameMagnitude(dx, dr_ref4+ref1))  coupling = 0.703107429;
+    if (sameMagnitude(dx, ref2))               coupling = 1.049281429;
+    else if (sameMagnitude(dx, ref3))          coupling = 1.038238748;
+    else if (sameMagnitude(dx, dr_ref4+ref1))  coupling = 1.044453134;
   }
   else if (sameMagnitude(dr, dr_ref7)) {    // 7th nearest-neighbor coupling
-    if (sameMagnitude(dx, ref1))               coupling = 0.464462095;
-    else if (sameMagnitude(dx, ref3))          coupling = 0.467291989;
-    else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.468039834;
+    if (sameMagnitude(dx, ref1))               coupling = 0.901301594;
+    else if (sameMagnitude(dx, ref3))          coupling = 0.908887186;
+    else if (sameMagnitude(dx, dr_ref4+ref2))  coupling = 0.909974276;
   }
 
-  return -coupling;           // minus sign for antiferromagnetic coupling
+  return -coupling;           // minus sign for ferromagnetic coupling
 
 }
 
@@ -610,47 +628,38 @@ double CrystalStructure3D::assignDzyaloshinskiiMoriyaInteractions(double dz, dou
   //auto sameMagnitude = [=](double a, double b) -> bool { return fabs(fabs(a) - fabs(b)) < threshold; };
   //auto sameSign      = [=](double a, double b) -> bool { return a * b > 0.0; };
 
+  // GGA+U result, where U=1 eV
   if (sameMagnitude(dr, dr_ref1)) {         // nearest-neighbor coupling
     if (sameMagnitude(dz, ref1))
-      coupling = (dz > 0.0) ? -0.071692682 : 0.071692682;
+      coupling = (dz > 0.0) ? -0.083213711 : 0.083213711;
     else if (sameMagnitude(dz, ref2))
-      coupling = (dz > 0.0) ? -0.177878866 : 0.177878866;
+      coupling = (dz > 0.0) ? -0.181327904 : 0.181327904;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? 0.089626860 : -0.089626860;
+      coupling = (dz > 0.0) ? 0.208896713 : -0.208896713;
   }
   else if (sameMagnitude(dr, dr_ref2)) {    // next nearest-neighbor coupling
     if (sameMagnitude(dz, ref1))
-      coupling = (dz > 0.0) ? -0.047653359 : 0.047653359;
+      coupling = (dz > 0.0) ? -0.104486989 : 0.104486989;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? -0.069320477 : 0.069320477;
+      coupling = (dz > 0.0) ? -0.102627921 : 0.102627921;
     else if (sameMagnitude(dz, ref1+ref3))
-      coupling = (dz > 0.0) ? 0.055421967 : -0.055421967;
+      coupling = (dz > 0.0) ? 0.111201693 : -0.111201693;
   }
   else if (sameMagnitude(dr, dr_ref3)) {    // next next nearest-neighbor coupling
     if (sameMagnitude(dz, ref2))
-      coupling = (dz > 0.0) ? -0.021778776 : 0.021778776;
+      coupling = (dz > 0.0) ? -0.038865599 : 0.038865599;
     else if (sameMagnitude(dz, ref3))
-      coupling = (dz > 0.0) ? -0.099840235 : 0.099840235;
+      coupling = (dz > 0.0) ? -0.129034639 : 0.129034639;
     else if (sameMagnitude(dz, ref2+ref3))
-      coupling = (dz > 0.0) ? 0.024074747 : -0.024074747;
+      coupling = (dz > 0.0) ? 0.023891065 : -0.023891065;
   }
-/*
-  else if (sameMagnitude(dr, dr_ref4)) {    // 4th nearest-neighbor coupling (sign to be confirmed)
-    if (sameMagnitude(dx, dr_ref4))         // <-- sign problem!
-      coupling = (dx > 0.0) ? -0.066329338 : 0.066329338;
-    else if (sameMagnitude(dy, dr_ref4))    // <-- sign problem!
-      coupling = (dy > 0.0) ? -0.046879378 : 0.046879378;
-    else if (sameMagnitude(dz, dr_ref4))
-      coupling = (dz > 0.0) ? 0.000973312 : -0.000973312;
-  }
-*/
 
-  return -coupling;               // minus sign for antiferromagnetic coupling
+  return -coupling;               // minus sign for ferromagnetic coupling
   
 }
 
 
-ObservableType CrystalStructure3D::getExchangeInterations()
+ObservableType CrystalStructure3D::getExchangeInteractions()
 {
 
   ObservableType energy {0.0};
@@ -663,18 +672,19 @@ ObservableType CrystalStructure3D::getExchangeInterations()
     }
   } 
 
-  return 0.5 * energy;          // the factor of 0.5 is for correcting double counting
+  //return 0.5 * energy;          // the factor of 0.5 is for correcting double counting
+  return energy;                  // use this when the exchange term is defined as: H=-\sum_{ij} J_{ij} {\vec e_i}{\vec e_j}
 
 }
 
 
-ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
+ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInteractions()
 {
 
   // Cross product between two spins
-  // (spin[atomID].y * spin[neighbor.atomID].z - spin[atomID].z * spin[neighbor.atomID].y) +   // x-direction
-  // (spin[atomID].z * spin[neighbor.atomID].x - spin[atomID].x * spin[neighbor.atomID].z) +   // y-direction
-  // (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction
+  // (spin[atomID].y * spin[neighbor.atomID].z - spin[atomID].z * spin[neighbor.atomID].y)    // x-direction
+  // (spin[atomID].z * spin[neighbor.atomID].x - spin[atomID].x * spin[neighbor.atomID].z)    // y-direction
+  // (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x)    // z-direction
 
   ObservableType energy {0.0};
 
@@ -683,7 +693,8 @@ ObservableType CrystalStructure3D::getDzyaloshinskiiMoriyaInterations()
       energy += neighbor.D_ij * (spin[atomID].x * spin[neighbor.atomID].y - spin[atomID].y * spin[neighbor.atomID].x);    // z-direction only 
   }
 
-  return 0.5 * energy;           // the factor of 0.5 is for correcting double counting
+  //return 0.5 * energy;           // the factor of 0.5 is for correcting double counting
+  return energy;                  // use this when DM term is defined as: H=-\sum_{ij} D^z_{ij}[{\vec e_i}\times{\vec e_j}]_z
 
 }
 
@@ -709,7 +720,20 @@ std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> Cryst
 }
 
 
-ObservableType CrystalStructure3D::getDifferenceInExchangeInterations()
+ObservableType CrystalStructure3D::getTotalWindingNumber()
+{
+
+  ObservableType windingNumber {0.0};
+
+  for (unsigned int atomID=0; atomID<systemSize; atomID++)
+    windingNumber += calculateLocalWindingNumber(atomID);
+
+  return windingNumber;
+
+}
+
+
+ObservableType CrystalStructure3D::getDifferenceInExchangeInteractions()
 {
 
   ObservableType energyChange {0.0};
@@ -720,12 +744,13 @@ ObservableType CrystalStructure3D::getDifferenceInExchangeInterations()
                                      (spin[currentPosition].z - oldSpin.z) * spin[neighbor.atomID].z );
   }
 
-  return energyChange;
+  //return energyChange;
+  return 2.0 * energyChange;
 
 }
 
 
-ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInterations()
+ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteractions()
 {
 
   ObservableType energyChange {0.0};
@@ -736,6 +761,87 @@ ObservableType CrystalStructure3D::getDifferenceInDzyaloshinskiiMoriyaInteration
     energyChange += neighbor.D_ij * (spin[currentPosition].x * spin[neighbor.atomID].y - spin[currentPosition].y * spin[neighbor.atomID].x);       
   }
 
-  return energyChange;
+  //return energyChange;
+  return 2.0 * energyChange;
+
+}
+
+
+ObservableType CrystalStructure3D::getDifferenceInWindingNumber()
+{
+
+  ObservableType oldSumOfWindingNumber     {0.0};
+  ObservableType currentSumOfWindingNumber {0.0};
+
+  // Update the local winding number for the current atom
+  oldSumOfWindingNumber     += localWindingNumber[currentPosition];
+  currentSumOfWindingNumber += calculateLocalWindingNumber(currentPosition);
+
+  // Update the local winding numbers of the neigboring atoms that are affected by the MC move on the current atom
+  //for (auto neighbor : neighborList[currentPosition]) {
+  //  oldSumOfWindingNumber     += localWindingNumber[neighbor.atomID];
+  //  currentSumOfWindingNumber += calculateLocalWindingNumber(neighbor.atomID);
+  //}
+
+  return currentSumOfWindingNumber - oldSumOfWindingNumber;
+
+}
+
+
+// Note: this function also changes localWindingNumber
+ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atomID)
+{
+
+  const double pi {3.141592653589793};
+  unsigned int counter {0};
+  double       cutoff = 0.5 * (neighborDistances[0] + neighborDistances[1]);
+
+  SpinDirection  spinDifference;
+  SpinDirection  partialDx;
+  SpinDirection  partialDy;
+  SpinDirection  crossProduct;
+
+  // Calculate partial derivatives of spin[atomID]
+  for (auto neighbor : neighborList[atomID]) {
+
+    if (neighbor.distance < cutoff) {
+      spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;
+      spinDifference.y = spin[atomID].y - spin[neighbor.atomID].y;
+      spinDifference.z = spin[atomID].z - spin[neighbor.atomID].z;
+
+      double dx = lattice.globalAtomicPositions(0, atomID) - lattice.globalAtomicPositions(0, neighbor.atomID);
+      double dy = lattice.globalAtomicPositions(1, atomID) - lattice.globalAtomicPositions(1, neighbor.atomID);
+
+      partialDx.x += spinDifference.x / dx;
+      partialDx.y += spinDifference.y / dx;
+      partialDx.z += spinDifference.z / dx;
+
+      partialDy.x += spinDifference.x / dy;
+      partialDy.y += spinDifference.y / dy;
+      partialDy.z += spinDifference.z / dy;
+
+      counter++;
+    }
+    
+  }
+
+  partialDx.x /= double(counter);
+  partialDx.y /= double(counter);
+  partialDx.z /= double(counter);
+
+  partialDy.x /= double(counter);
+  partialDy.y /= double(counter);
+  partialDy.z /= double(counter);
+
+  // Calculate cross product of partialDx and partialDy
+  crossProduct.x = partialDx.y * partialDy.z - partialDx.z * partialDy.y;
+  crossProduct.y = partialDx.z * partialDy.x - partialDx.x * partialDy.z;
+  crossProduct.z = partialDx.x * partialDy.y - partialDx.y * partialDy.x;
+
+  localWindingNumber[atomID] = 0.25 / pi * (spin[atomID].x * crossProduct.x + 
+                                            spin[atomID].y * crossProduct.y + 
+                                            spin[atomID].z * crossProduct.z );
+
+  return localWindingNumber[atomID];
 
 }

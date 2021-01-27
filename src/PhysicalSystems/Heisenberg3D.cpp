@@ -204,7 +204,7 @@ ObservableType Heisenberg3D::getExchangeInteractions()
 }
 
 
-ObservableType Heisenberg3D::getZeemanEnergy()
+ObservableType Heisenberg3D::getExternalFieldEnergy()
 {
 
   ObservableType energy {0.0};

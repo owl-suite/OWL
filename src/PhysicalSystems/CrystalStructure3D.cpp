@@ -31,7 +31,6 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   mapPrimaryToAllNeighborLists();
 
   // Initialize observables
-  initializeObservables(7);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Magnetization in x-direction, M_x");          // observables[1] : magnetization in x-direction
   observableName.push_back("Magnetization in y-direction, M_y");          // observables[2] : magnetization in y-direction
@@ -39,6 +38,7 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   observableName.push_back("Total magnetization, M");                     // observables[4] : total magnetization
   observableName.push_back("4th order magnetization, M^4");               // observables[5] : total magnetization to the order 4
   observableName.push_back("Total winding number, W");                    // observables[6] : total winding number
+  initializeObservables(observableName.size());
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))

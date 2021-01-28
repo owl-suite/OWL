@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <vector>
 #include "CrystalBase.hpp"
+#include "Utilities/CompareNumbers.hpp"
 
 
 // Note (data layout of Matrix class):
@@ -61,6 +62,24 @@ Lattice::Lattice(const char* inputFile)
 
   // Check:
   //printPairwiseDistancesInUnitCellList(13);
+
+
+  // YingWai [refactoring]: The following are moved over from CrystalStructure3D 
+
+  // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
+  //       together with the reading of Hamiltonian terms. (July 7, 20)
+  if (std::filesystem::exists(inputFile))
+    readInteractionCutoffDistance(inputFile);
+  //else  (TODO: set cutoff distance to nearest-neighbor only)
+  //  printf("   Input file '%s' not found. Interaction cutoff distance will be set to nearest-neighbor only.\n", inputFile);
+
+  // Initialize nearest neighbor lists for each atom
+  neighborList.resize(totalNumberOfAtoms);
+  constructPrimaryNeighborList();
+  mapPrimaryToAllNeighborLists();
+  
+  //for (unsigned int i=0; i<systemSize; i++)
+  //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
 
 }
 
@@ -398,3 +417,191 @@ double Lattice::getRelativePairwiseDistance(unsigned int atom1, unsigned int ato
     return unitCellList;
 
   }
+
+
+// Construct the neighbor list for each atom, given the list of neighboring unit cells to check
+std::vector<NeighboringAtomBase> Lattice::constructNeighborListFromNeighboringUnitCells(unsigned int atom1_global)
+{
+
+    // A neighbor list where pairwise interactions with current atom will be checked
+    std::vector<NeighboringAtomBase> atomList;
+
+    // Current unit cell is always (0,0,0) relatively.
+    unsigned int localUnitCellIndex = getRelativeUnitCellIndex(0, 0, 0);
+    unsigned int globalUnitCellIndex =  atom1_global / unitCell.number_of_atoms;
+    
+    unsigned int atom1 = getAtomIndex(localUnitCellIndex,  atom1_global % unitCell.number_of_atoms);
+
+    for (unsigned int j=0; j<nearestNeighborUnitCellList[globalUnitCellIndex].size(); j++) {
+      for (unsigned int k=0; k<unitCell.number_of_atoms; k++) {
+
+        unsigned int atom2 = getAtomIndex(j, k);
+        unsigned int atom2_global = getAtomIndex(nearestNeighborUnitCellList[globalUnitCellIndex][j], k);
+        if (atom1_global == atom2_global) break;
+        double distance = getRelativePairwiseDistance(atom1, atom2);
+
+        if (distance <= interactionCutoffDistance)
+          atomList.push_back({atom2_global, distance});
+          //atomList.push_back({atom2_global, distance, 0.0, 0.0});
+        
+      }
+    }
+
+    std::sort(atomList.begin(), atomList.end(), 
+              [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
+    );
+
+    std::cout << "Sorted neighbor list of " << atom1_global << ":\n";
+    std::cout << "Atom    distance \n";
+    for (auto i : atomList)
+      std::cout << i.atomID << " " << i.distance << "\n";
+
+  return atomList;
+
+}
+
+
+// Construct the neighbor list for each atom in a unit cell
+// Unit cell and atomID are relative to the reference unit cell
+void Lattice::constructPrimaryNeighborList()
+{
+
+  double distance {0.0};
+  //double J_ij     {0.0};          // Exchange coupling
+  //double D_ij     {0.0};          // Dzyaloshinskii-Moriya (DM) interaction
+  double dx       {0.0};
+  double dy       {0.0};
+  double dz       {0.0};
+
+  std::cout << "\n   Construct primary neighbor list:\n";
+
+  primaryNeighborList.resize(unitCell.number_of_atoms);
+  unsigned int localUnitCellIndex = getRelativeUnitCellIndex(0, 0, 0);
+
+  for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
+    unsigned int atom1 = getAtomIndex(localUnitCellIndex,  atomID);
+
+    for (unsigned int j=0; j<nearestNeighborUnitCellList[localUnitCellIndex].size(); j++) {
+      for (unsigned int k=0; k<unitCell.number_of_atoms; k++) {
+        unsigned int atom2 = getAtomIndex(j, k);
+        //if (atom1 == atom2) break;                // avoids double counting within the same unit cell
+        if (atom1 == atom2) continue;               // avoids putting the reference atom itself into the neighbor list
+        dx = relativeAtomicPositions(0, atom2) - relativeAtomicPositions(0, atom1);
+        dy = relativeAtomicPositions(1, atom2) - relativeAtomicPositions(1, atom1);
+        dz = relativeAtomicPositions(2, atom2) - relativeAtomicPositions(2, atom1);
+        distance = getRelativePairwiseDistance(atom1, atom2);
+
+        // Store the distance if it is not yet in neighborDistances
+        if (!isFoundInVector(distance, neighborDistances))
+          neighborDistances.push_back(distance);
+
+        // Add the atom to neighbor list if within cutoff
+        if (distance <= interactionCutoffDistance) {
+          primaryNeighborList[atomID].push_back({atom2, distance});
+ // YingWai [refactoring] : need to move back to CrystalStructure3D
+ //         J_ij = assignExchangeCouplings(dx, dy, dz, distance);
+ //         D_ij = assignDzyaloshinskiiMoriyaInteractions(dz, distance);
+ //         //J_ij = assignExchangeCouplings_testing(dx, dy, dz, distance);
+ //         primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
+        }
+
+      }
+    }
+
+    // Print the primary neighbor list for the current atom
+    std::cout << "\n     Primary neighbor list of " << atom1 << ":\n";
+    std::cout << "          Atom      Distance \n";
+    //std::cout << "          Atom      Distance        J_ij          D_ij\n";
+    for (auto i : primaryNeighborList[atomID])
+      printf("     %8d   %12.6f\n", i.atomID, i.distance);
+      //printf("     %8d   %12.6f   %12.8f   %12.8f\n", i.atomID, i.distance, i.J_ij, i.D_ij);
+
+  }
+
+  // Sort the neighbor distance list and print out
+  std::sort(neighborDistances.begin(), neighborDistances.end(), 
+            [](const auto& a, const auto& b) { return a < b; }
+  );
+  std::cout << "\n     Neighboring distances: \n";
+  for (unsigned int i=0; i<neighborDistances.size(); i++)
+    printf("     %2dth neighbor : %12.6f \n", i, neighborDistances[i]);
+
+  std::cout << "\n   Constructed primary neighbor lists for all atoms in a unit cell. \n";
+
+}
+
+
+void Lattice::mapPrimaryToAllNeighborLists()
+{
+
+  unsigned int thisAtom, atom_tmp, relative_uc, real_uc, atomID_in_uc, atomID;
+
+  for (unsigned int i=0; i<numberOfUnitCells; i++) {
+    for (unsigned int j=0; j<unitCell.number_of_atoms; j++) {
+
+      thisAtom = getAtomIndex(i,j);
+
+      for (auto k : primaryNeighborList[j]) {
+        atom_tmp = k.atomID;
+
+        relative_uc = atom_tmp / unitCell.number_of_atoms;       // which relative unit cell the neighoring atom in?
+        atomID_in_uc = atom_tmp % unitCell.number_of_atoms;      // which atom is the neighoring atom in a unit cell?
+        real_uc = nearestNeighborUnitCellList[i][relative_uc];
+        atomID = getAtomIndex(real_uc, atomID_in_uc);
+
+        //neighborList[thisAtom].push_back({atomID, k.distance, k.J_ij, k.D_ij});
+        neighborList[thisAtom].push_back({atomID, k.distance});
+        //std::cout << atomID << " " << k.distance << "\n";
+      }
+
+      std::sort(neighborList[thisAtom].begin(), neighborList[thisAtom].end(), 
+                [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
+      );
+
+      //std::cout << "Mapped Neighbor list of " << thisAtom << ":\n";
+      //std::cout << "Atom     distance      J_ij       D_ij \n";
+      //for (auto m : neighborList[thisAtom] )
+      //  std::cout << m.atomID << " " << m.distance << " " << m.J_ij << " " << m.D_ij << "\n \n";
+
+    }
+  }
+
+  std::cout << "   Mapped primary neighbor lists to all atoms in system. \n";
+
+}
+
+
+void Lattice::readInteractionCutoffDistance(const char* mainInputFile)
+{
+  std::cout << "   Lattice class reading input file: " << mainInputFile << "\n";
+
+  std::ifstream inputFile(mainInputFile);
+  std::string line, key;
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+          std::istringstream lineStream(line);
+          lineStream >> key;
+
+          if (key.compare(0, 1, "#") != 0) {
+
+            if (key == "InteractionCutoffDistance") {
+              lineStream >> interactionCutoffDistance;
+              std::cout << "   Lattice: interaction cutoff distance = " << interactionCutoffDistance << "\n";
+              continue;
+            }
+
+          }
+
+      }
+    }
+
+    inputFile.close();
+
+  }
+
+}
+

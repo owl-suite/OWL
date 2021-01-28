@@ -89,7 +89,6 @@ public :
   std::vector<NeighboringAtomBase> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
   void                             constructPrimaryNeighborList();
   void                             mapPrimaryToAllNeighborLists();
-  void                             readInteractionCutoffDistance(const char* inputFile);
 
   inline unsigned int getRelativeUnitCellIndex(unsigned int x, unsigned int y, unsigned int z)
   { 

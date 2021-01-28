@@ -63,15 +63,7 @@ Lattice::Lattice(const char* inputFile)
   // Check:
   //printPairwiseDistancesInUnitCellList(13);
 
-
   // YingWai [refactoring]: The following are moved over from CrystalStructure3D 
-
-  // TODO: This should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
-  //       together with the reading of Hamiltonian terms. (July 7, 20)
-  if (std::filesystem::exists(inputFile))
-    readInteractionCutoffDistance(inputFile);
-  //else  (TODO: set cutoff distance to nearest-neighbor only)
-  //  printf("   Input file '%s' not found. Interaction cutoff distance will be set to nearest-neighbor only.\n", inputFile);
 
   // Initialize nearest neighbor lists for each atom
   neighborList.resize(totalNumberOfAtoms);
@@ -165,6 +157,11 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
               std::cout << "\n     Unit cell dimensions = " << unitCellDimensions[0] << " x " 
                                                             << unitCellDimensions[1] << " x " 
                                                             << unitCellDimensions[2] << " \n";
+              continue;
+            }
+            else if (key == "InteractionCutoffDistance") {
+              lineStream >> interactionCutoffDistance;
+              std::cout << "\n     Interaction cutoff distance = " << interactionCutoffDistance << "\n";
               continue;
             }
 
@@ -569,39 +566,3 @@ void Lattice::mapPrimaryToAllNeighborLists()
   std::cout << "   Mapped primary neighbor lists to all atoms in system. \n";
 
 }
-
-
-void Lattice::readInteractionCutoffDistance(const char* mainInputFile)
-{
-  std::cout << "   Lattice class reading input file: " << mainInputFile << "\n";
-
-  std::ifstream inputFile(mainInputFile);
-  std::string line, key;
-
-  if (inputFile.is_open()) {
-
-    while (std::getline(inputFile, line)) {
-
-      if (!line.empty()) {
-          std::istringstream lineStream(line);
-          lineStream >> key;
-
-          if (key.compare(0, 1, "#") != 0) {
-
-            if (key == "InteractionCutoffDistance") {
-              lineStream >> interactionCutoffDistance;
-              std::cout << "   Lattice: interaction cutoff distance = " << interactionCutoffDistance << "\n";
-              continue;
-            }
-
-          }
-
-      }
-    }
-
-    inputFile.close();
-
-  }
-
-}
-

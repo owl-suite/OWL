@@ -45,6 +45,8 @@ Lattice::Lattice(const char* inputFile)
   // Initialize crystal
   totalNumberOfAtoms = numberOfUnitCells * unitCell.number_of_atoms;
   constructGlobalCoordinates();
+  initializeAtomicSpecies();
+
   writeAtomicPositions();
   writeAtomicPositions("configurations/atomic_positions.dat");
   // Check:
@@ -146,8 +148,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
                          >> unitCell.atomic_positions(0,atom_counter) 
                          >> unitCell.atomic_positions(1,atom_counter) 
                          >> unitCell.atomic_positions(2,atom_counter);
-              //std::cout << "element = " << element << "\n";
-              unitCell.atomic_species.push_back(element);
+              unitCell.atomic_species.push_back(convertStringToElement(element));
               atom_counter++;
               //std::cout << "atom_counter = " << atom_counter << "\n";
               continue;
@@ -181,7 +182,8 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     std::cout << "\n     Decorated atoms in a unit cell:\n";
     std::cout << "     Atom          x              y              z           (unit: lattice constant) \n";
     for (unsigned int i=0; i<unitCell.number_of_atoms; i++) {
-      printf("     %s    %12.6f   %12.6f   %12.6f\n", unitCell.atomic_species[i].c_str(), 
+      //printf("     %u    %12.6f   %12.6f   %12.6f\n", unitCell.atomic_species[i], 
+      printf("     %s    %12.6f   %12.6f   %12.6f\n", convertElementToString(unitCell.atomic_species[i]).c_str(), 
                                                       unitCell.atomic_positions(0,i),
                                                       unitCell.atomic_positions(1,i),
                                                       unitCell.atomic_positions(2,i));
@@ -214,26 +216,43 @@ void Lattice::constructUnitCellVectors()
 }
 
 
+void Lattice::initializeAtomicSpecies()
+{
+   
+  globalAtomicSpecies.resize(totalNumberOfAtoms);
+    
+  for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
+    for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
+      unsigned int atomIndex = getAtomIndex(uc, atomID);
+      globalAtomicSpecies[atomIndex] = unitCell.atomic_species[atomID];
+    }
+  }
+  
+  std::cout << "\n   Initialized atomic species in the whole system based on unit cell information. \n";
+
+}
+
+
 void Lattice::constructGlobalCoordinates()
 {
    
-    globalAtomicPositions.resize(3, totalNumberOfAtoms);
+  globalAtomicPositions.resize(3, totalNumberOfAtoms);
     
-    for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
-      for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
-        unsigned int atomIndex = getAtomIndex(uc, atomID);
-        //std::cout << "Global coordinates " << atomIndex << " = ( ";
-        for (unsigned int i=0; i<3; i++) {
-          globalAtomicPositions(i, atomIndex) = double(unitCellVectors(i,uc)) + unitCell.atomic_positions(i,atomID);
-          //std::cout << globalAtomicPositions(i, atomIndex) << " ";
-        }
-        //std::cout << ") \n";
+  for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
+    for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
+      unsigned int atomIndex = getAtomIndex(uc, atomID);
+      //std::cout << "Global coordinates " << atomIndex << " = ( ";
+      for (unsigned int i=0; i<3; i++) {
+        globalAtomicPositions(i, atomIndex) = double(unitCellVectors(i,uc)) + unitCell.atomic_positions(i,atomID);
+        //std::cout << globalAtomicPositions(i, atomIndex) << " ";
       }
+      //std::cout << ") \n";
     }
-  
-    std::cout << "\n   Constructed global coordinates. \n";
-
   }
+  
+  std::cout << "\n   Constructed global coordinates. \n";
+
+}
 
 
 void Lattice::writeAtomicPositions(const char* filename)
@@ -247,9 +266,11 @@ void Lattice::writeAtomicPositions(const char* filename)
     fprintf(atomicPositionFile, "\n   Atomic Positions:\n");
   }
 
-  fprintf(atomicPositionFile, "     Atom          x              y              z\n");
+  fprintf(atomicPositionFile, "     Atom      Element       x              y              z\n");
   for (unsigned int atomID = 0; atomID < totalNumberOfAtoms; atomID++)
-    fprintf(atomicPositionFile, "   %5d   %12.6f   %12.6f   %12.6f\n", atomID, globalAtomicPositions(0, atomID), globalAtomicPositions(1, atomID), globalAtomicPositions(2, atomID));
+    fprintf(atomicPositionFile, "   %5d         %2s   %12.6f   %12.6f   %12.6f\n", 
+            atomID, convertElementToString(globalAtomicSpecies[atomID]).c_str(), 
+            globalAtomicPositions(0, atomID), globalAtomicPositions(1, atomID), globalAtomicPositions(2, atomID));
 
   if (filename != NULL) fclose(atomicPositionFile);
 
@@ -493,14 +514,8 @@ void Lattice::constructPrimaryNeighborList()
           neighborDistances.push_back(distance);
 
         // Add the atom to neighbor list if within cutoff
-        if (distance <= interactionCutoffDistance) {
+        if (distance <= interactionCutoffDistance)
           primaryNeighborList[atomID].push_back({atom2, distance});
- // YingWai [refactoring] : need to move back to CrystalStructure3D
- //         J_ij = assignExchangeCouplings(dx, dy, dz, distance);
- //         D_ij = assignDzyaloshinskiiMoriyaInteractions(dz, distance);
- //         //J_ij = assignExchangeCouplings_testing(dx, dy, dz, distance);
- //         primaryNeighborList[atomID].push_back({atom2, distance, J_ij, D_ij});
-        }
 
       }
     }

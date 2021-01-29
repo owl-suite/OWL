@@ -4,10 +4,9 @@
 #include <filesystem>
 #include <tuple>
 #include <vector>
-#include "PhysicalSystemBase.hpp"
 #include "CrystalBase.hpp"
+#include "PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
-
 
 struct SpinDirection {
   double x {0.0};
@@ -52,8 +51,8 @@ private :
   std::vector< std::vector<NeighboringAtom> > neighborList;
 
   // Overall configuration
-  std::vector<SpinDirection>                      spin;
-  std::vector<ObservableType>                     localWindingNumber;
+  std::vector<SpinDirection>                  spin;
+  std::vector<ObservableType>                 localWindingNumber;
 
   // Old configuration
   unsigned int  currentPosition;

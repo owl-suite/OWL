@@ -1,9 +1,10 @@
 PHYS_SYS_OBJS = PhysicalSystemBase.o \
-				Ising2D.o            \
+		Ising2D.o            \
                 Heisenberg2D.o       \
-				Heisenberg3D.o       \
-				CrystalBase.o        \
-				CrystalStructure3D.o
+		Heisenberg3D.o       \
+		Elements.o           \
+		CrystalBase.o        \
+		CrystalStructure3D.o
 
 .PHONY : default owl-qe clean 
 

@@ -724,10 +724,10 @@ void CrystalStructure3D::mapPrimaryToAllNeighborLists()
                 [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
       );
 
-      std::cout << "Mapped Neighbor list of " << thisAtom << ":\n";
-      std::cout << "Atom     distance      J_ij       D_ij \n";
-      for (auto m : neighborList[thisAtom] )
-        std::cout << m.atomID << " " << m.distance << " " << m.J_ij << " " << m.D_ij << "\n \n";
+      //std::cout << "Mapped Neighbor list of " << thisAtom << ":\n";
+      //std::cout << "Atom     distance      J_ij       D_ij \n";
+      //for (auto m : neighborList[thisAtom] )
+      //  std::cout << m.atomID << " " << m.distance << " " << m.J_ij << " " << m.D_ij << "\n \n";
 
     }
   }

@@ -65,8 +65,6 @@ Lattice::Lattice(const char* inputFile)
   // Check:
   //printPairwiseDistancesInUnitCellList(13);
 
-  // YingWai [refactoring]: The following are moved over from CrystalStructure3D 
-
   // Initialize nearest neighbor lists for each atom
   neighborList.resize(totalNumberOfAtoms);
   constructPrimaryNeighborList();
@@ -150,7 +148,6 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
                          >> unitCell.atomic_positions(2,atom_counter);
               unitCell.atomic_species.push_back(convertStringToElement(element));
               atom_counter++;
-              //std::cout << "atom_counter = " << atom_counter << "\n";
               continue;
             }
             else if (key == "UnitCellDimensions") {
@@ -182,7 +179,6 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
     std::cout << "\n     Decorated atoms in a unit cell:\n";
     std::cout << "     Atom          x              y              z           (unit: lattice constant) \n";
     for (unsigned int i=0; i<unitCell.number_of_atoms; i++) {
-      //printf("     %u    %12.6f   %12.6f   %12.6f\n", unitCell.atomic_species[i], 
       printf("     %s    %12.6f   %12.6f   %12.6f\n", convertElementToString(unitCell.atomic_species[i]).c_str(), 
                                                       unitCell.atomic_positions(0,i),
                                                       unitCell.atomic_positions(1,i),
@@ -241,12 +237,9 @@ void Lattice::constructGlobalCoordinates()
   for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
     for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
       unsigned int atomIndex = getAtomIndex(uc, atomID);
-      //std::cout << "Global coordinates " << atomIndex << " = ( ";
-      for (unsigned int i=0; i<3; i++) {
+      for (unsigned int i=0; i<3; i++)
         globalAtomicPositions(i, atomIndex) = double(unitCellVectors(i,uc)) + unitCell.atomic_positions(i,atomID);
-        //std::cout << globalAtomicPositions(i, atomIndex) << " ";
-      }
-      //std::cout << ") \n";
+
     }
   }
   
@@ -426,11 +419,6 @@ double Lattice::getRelativePairwiseDistance(unsigned int atom1, unsigned int ato
         }
       }
     }
-
-    //std::cout << "Unit Cell " << currentUnitCell << " , NeighborList = ";
-    //for (auto i : unitCellList)
-    //  std::cout << i << ' ';
-    //std::cout << "\n";
     
     return unitCellList;
 
@@ -438,11 +426,11 @@ double Lattice::getRelativePairwiseDistance(unsigned int atom1, unsigned int ato
 
 
 // Construct the neighbor list for each atom, given the list of neighboring unit cells to check
-std::vector<NeighboringAtomBase> Lattice::constructNeighborListFromNeighboringUnitCells(unsigned int atom1_global)
+std::vector<AtomBase> Lattice::constructNeighborListFromNeighboringUnitCells(unsigned int atom1_global)
 {
 
     // A neighbor list where pairwise interactions with current atom will be checked
-    std::vector<NeighboringAtomBase> atomList;
+    std::vector<AtomBase> atomList;
 
     // Current unit cell is always (0,0,0) relatively.
     unsigned int localUnitCellIndex = getRelativeUnitCellIndex(0, 0, 0);
@@ -460,7 +448,6 @@ std::vector<NeighboringAtomBase> Lattice::constructNeighborListFromNeighboringUn
 
         if (distance <= interactionCutoffDistance)
           atomList.push_back({atom2_global, distance});
-          //atomList.push_back({atom2_global, distance, 0.0, 0.0});
         
       }
     }
@@ -485,8 +472,6 @@ void Lattice::constructPrimaryNeighborList()
 {
 
   double distance {0.0};
-  //double J_ij     {0.0};          // Exchange coupling
-  //double D_ij     {0.0};          // Dzyaloshinskii-Moriya (DM) interaction
   double dx       {0.0};
   double dy       {0.0};
   double dz       {0.0};
@@ -523,10 +508,8 @@ void Lattice::constructPrimaryNeighborList()
     // Print the primary neighbor list for the current atom
     std::cout << "\n     Primary neighbor list of " << atom1 << ":\n";
     std::cout << "          Atom      Distance \n";
-    //std::cout << "          Atom      Distance        J_ij          D_ij\n";
     for (auto i : primaryNeighborList[atomID])
       printf("     %8d   %12.6f\n", i.atomID, i.distance);
-      //printf("     %8d   %12.6f   %12.8f   %12.8f\n", i.atomID, i.distance, i.J_ij, i.D_ij);
 
   }
 
@@ -561,19 +544,13 @@ void Lattice::mapPrimaryToAllNeighborLists()
         real_uc = nearestNeighborUnitCellList[i][relative_uc];
         atomID = getAtomIndex(real_uc, atomID_in_uc);
 
-        //neighborList[thisAtom].push_back({atomID, k.distance, k.J_ij, k.D_ij});
         neighborList[thisAtom].push_back({atomID, k.distance});
-        //std::cout << atomID << " " << k.distance << "\n";
+
       }
 
       std::sort(neighborList[thisAtom].begin(), neighborList[thisAtom].end(), 
                 [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
       );
-
-      //std::cout << "Mapped Neighbor list of " << thisAtom << ":\n";
-      //std::cout << "Atom     distance      J_ij       D_ij \n";
-      //for (auto m : neighborList[thisAtom] )
-      //  std::cout << m.atomID << " " << m.distance << " " << m.J_ij << " " << m.D_ij << "\n \n";
 
     }
   }

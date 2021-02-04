@@ -17,7 +17,7 @@ struct UnitCell
 };
 
 
-struct NeighboringAtomBase {
+struct AtomBase {
   unsigned int atomID;
   double       distance {0.0};                           // Distance from a reference atom
 };
@@ -30,30 +30,30 @@ public :
   // Unit cell:
   UnitCell                  unitCell;
   std::vector<unsigned int> unitCellDimensions = {0, 0, 0};  // Number of unit cells in each dimension (nx, ny, nz). Initialize to 0.
-  Matrix<int>               unitCellVectors;
   unsigned int              numberOfUnitCells  {0};
-  
+  Matrix<int>               unitCellVectors;
+  Matrix<int>               relativeUnitCellVectors;
+
   // Atoms:
   unsigned int              totalNumberOfAtoms;
   Matrix<double>            globalAtomicPositions;           // Global atomic positions in the crystal (in lattice constant)
   std::vector<Element>      globalAtomicSpecies;
 
   // Neighbor lists:
-  Matrix<int>                              relativeUnitCellVectors;
   std::vector< std::vector<unsigned int> > nearestNeighborUnitCellList;     // Each unit cell has a list of nearest neighbors
   Matrix<double>                           relativeAtomicPositions;         // Relative atomic positions in neighboring unit cells (in lattice constant)
   unsigned int                             totalNumberOfNeighboringAtoms;
   unsigned int                             numAdjacentUnitCells;
 
-  std::vector< std::vector<NeighboringAtomBase> > primaryNeighborList;                // Neighbor list for each atom in a unit cell 
-  std::vector< std::vector<NeighboringAtomBase> > neighborList;                       // Each atom has a list of neighboring atoms
-  std::vector<double>                             neighborDistances;                  // Stores the distances between neighbors
+  std::vector< std::vector<AtomBase> >     primaryNeighborList;             // Neighbor list for each atom in a unit cell 
+  std::vector< std::vector<AtomBase> >     neighborList;                    // Each atom has a list of neighboring atoms
+  std::vector<double>                      neighborDistances;               // Stores the distances between neighbors
 
-  // TODO: 
+  // [TODO]: 
   // 1. interactionCutoffDistance should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
   //    together with the reading of Hamiltonian terms. (July 7, 20)
   // 2. set cutoff distance to nearest-neighbor only by default
-  double                                          interactionCutoffDistance {1.0};    // Default to one lattice constant
+  double interactionCutoffDistance {1.0};                                   // Default to one lattice constant
 
   // Constructor 1: initialize unit cell and lattice from input file
   Lattice(const char* inputFile);
@@ -94,9 +94,9 @@ public :
   double                    getRelativePairwiseDistance(unsigned int atom1, unsigned int atom2);
   void                      printPairwiseDistancesInUnitCellList(unsigned int atomID);
 
-  std::vector<NeighboringAtomBase> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
-  void                             constructPrimaryNeighborList();
-  void                             mapPrimaryToAllNeighborLists();
+  std::vector<AtomBase> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
+  void                  constructPrimaryNeighborList();
+  void                  mapPrimaryToAllNeighborLists();
 
   inline unsigned int getRelativeUnitCellIndex(unsigned int x, unsigned int y, unsigned int z)
   { 

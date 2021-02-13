@@ -49,9 +49,6 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
 Alloy3D::~Alloy3D()
 {
 
-  //delete atom;
-  deleteObservables();
-
   printf("Exiting Alloy3D class...\n");
 
 }

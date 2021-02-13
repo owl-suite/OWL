@@ -56,9 +56,6 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
 CrystalStructure3D::~CrystalStructure3D()
 {
 
-  //delete spin;
-  deleteObservables();
-
   printf("Exiting CrystalStructure3D class...\n");
 
 }

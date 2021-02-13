@@ -91,7 +91,7 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
 {
 
     //if (GlobalComm.thisMPIrank == 0)
-      std::cout << "\n   Crystal class reading input file: " << mainInputFile << "\n\n";
+      std::cout << "\n   Lattice class reading input file: " << mainInputFile << "\n\n";
 
     std::ifstream inputFile(mainInputFile);
     std::string line, key;
@@ -214,12 +214,14 @@ void Lattice::constructUnitCellVectors()
 
 void Lattice::initializeAtomicSpecies()
 {
-   
+  
+  unsigned int atomIndex {0};
+
   globalAtomicSpecies.resize(totalNumberOfAtoms);
     
   for (unsigned int uc=0; uc<numberOfUnitCells; uc++) {
     for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
-      unsigned int atomIndex = getAtomIndex(uc, atomID);
+      atomIndex = getAtomIndex(uc, atomID);
       globalAtomicSpecies[atomIndex] = unitCell.atomic_species[atomID];
     }
   }

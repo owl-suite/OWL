@@ -48,6 +48,7 @@ public :
   std::vector< std::vector<AtomBase> >     primaryNeighborList;             // Neighbor list for each atom in a unit cell 
   std::vector< std::vector<AtomBase> >     neighborList;                    // Each atom has a list of neighboring atoms
   std::vector<double>                      neighborDistances;               // Stores the distances between neighbors
+  std::vector<unsigned int>                coordinationNumbers;
 
   // [TODO]: 
   // 1. interactionCutoffDistance should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
@@ -97,6 +98,7 @@ public :
   std::vector<AtomBase> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
   void                  constructPrimaryNeighborList();
   void                  mapPrimaryToAllNeighborLists();
+  void                  getCoordinationNumbers();
 
   inline unsigned int getRelativeUnitCellIndex(unsigned int x, unsigned int y, unsigned int z)
   { 

@@ -27,8 +27,20 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
     readCompositionInfo(inputFile);
 
   // Initialize observables
-  initializeObservables(1);
-  observableName.push_back("Total energy, E");                            // observables[0] : total energy
+  nearestNeighborPairTypes.resize(numberOfElements, numberOfElements);
+  observableName.push_back("Total energy, E");                     // observables[0] : total energy
+
+  char obsName[101];
+  for (unsigned int i=0; i<numberOfElements; i++) {
+    for (unsigned int j=i; j<numberOfElements; j++) {
+      sprintf(obsName, "Prob. pair type %2s-%2s", convertElementToString(elementTypes[i]).c_str(),
+                                                  convertElementToString(elementTypes[j]).c_str());
+      observableName.push_back(obsName);                           // observables[1-] : nearest neighbor pair types
+      //std::cout << i << "  " << j << "  " << obsName << "\n";
+    }
+  }
+
+  initializeObservables(observableName.size());
 
   // Initialize configuration from file if applicable
   if (std::filesystem::exists("config_initial.dat"))
@@ -168,7 +180,11 @@ void Alloy3D::writeConfiguration(int format, const char* filename)
     case 1 : {      // xyz format
 
       fprintf(configFile, "%u\n", systemSize);
-      fprintf(configFile, "\n");
+      fprintf(configFile, "FCC ");
+      for (unsigned int i=0; i<numberOfElements; i++)
+        fprintf(configFile, "X_%2s=%5.3f ", convertElementToString(elementTypes[i]).c_str(), composition[i]);
+      fprintf(configFile, "x=%d y=%d z=%d ", lattice.unitCellDimensions[0], lattice.unitCellDimensions[1], lattice.unitCellDimensions[2]);
+      fprintf(configFile, "unit_cell=%d \n", systemSize);
       for (unsigned int i = 0; i < systemSize; i++) {
         fprintf(configFile, "%2s %10.6f %10.6f %10.6f\n",
                 convertElementToString(atom[i]).c_str(),
@@ -205,7 +221,9 @@ void Alloy3D::writeConfiguration(int format, const char* filename)
 // OK
 void Alloy3D::getObservablesFromScratch()
 {
+
   observables[0] = getExchangeInteractions();
+  getAdditionalObservables();
   firstTimeGetMeasures = false;
 
 }
@@ -223,6 +241,19 @@ void Alloy3D::getObservables()
 void Alloy3D::getAdditionalObservables()
 {
   
+  getNearestNeighborPairTypes();
+  unsigned int index = 1;
+ 
+  for (unsigned int i=0; i<numberOfElements; i++) {
+    for (unsigned int j=i; j<numberOfElements; j++) {
+      if (i==j)
+        observables[index] = nearestNeighborPairTypes(i,j);
+      else
+        observables[index] = 2.0 * nearestNeighborPairTypes(i,j);
+      index++;
+    }
+  }
+
 }
 
 
@@ -348,6 +379,7 @@ void Alloy3D::initializeAtomConfiguration(int initial)
   std::vector<unsigned int> currentNumberOfAtoms;     // for each element type
   unsigned int              atomCount {0};
   std::vector<double>       accumulatedComposition;
+  bool                      numAtomsOK {false};
 
   // Determine the number of atoms for each species
   numberOfAtomsForEachElement.resize(numberOfElements);
@@ -363,8 +395,27 @@ void Alloy3D::initializeAtomConfiguration(int initial)
     atomCount += numberOfAtomsForEachElement[i];
     printf("       - number of %3s : %5u \n", convertElementToString(elementTypes[i]).c_str(), numberOfAtomsForEachElement[i]);
   }
-  std::cout << "       Total atom count : " << atomCount << "\n";
-  assert (atomCount == systemSize);
+  if (atomCount == systemSize) {
+    numAtomsOK = true;
+    std::cout << "      Total atom count : " << atomCount << "\n";
+  }
+  else {
+    std::cout << "\n      Fine tuning atomic configuration...\n";
+    while (!numAtomsOK) {
+      int sign = (systemSize - atomCount) > 0 ? 1 : -1;
+      for(unsigned int i=0; i<numberOfElements; i++) {
+        numberOfAtomsForEachElement[i] += sign;
+        atomCount += sign;
+        if (atomCount == systemSize) {
+          numAtomsOK = true;
+          break;
+        }
+      }
+    }
+    for (unsigned int i=0; i<numberOfElements; i++)
+      printf("       - number of %3s : %5u \n", convertElementToString(elementTypes[i]).c_str(), numberOfAtomsForEachElement[i]);
+    std::cout << "       Adjusted total atom count : " << atomCount << "\n";
+  }
 
   // Either copy element species from unit cell (initial=1), or randomly assign an element type to each atom (initial=0, default)
   switch (initial) {
@@ -375,7 +426,7 @@ void Alloy3D::initializeAtomConfiguration(int initial)
 
       for (unsigned int atomID=0; atomID<systemSize; atomID++) {
         atom[atomID] = lattice.globalAtomicSpecies[atomID];
-        currentNumberOfAtoms[getIndexForElementType(atom[atomID])]++;
+        currentNumberOfAtoms[getElementIndex(atom[atomID])]++;
       }
 
       std::cout << "Done. \n";
@@ -419,7 +470,7 @@ void Alloy3D::initializeAtomConfiguration(int initial)
 
 
 // OK
-unsigned int Alloy3D::getIndexForElementType(Element elem){
+unsigned int Alloy3D::getElementIndex(Element elem){
 
   unsigned int index {0};
 
@@ -444,9 +495,10 @@ ObservableType Alloy3D::getExchangeInteractions()
 
   for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : lattice.neighborList[atomID]) {
-      i = getIndexForElementType(atom[atomID]);
-      j = getIndexForElementType(atom[neighbor.atomID]);
+      i = getElementIndex(atom[atomID]);
+      j = getElementIndex(atom[neighbor.atomID]);
       energy += interactions(i,j);
+      //78nearestNeighborPairTypes(i,j)++;
     }
   } 
 
@@ -475,41 +527,41 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
 
   if (theTwoAtomsAreNeighbors) {           // do not count 
     // First atom
-    i = getIndexForElementType(atom[currentPosition1]);
-    j = getIndexForElementType(oldAtom1);
+    i = getElementIndex(atom[currentPosition1]);
+    j = getElementIndex(oldAtom1);
 
     for (auto neighbor : lattice.neighborList[currentPosition1]) {
-      k = getIndexForElementType(atom[neighbor.atomID]); 
+      k = getElementIndex(atom[neighbor.atomID]); 
       if (neighbor.atomID != currentPosition2)
         energyChange += interactions(i,k) - interactions(j,k);
     }
 
     // Second atom
-    i = getIndexForElementType(atom[currentPosition2]);
-    j = getIndexForElementType(oldAtom2);
+    i = getElementIndex(atom[currentPosition2]);
+    j = getElementIndex(oldAtom2);
 
     for (auto neighbor : lattice.neighborList[currentPosition2]) {
-      k = getIndexForElementType(atom[neighbor.atomID]); 
+      k = getElementIndex(atom[neighbor.atomID]); 
       if (neighbor.atomID != currentPosition1)
         energyChange += interactions(i,k) - interactions(j,k);
     }
   }
   else {
     // First atom
-    i = getIndexForElementType(atom[currentPosition1]);
-    j = getIndexForElementType(oldAtom1);
+    i = getElementIndex(atom[currentPosition1]);
+    j = getElementIndex(oldAtom1);
 
     for (auto neighbor : lattice.neighborList[currentPosition1]) {
-      k = getIndexForElementType(atom[neighbor.atomID]); 
+      k = getElementIndex(atom[neighbor.atomID]); 
       energyChange += interactions(i,k) - interactions(j,k);
     }
 
     // Second atom
-    i = getIndexForElementType(atom[currentPosition2]);
-    j = getIndexForElementType(oldAtom2);
+    i = getElementIndex(atom[currentPosition2]);
+    j = getElementIndex(oldAtom2);
 
     for (auto neighbor : lattice.neighborList[currentPosition2]) {
-      k = getIndexForElementType(atom[neighbor.atomID]); 
+      k = getElementIndex(atom[neighbor.atomID]); 
       energyChange += interactions(i,k) - interactions(j,k);
     }
   }
@@ -518,3 +570,39 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
 
 }
 
+
+
+void Alloy3D::getNearestNeighborPairTypes()
+{
+
+  unsigned int i, j;
+  nearestNeighborPairTypes = 0;
+
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
+    for (auto neighbor : lattice.neighborList[atomID]) {
+      i = getElementIndex(atom[atomID]);
+      j = getElementIndex(atom[neighbor.atomID]);
+      nearestNeighborPairTypes(i,j)++;
+    }
+  } 
+
+  // Checks: 
+  // 1. the nearestNeighborPairTypes matrix should be symmetrical
+  // 2. The matrix elements should add up to (coordination number * number of atoms), which includes double counting
+  ObservableType totalPairs {0.0};
+  for (i=0; i<numberOfElements; i++) {
+    for (j=0; j<numberOfElements; j++) {
+      //std::cout << "i : " << i << ", j : " << j << ", nearestNeighborPairTypes(i,j) = " << nearestNeighborPairTypes(i,j) << "\n";
+      assert(nearestNeighborPairTypes(i,j) == nearestNeighborPairTypes(j,i));
+      totalPairs += nearestNeighborPairTypes(i,j);
+    }
+  }
+  assert(totalPairs == ObservableType(lattice.coordinationNumbers[0] * systemSize));
+
+  // Normalization
+  for (i=0; i<numberOfElements; i++) {
+    for (j=0; j<numberOfElements; j++)
+      nearestNeighborPairTypes(i,j) /= totalPairs;
+  }
+  
+}

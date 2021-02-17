@@ -102,7 +102,7 @@ void Metropolis::run()
     }
 
     thermalizationStepsPerformed++;
-    physical_system -> getAdditionalObservables();       // can skip this to save time
+    physical_system -> getAdditionalObservables();
 
     // Write observables to file
     writeMCFile(thermalizationStepsPerformed);

@@ -70,6 +70,8 @@ Lattice::Lattice(const char* inputFile)
   constructPrimaryNeighborList();
   mapPrimaryToAllNeighborLists();
   
+  getCoordinationNumbers();
+
   //for (unsigned int i=0; i<systemSize; i++)
   //  neighborList[i] = constructNeighborListFromNeighboringUnitCells(i);
 
@@ -558,5 +560,27 @@ void Lattice::mapPrimaryToAllNeighborLists()
   }
 
   std::cout << "   Mapped primary neighbor lists to all atoms in system. \n";
+
+}
+
+
+void Lattice::getCoordinationNumbers()
+{
+
+  unsigned int numberOfNeighborDistances = neighborDistances.size();
+  coordinationNumbers.resize(numberOfNeighborDistances, 0);
+
+  // Assuming that all atoms in the unit cell have the same number of coordination number.
+  // If not, rewrite the following routine to calculate for each atom
+  for (auto neighbor : primaryNeighborList[0]) {
+    for (unsigned int i=0; i<numberOfNeighborDistances; i++) {
+      if (sameMagnitude(neighbor.distance, neighborDistances[i]))
+        coordinationNumbers[i]++;
+    }
+  }
+
+  std::cout << "\n     Neighboring distances: \n";
+  for (unsigned int i=0; i<numberOfNeighborDistances; i++)
+    printf("     %2dth neighbor : %12.6f  (coordination number : %3u)\n", i, neighborDistances[i], coordinationNumbers[i]);
 
 }

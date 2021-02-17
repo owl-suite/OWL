@@ -56,6 +56,8 @@ private :
   
   bool firstTimeGetMeasures;
 
+  // A matrix that stores nearest-neighhbor pairs in a configuration
+  Matrix<ObservableType> nearestNeighborPairTypes;
 
   // Private functions
 
@@ -65,13 +67,14 @@ private :
   void         initializeAtomConfiguration(int initial = 0); 
   //double       assignExchangeCouplings(double dx, double dy, double dz, double dr);
 
-  unsigned int getIndexForElementType(Element elem);
+  unsigned int getElementIndex(Element elem);
 
   // Hamiltonian measurements:
   void            getObservablesFromScratch();
   ObservableType  getExchangeInteractions();
   ObservableType  getDifferenceInExchangeInteractions();
-
+  void            getNearestNeighborPairTypes();
+ 
 };
 
 #endif

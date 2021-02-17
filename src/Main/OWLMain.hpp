@@ -9,6 +9,7 @@
 #include "MonteCarloAlgorithms/ReplicaExchangeWangLandau.hpp"
 #include "MonteCarloAlgorithms/MulticanonicalSampling.hpp"
 #include "MonteCarloAlgorithms/HistogramFreeMUCA.hpp"
+#include "MonteCarloAlgorithms/GlobalUpdateWangLandauSampling.hpp"
 #include "PhysicalSystems/Heisenberg2D.hpp"
 #include "PhysicalSystems/Heisenberg3D.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
@@ -108,7 +109,11 @@ void setSimulation(PhysicalSystem*      &physical_system,
     case 6 :
       MC = new DiscreteHistogramFreeMUCA( physical_system );
       break;
-      
+    
+    case 7 :
+      MC = new GlobalUpdateWangLandauSampling( physical_system );
+      break;
+
     default :
       std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
       MC = new WangLandauSampling( physical_system );

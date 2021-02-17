@@ -190,15 +190,19 @@ void writeSimulationInfo()
       break;
 
     case 5 :
-      std::cout << "   MC algorithm             :  Replica-Exchange Wang-Landau sampling\n";
+      std::cout << "   MC algorithm             :  Replica-Exchange Wang-Landau Sampling\n";
       break;
       
     case 6 :
       std::cout << "   MC algorithm             :  Discrete Histogram-Free Multicanonical Sampling\n";
       break;
       
+    case 7 :
+      std::cout << "   MC algorithm             :  Global Update Wang-Landau Sampling\n";
+      break;
+
     default :
-      std::cout << "   MC algorithm             :  MC algorithm not specified. Use default: Wang-Landau sampling.\n";
+      std::cout << "   MC algorithm             :  MC algorithm not specified. Use default: Wang-Landau Sampling.\n";
   }
 
 }

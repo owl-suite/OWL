@@ -220,6 +220,54 @@ void Histogram::updateHistogramDOS(ObservableType energy)
   //std::cerr << "hist[idx] = " << hist[idx] << "\n";
 }
 
+
+void Histogram::globalUpdateHistogramDOS(ObservableType energy)
+{
+  idx = getIndex(energy);
+
+  if ( idx >= 0 ) {
+    unsigned int index = unsigned(idx);
+    // If it is the first time a bin is visited:
+    //   1. see if it can reference the DOS from neighboring bins
+    //   2. reset Histogram and start over
+    if ( visited[index] == 0 ) {
+      unsigned int refIdx = index;
+      if ( index == 0 )
+        refIdx = 1;
+      else if ( index == (numBins-1) )
+        refIdx = index - 1;
+      else {
+        if ( (visited[index-1] > 0) && (visited[index+1] > 0) )
+          refIdx = ( dos[index-1] < dos[index+1] ? (index-1) : (index+1) );
+        else if ( visited[index-1] == 0 )
+          refIdx = index + 1;
+        else if ( visited[index+1] == 0 )
+          refIdx = index - 1;
+      }
+
+      dos[index] = dos[refIdx];
+      visited[index] = 1;
+      refreshHistogram();
+    }
+    else {
+      dos[index]++;
+      hist[index]++;
+      for (unsigned int i=0; i<numBins; i++)
+        dos[i] -= 1.0 / double(numBins);
+    }
+  }
+  else { 
+    std::cerr << "Error: idx < 0 in globalUpdateHistogramDOS!!\n";
+    std::cerr << "Aborting...\n";
+    exit(10);
+  }
+  //std::cerr << "energy = " << energy << "\n";
+  //std::cerr << "idx = " << idx << "\n";
+  //std::cerr << "visited[idx] = " << visited[idx] << "\n";
+  //std::cerr << "hist[idx] = " << hist[idx] << "\n";
+}
+
+
 void Histogram::updateHistogram(ObservableType energy)
 {
   idx = getIndex(energy);

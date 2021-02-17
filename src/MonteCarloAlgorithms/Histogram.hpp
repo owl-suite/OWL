@@ -54,6 +54,7 @@ public:
   void resetHistogram();
   void refreshHistogram();
   void resetDOS();
+  void globalUpdateHistogramDOS(ObservableType energy);
   void updateHistogramDOS(ObservableType energy);
   void updateHistogram(ObservableType energy);
   void updateDOS(ObservableType energy);

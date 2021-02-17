@@ -1,13 +1,14 @@
 # Add the source directory to the include path
 #export INCLUDE_PATH += -I $(SRC_DIR)
 
-MONTE_CARLO_OBJS = MCAlgorithms.o               \
-                   Histogram.o                  \
-                   Metropolis.o                 \
-                   MulticanonicalSampling.o     \
-                   WangLandauSampling.o         \
-                   ReplicaExchangeWangLandau.o  \
-                   HistogramFreeMUCA.o
+MONTE_CARLO_OBJS = MCAlgorithms.o                   \
+                   Histogram.o                      \
+                   Metropolis.o                     \
+                   MulticanonicalSampling.o         \
+                   WangLandauSampling.o             \
+                   ReplicaExchangeWangLandau.o      \
+                   HistogramFreeMUCA.o              \
+                   GlobalUpdateWangLandauSampling.o            
 
 default : all
 

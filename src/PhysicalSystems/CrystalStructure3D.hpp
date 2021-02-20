@@ -3,11 +3,10 @@
 
 #include <filesystem>
 #include <tuple>
-#include "PhysicalSystemBase.hpp"
+#include <vector>
 #include "CrystalBase.hpp"
+#include "PhysicalSystemBase.hpp"
 #include "Main/Globals.hpp"
-#include "Utilities/CompareNumbers.hpp"
-
 
 struct SpinDirection {
   double x {0.0};
@@ -16,11 +15,11 @@ struct SpinDirection {
 };
 
 
-struct NeighboringAtomInfo {
+struct NeighboringAtom {
   unsigned int atomID;
-  double       distance {0.0};          // Distance from a reference atom
-  double       J_ij     {0.0};          // Exchange coupling
-  double       D_ij     {0.0};          // Dzyaloshinskii-Moriya (DM) interaction in z-direction
+  double       distance {0.0};                           // Distance from a reference atom
+  double       J_ij     {0.0};                           // Exchange coupling
+  double       D_ij     {0.0};                           // Dzyaloshinskii-Moriya (DM) interaction in z-direction
 };
 
 
@@ -47,14 +46,13 @@ public :
 
 private :
 
-  // Overall configuration
-  std::vector<SpinDirection>                      spin;
-  std::vector<ObservableType>                     localWindingNumber;
-  std::vector< std::vector<NeighboringAtomInfo> > neighborList;                       // Each atom has a list of neighboring atoms
-  std::vector< std::vector<NeighboringAtomInfo> > primaryNeighborList;                // Neighbor list for each atom in a unit cell 
+  // Model specific information add onto neighborList
+  std::vector< std::vector<NeighboringAtom> > primaryNeighborList;
+  std::vector< std::vector<NeighboringAtom> > neighborList;
 
-  std::vector<double>                             neighborDistances;                  // Stores the distances between neighbors
-  double                                          interactionCutoffDistance {1.0};    // Default to one lattice constant
+  // Overall configuration
+  std::vector<SpinDirection>                  spin;
+  std::vector<ObservableType>                 localWindingNumber;
 
   // Old configuration
   unsigned int  currentPosition;
@@ -67,17 +65,14 @@ private :
 
   // Initialization:
   void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
-  void   readInteractionCutoffDistance(const char* inputFile);
   void   initializeSpinConfiguration(int initial = 0);
   void   assignRandomSpinDirection(unsigned int currentAtom);
   double assignExchangeCouplings(double dx, double dy, double dz, double dr);
   //double assignExchangeCouplings_testing(double dx, double dy, double dz, double dr);       // temp. testing code
   double assignDzyaloshinskiiMoriyaInteractions(double dz, double dr);
   
-  // Neighbor lists:
-  std::vector<NeighboringAtomInfo> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
-  void                             constructPrimaryNeighborList();
-  void                             mapPrimaryToAllNeighborLists();
+  void   addInteractionsToPrimaryNeighborList();
+  void   mapPrimaryToAllNeighborLists();
 
   // Hamiltonian measurements:
   void                                                                       getObservablesFromScratch();

@@ -165,6 +165,10 @@ void writeSimulationInfo()
       std::cout << "   Physical system          :  3D Customized crystal structure\n";
       break;
 
+    case 7 :
+      std::cout << "   Physical system          :  3D Alloy system\n";
+      break;
+
     default :
       std::cerr << "   Physical system          :  ERROR! Physical system not specified. \n";
       std::cerr << "\nOWL Aborting...\n";

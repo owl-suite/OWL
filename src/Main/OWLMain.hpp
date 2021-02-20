@@ -13,6 +13,7 @@
 #include "PhysicalSystems/Heisenberg3D.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
 #include "PhysicalSystems/CrystalStructure3D.hpp"
+#include "PhysicalSystems/Alloy3D.hpp"
 
 #ifdef DRIVER_MODE_QE
 #include "PhysicalSystems/QuantumEspresso/QuantumEspressoSystem.hpp"
@@ -70,6 +71,10 @@ void setSimulation(PhysicalSystem*      &physical_system,
       physical_system = new CrystalStructure3D(simInfo.MCInputFile);
       break;
 
+    case 7 :
+      physical_system = new Alloy3D(simInfo.MCInputFile);
+      break;
+
     default :
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";
@@ -108,7 +113,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
     case 6 :
       MC = new DiscreteHistogramFreeMUCA( physical_system );
       break;
-      
+    
     default :
       std::cout << "Monte Carlo algorithm not specified. Use default: Wang-Landau sampling.\n";
       MC = new WangLandauSampling( physical_system );

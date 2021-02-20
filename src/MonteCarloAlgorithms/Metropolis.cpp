@@ -102,7 +102,7 @@ void Metropolis::run()
     }
 
     thermalizationStepsPerformed++;
-    physical_system -> getAdditionalObservables();       // can skip this to save time
+    physical_system -> getAdditionalObservables();
 
     // Write observables to file
     writeMCFile(thermalizationStepsPerformed);
@@ -162,6 +162,8 @@ void Metropolis::run()
 
       if (MCStepsPerformed % configurationWriteInterval == 0) {
         sprintf(fileName, "configurations/config%012lu.dat", MCStepsPerformed);
+        physical_system -> writeConfiguration(0, fileName);
+        sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);
         physical_system -> writeConfiguration(1, fileName);
       }
 
@@ -473,13 +475,13 @@ void Metropolis::writeCheckPointFiles(OutputMode output_mode)
 
     case endOfSimulation :
       sprintf(fileName, "configurations/config_final.dat");
-      physical_system -> writeConfiguration(1, fileName);
+      physical_system -> writeConfiguration(0, fileName);
       writeStatistics(endOfSimulation);
       writeStatistics(endOfSimulation, "metropolis_final.dat");
       break;
 
     case checkPoint :
-      physical_system -> writeConfiguration(1, "configurations/config_checkpoint.dat");
+      physical_system -> writeConfiguration(0, "configurations/config_checkpoint.dat");
       writeStatistics(checkPoint, "metropolis_checkpoint.dat"); 
       break;
 

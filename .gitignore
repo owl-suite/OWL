@@ -1,4 +1,5 @@
 *.swp
+external_codes
 bin/owl*
 src/Main/*.o
 src/Main/*.a

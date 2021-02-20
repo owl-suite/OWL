@@ -62,9 +62,6 @@ QuantumEspressoSystem::~QuantumEspressoSystem()
   MPI_Type_free(&MPI_ConfigurationType);
 
   std::cout << "Finalized QE MPI communications...\n";
-
-  deleteObservables();
-
   std::cout << "QuantumEspressoSystem finished\n";
 
 }

@@ -49,8 +49,6 @@ Ising2D::~Ising2D()
   pointerToConfiguration = NULL;
   MPI_Type_free(&MPI_ConfigurationType);
 
-  deleteObservables();
-
   if (GlobalComm.thisMPIrank == 0)
     printf("\nIsing2D finished\n");
 

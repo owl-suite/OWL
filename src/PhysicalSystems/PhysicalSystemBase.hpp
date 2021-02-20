@@ -43,11 +43,11 @@ public:
 
 
   // Parameters common to (needed by) all models:
-  unsigned int             systemSize;
-  unsigned int             numObservables;
-  ObservableType*          observables;
-  ObservableType*          oldObservables;
-  std::vector<std::string> observableName;
+  unsigned int                systemSize;
+  unsigned int                numObservables;
+  std::vector<ObservableType> observables;
+  std::vector<ObservableType> oldObservables;
+  std::vector<std::string>    observableName;
 
   // For systems where energy is calculated from the difference with the previous configuration, 
   // this flag will cause the energy to be calculated from scratch again.
@@ -71,12 +71,8 @@ protected:
   void initializeObservables(unsigned int n) {
     numObservables = n;
     if (numObservables > 0) {
-      observables    = new ObservableType[numObservables];
-      oldObservables = new ObservableType[numObservables];
-      for (unsigned int i=0; i<numObservables; i++) {
-        observables[i]    = 0;
-        oldObservables[i] = 0;
-      }
+      observables.resize(numObservables, 0.0);
+      oldObservables.resize(numObservables, 0.0);
     }
     else {
       std::cerr << "Error: Number of observables unphysical." << "\n";
@@ -90,12 +86,6 @@ protected:
       oldObservables[i] = observables[i];
       observables[i] = 0;
     }
-  }
-
-
-  void deleteObservables() {
-    delete[] observables;
-    delete[] oldObservables;
   }
 
 };

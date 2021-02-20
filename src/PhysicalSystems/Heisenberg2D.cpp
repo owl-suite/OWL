@@ -47,8 +47,6 @@ Heisenberg2D::~Heisenberg2D()
     delete[] spin[i];
   delete[] spin;
 
-  deleteObservables();
-
   printf("Heisenberg2D finished\n");
 }
 

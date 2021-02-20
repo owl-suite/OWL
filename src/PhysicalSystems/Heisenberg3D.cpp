@@ -60,8 +60,6 @@ Heisenberg3D::~Heisenberg3D()
   }
   delete[] spin;
 
-  deleteObservables();
-
   printf("Heisenberg3D finished\n");
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 enum Element {
-    Nil,    // 0  = Nothing
+    XX,     // 0  = Nothing/vacancy
     H,      // 1  = Hydrogen
     He,     // 2  = Helium
     Li,     // 3  = Lithium

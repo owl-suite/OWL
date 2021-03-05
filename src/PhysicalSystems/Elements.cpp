@@ -3,7 +3,8 @@
 
 Element convertStringToElement(const std::string& str)
 {
-    if (str == "H")      return H;
+    if(str == "XX")      return XX;
+    else if(str == "H")  return H;
     else if(str == "He") return He;
     else if(str == "Li") return Li;
     else if(str == "Be") return Be;
@@ -121,7 +122,7 @@ Element convertStringToElement(const std::string& str)
     else if(str == "Lv") return Lv; 
     else if(str == "Ts") return Ts; 
     else if(str == "Og") return Og;
-    else                 return Nil;
+    else                 return XX;
 
 }
 
@@ -129,7 +130,8 @@ Element convertStringToElement(const std::string& str)
 
 std::string convertElementToString(Element& element)
 {    
-    if (element == H)      return "H";
+    if(element == XX)      return "XX";
+    else if(element == H)  return "H";
     else if(element == He) return "He";
     else if(element == Li) return "Li";
     else if(element == Be) return "Be";
@@ -247,6 +249,6 @@ std::string convertElementToString(Element& element)
     else if(element == Lv) return "Lv"; 
     else if(element == Ts) return "Ts"; 
     else if(element == Og) return "Og";
-    else                   return " ";
+    else                   return "  ";
 
 }

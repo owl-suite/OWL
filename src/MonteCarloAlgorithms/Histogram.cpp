@@ -250,10 +250,14 @@ void Histogram::globalUpdateHistogramDOS(ObservableType energy)
       refreshHistogram();
     }
     else {
-      dos[index]++;
+//      dos[index]++;
+//      hist[index]++;
+//      for (unsigned int i=0; i<numBins; i++)
+//        dos[i] -= 1.0 / double(numBins);
+      dos[index] += modFactor;
       hist[index]++;
       for (unsigned int i=0; i<numBins; i++)
-        dos[i] -= 1.0 / double(numBins);
+        dos[i] -= modFactor / double(numBins);
     }
   }
   else { 

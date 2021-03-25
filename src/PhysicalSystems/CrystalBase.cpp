@@ -68,6 +68,7 @@ Lattice::Lattice(const char* inputFile)
   // Initialize nearest neighbor lists for each atom
   neighborList.resize(totalNumberOfAtoms);
   constructPrimaryNeighborList();
+  checkNNInteractionsAndCutOffDistance();
   mapPrimaryToAllNeighborLists();
   
   getCoordinationNumbers();
@@ -160,8 +161,15 @@ void Lattice::readUnitCellInfo(const char* mainInputFile)
               continue;
             }
             else if (key == "InteractionCutoffDistance") {
+              interactionCutoffDistanceDefined = true;
               lineStream >> interactionCutoffDistance;
               std::cout << "\n     Interaction cutoff distance = " << interactionCutoffDistance << "\n";
+              continue;
+            }
+            else if (key == "NearestNeighborCutoff") {
+              nearestNeighborCutoffDefined = true;
+              lineStream >> nearestNeighborCutoff;
+              std::cout << "\n     Number of nearest neighbor interactions = " << nearestNeighborCutoff << "\n";
               continue;
             }
 
@@ -502,18 +510,11 @@ void Lattice::constructPrimaryNeighborList()
         if (!isFoundInVector(distance, neighborDistances))
           neighborDistances.push_back(distance);
 
-        // Add the atom to neighbor list if within cutoff
-        if (distance <= interactionCutoffDistance)
-          primaryNeighborList[atomID].push_back({atom2, distance});
+        // Add the atom to neighbor list
+        primaryNeighborList[atomID].push_back({atom2, distance, 0});
 
       }
     }
-
-    // Print the primary neighbor list for the current atom
-    std::cout << "\n     Primary neighbor list of " << atom1 << ":\n";
-    std::cout << "          Atom      Distance \n";
-    for (auto i : primaryNeighborList[atomID])
-      printf("     %8d   %12.6f\n", i.atomID, i.distance);
 
   }
 
@@ -525,7 +526,40 @@ void Lattice::constructPrimaryNeighborList()
   for (unsigned int i=0; i<neighborDistances.size(); i++)
     printf("     %2dth neighbor : %12.6f \n", i, neighborDistances[i]);
 
+  // Assign the order of nearest neighbor
+  for (unsigned int atomID=0; atomID<unitCell.number_of_atoms; atomID++) {
+    for (unsigned int i=0; i<primaryNeighborList[atomID].size(); i++)
+      primaryNeighborList[atomID][i].neighborOrder = getVectorIndex(primaryNeighborList[atomID][i].distance, neighborDistances);
+
+    // Print the primary neighbor list for the current atom
+    //std::cout << "\n     Primary neighbor list of " << atomID << ":\n";
+    //std::cout << "          Atom      Distance    Nth-neighbor\n";
+    //for (auto i : primaryNeighborList[atomID])
+    //  printf("     %8d   %12.6f       %3d\n", n.atomID, n.distance, n.neighborOrder);
+  }
+
   std::cout << "\n   Constructed primary neighbor lists for all atoms in a unit cell. \n";
+
+}
+
+
+void Lattice::checkNNInteractionsAndCutOffDistance()
+{
+
+  if (interactionCutoffDistanceDefined && !nearestNeighborCutoffDefined) {
+    // adjust nearestNeighborCutoff
+    nearestNeighborCutoff = getVectorUpperIndex(interactionCutoffDistance, neighborDistances);
+    std::cout << "\n   Number of nearest neighbor interactions adjusted based on the interaction cutoff distance provided: " << interactionCutoffDistance << "\n";
+    std::cout << "   Number of nearest neighbor interactions: " << nearestNeighborCutoff << "\n";
+  }
+  else {
+    // adjust interactionCutoffDistance
+    interactionCutoffDistance = 0.5 * (neighborDistances[nearestNeighborCutoff-1] + neighborDistances[nearestNeighborCutoff]);
+    std::cout << "\n   Interaction cutoff distance adjusted based on the number of nearest neighbor interactions provided: " << nearestNeighborCutoff << "\n";
+    std::cout << "   Interaction cutoff distance: " << interactionCutoffDistance << "\n";
+  }
+
+  
 
 }
 
@@ -544,17 +578,25 @@ void Lattice::mapPrimaryToAllNeighborLists()
         atom_tmp = k.atomID;
 
         relative_uc = atom_tmp / unitCell.number_of_atoms;       // which relative unit cell the neighoring atom in?
-        atomID_in_uc = atom_tmp % unitCell.number_of_atoms;      // which atom is the neighoring atom in a unit cell?
+        atomID_in_uc = atom_tmp % unitCell.number_of_atoms;      // which atom is the neighboring atom in a unit cell?
         real_uc = nearestNeighborUnitCellList[i][relative_uc];
         atomID = getAtomIndex(real_uc, atomID_in_uc);
 
-        neighborList[thisAtom].push_back({atomID, k.distance});
+        // Add the atom to neighbor list if within the cutoff
+        if (k.distance <= interactionCutoffDistance)
+          neighborList[thisAtom].push_back({atomID, k.distance, k.neighborOrder});
 
       }
 
       std::sort(neighborList[thisAtom].begin(), neighborList[thisAtom].end(), 
                 [](const auto& a, const auto& b) { return a.atomID < b.atomID; }
       );
+
+      // Print the neighbor list for the current atom
+      //std::cout << "\n     Neighbor list of " << thisAtom << ":\n";
+      //std::cout << "          Atom      Distance    Nth-neighbor\n";
+      //for (auto n : neighborList[thisAtom])
+      //  printf("     %8d   %12.6f       %3d\n", n.atomID, n.distance, n.neighborOrder);
 
     }
   }
@@ -572,7 +614,7 @@ void Lattice::getCoordinationNumbers()
 
   // Assuming that all atoms in the unit cell have the same number of coordination number.
   // If not, rewrite the following routine to calculate for each atom
-  for (auto neighbor : primaryNeighborList[0]) {
+  for (auto neighbor : neighborList[0]) {
     for (unsigned int i=0; i<numberOfNeighborDistances; i++) {
       if (sameMagnitude(neighbor.distance, neighborDistances[i]))
         coordinationNumbers[i]++;

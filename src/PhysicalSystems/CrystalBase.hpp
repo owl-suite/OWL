@@ -19,7 +19,8 @@ struct UnitCell
 
 struct AtomBase {
   unsigned int atomID;
-  double       distance {0.0};                           // Distance from a reference atom
+  double       distance      {0.0};                           // Distance from a reference atom
+  unsigned int neighborOrder;
 };
 
 
@@ -51,10 +52,12 @@ public :
   std::vector<unsigned int>                coordinationNumbers;
 
   // [TODO]: 
-  // 1. interactionCutoffDistance should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
-  //    together with the reading of Hamiltonian terms. (July 7, 20)
-  // 2. set cutoff distance to nearest-neighbor only by default
-  double interactionCutoffDistance {1.0};                                   // Default to one lattice constant
+  // interactionCutoffDistance should be incorporated into the constructor of the Hamiltonian class later when it is implemented,
+  // together with the reading of Hamiltonian terms. (July 7, 20)
+  double       interactionCutoffDistance        {1.0};         // Default to one lattice constant
+  unsigned int nearestNeighborCutoff            {1};           // Number of nearest neighbor interactions (default = nearest neighbor only)
+  bool         interactionCutoffDistanceDefined {false};
+  bool         nearestNeighborCutoffDefined     {false};
 
   // Constructor 1: initialize unit cell and lattice from input file
   Lattice(const char* inputFile);
@@ -97,6 +100,7 @@ public :
 
   std::vector<AtomBase> constructNeighborListFromNeighboringUnitCells(unsigned int currentAtom);
   void                  constructPrimaryNeighborList();
+  void                  checkNNInteractionsAndCutOffDistance();
   void                  mapPrimaryToAllNeighborLists();
   void                  getCoordinationNumbers();
 

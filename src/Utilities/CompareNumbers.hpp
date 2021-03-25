@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 const double threshold {0.000001};
 
@@ -29,5 +30,36 @@ bool isFoundInVector(numberType a, std::vector<numberType> vec) {
 
 }
 
+
+// Returns the index of the vector at which the element is the same as the number in comparison
+template <typename numberType>
+unsigned int getVectorIndex(numberType a, std::vector<numberType> vec) {
+
+  unsigned int index {0};
+  for (unsigned int i=0; i<vec.size(); i++)
+    if (sameMagnitude(a, vec[i]) && sameSign(a, vec[i])) {
+      index = i;
+      break;
+    }
+
+  return index;
+
+}
+
+
+// Returns the index of a sorted vector at which the element is greater than the number in comparison
+template <typename numberType>
+unsigned int getVectorUpperIndex(numberType a, std::vector<numberType> vec) {
+
+  unsigned int index {0};
+  for (unsigned int i=0; i<vec.size(); i++)
+    if (a < vec[i]) {
+      index = i;
+      break;
+    }
+
+  return index;
+
+}
 
 #endif

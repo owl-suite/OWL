@@ -11,7 +11,6 @@
 #include "Utilities/RandomNumberGenerator.hpp"
 
 
-// OK
 Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
 {
 
@@ -22,6 +21,8 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
   assert (lattice.totalNumberOfAtoms > 0);
   setSystemSize(lattice.totalNumberOfAtoms);
   atom.resize(systemSize);
+
+  neighborInteractionStrengths.resize(lattice.nearestNeighborCutoff, 1.0);
 
   if (std::filesystem::exists(inputFile))
     readCompositionInfo(inputFile);
@@ -57,7 +58,7 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
 
 }
 
-// OK
+
 Alloy3D::~Alloy3D()
 {
 
@@ -66,7 +67,6 @@ Alloy3D::~Alloy3D()
 }
 
 
-// OK
 void Alloy3D::readCompositionInfo(const std::filesystem::path& mainInputFile)
 {
 
@@ -151,6 +151,25 @@ void Alloy3D::readCompositionInfo(const std::filesystem::path& mainInputFile)
               }
               std::cout << "\n";
             }
+            lineStream.clear();
+            continue;
+          }
+
+          else if (key == "NeighborInteractionStrengths") {
+            unsigned int counter {0};
+            double fraction {0.0};
+            while (lineStream && counter < lattice.nearestNeighborCutoff) {
+              lineStream >> fraction;
+              neighborInteractionStrengths[counter] = fraction;
+              //std::cout << "Interaction strength read = " << fraction << "\n";
+              counter++;
+            }
+            assert(counter == lattice.nearestNeighborCutoff);
+
+            std::cout << "\n     Neighbor Interaction Strengths : ";
+            for (auto i : neighborInteractionStrengths)
+              std::cout << i << "  ";
+            std::cout << "\n";
             continue;
           }
 
@@ -166,8 +185,7 @@ void Alloy3D::readCompositionInfo(const std::filesystem::path& mainInputFile)
 
 }
 
-// OK
-// TODO: need to test with a real config file!
+
 void Alloy3D::writeConfiguration(int format, const char* filename)
 {
 
@@ -218,7 +236,6 @@ void Alloy3D::writeConfiguration(int format, const char* filename)
 }
 
 
-// OK
 void Alloy3D::getObservablesFromScratch()
 {
 
@@ -229,7 +246,6 @@ void Alloy3D::getObservablesFromScratch()
 }
 
 
-// OK
 void Alloy3D::getObservables() 
 {
 
@@ -257,7 +273,6 @@ void Alloy3D::getAdditionalObservables()
 }
 
 
-// OK
 void Alloy3D::doMCMove()
 {
 
@@ -274,7 +289,6 @@ void Alloy3D::doMCMove()
 }
 
 
-// OK
 void Alloy3D::acceptMCMove()
 {
   // update "old" observables
@@ -283,7 +297,6 @@ void Alloy3D::acceptMCMove()
 }
 
 
-// OK
 void Alloy3D::rejectMCMove()
 {
   atom[currentPosition1] = oldAtom1;
@@ -300,8 +313,6 @@ void Alloy3D::buildMPIConfigurationType()
 */
 
 
-// OK
-// TODO: need to test with a real config file!
 void Alloy3D::readAtomConfigFile(const std::filesystem::path& spinConfigFile)
 {
   std::cout << "\n   Alloy3D class reading configuration file: " << spinConfigFile << "\n";
@@ -339,9 +350,7 @@ void Alloy3D::readAtomConfigFile(const std::filesystem::path& spinConfigFile)
               //std::cout << "   Alloy3D:  Atom configuration read: \n";
               lineStream.clear();
               for (unsigned int atomID=0; atomID<numberOfAtoms; atomID++) {
-                std::getline(inputFile, line);               
-                //if (!line.empty()) lineStream.str(line);
-                //lineStream >> ;
+                std::getline(inputFile, line);
                 if (!line.empty()) {
                   lattice.globalAtomicSpecies[atomID] = convertStringToElement(line);
                   atom[atomID] = convertStringToElement(line);
@@ -364,8 +373,6 @@ void Alloy3D::readAtomConfigFile(const std::filesystem::path& spinConfigFile)
 }
 
 
-// OK
-// TODO: need to check if it works as expected.
 void Alloy3D::initializeAtomConfiguration(int initial)
 {
 
@@ -469,7 +476,6 @@ void Alloy3D::initializeAtomConfiguration(int initial)
 }
 
 
-// OK
 unsigned int Alloy3D::getElementIndex(Element elem){
 
   unsigned int index {0};
@@ -486,7 +492,6 @@ unsigned int Alloy3D::getElementIndex(Element elem){
 }
 
 
-// OK
 ObservableType Alloy3D::getExchangeInteractions()
 {
 
@@ -497,8 +502,12 @@ ObservableType Alloy3D::getExchangeInteractions()
     for (auto neighbor : lattice.neighborList[atomID]) {
       i = getElementIndex(atom[atomID]);
       j = getElementIndex(atom[neighbor.atomID]);
-      energy += interactions(i,j);
-      //78nearestNeighborPairTypes(i,j)++;
+      energy += interactions(i,j) * double(neighborInteractionStrengths[neighbor.neighborOrder]);
+
+      // Check:
+      //std::cout << "atomID: " << atomID << "; neighbor.atomID: " << neighbor.atomID 
+      //          << "; neighbor.distance: " << neighbor.distance
+      //          << "; neighbor.neighborOrder: " << neighbor.neighborOrder << "\n";
     }
   } 
 
@@ -507,7 +516,6 @@ ObservableType Alloy3D::getExchangeInteractions()
 }
 
 
-// OK
 // checked that it yields the same energy as from scratch
 ObservableType Alloy3D::getDifferenceInExchangeInteractions()
 {
@@ -533,7 +541,7 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
     for (auto neighbor : lattice.neighborList[currentPosition1]) {
       k = getElementIndex(atom[neighbor.atomID]); 
       if (neighbor.atomID != currentPosition2)
-        energyChange += interactions(i,k) - interactions(j,k);
+        energyChange += (interactions(i,k) - interactions(j,k)) * double(neighborInteractionStrengths[neighbor.neighborOrder]);
     }
 
     // Second atom
@@ -543,7 +551,7 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
     for (auto neighbor : lattice.neighborList[currentPosition2]) {
       k = getElementIndex(atom[neighbor.atomID]); 
       if (neighbor.atomID != currentPosition1)
-        energyChange += interactions(i,k) - interactions(j,k);
+        energyChange += (interactions(i,k) - interactions(j,k)) * double(neighborInteractionStrengths[neighbor.neighborOrder]);
     }
   }
   else {
@@ -553,7 +561,7 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
 
     for (auto neighbor : lattice.neighborList[currentPosition1]) {
       k = getElementIndex(atom[neighbor.atomID]); 
-      energyChange += interactions(i,k) - interactions(j,k);
+      energyChange += (interactions(i,k) - interactions(j,k)) * double(neighborInteractionStrengths[neighbor.neighborOrder]);
     }
 
     // Second atom
@@ -562,7 +570,7 @@ ObservableType Alloy3D::getDifferenceInExchangeInteractions()
 
     for (auto neighbor : lattice.neighborList[currentPosition2]) {
       k = getElementIndex(atom[neighbor.atomID]); 
-      energyChange += interactions(i,k) - interactions(j,k);
+      energyChange += (interactions(i,k) - interactions(j,k)) * double(neighborInteractionStrengths[neighbor.neighborOrder]);
     }
   }
 
@@ -582,6 +590,7 @@ void Alloy3D::getNearestNeighborPairTypes()
     for (auto neighbor : lattice.neighborList[atomID]) {
       i = getElementIndex(atom[atomID]);
       j = getElementIndex(atom[neighbor.atomID]);
+      if (sameMagnitude(neighbor.distance, lattice.neighborDistances[0]))
       nearestNeighborPairTypes(i,j)++;
     }
   } 
@@ -597,6 +606,7 @@ void Alloy3D::getNearestNeighborPairTypes()
       totalPairs += nearestNeighborPairTypes(i,j);
     }
   }
+  //std::cout << "Check: totalPairs = " << totalPairs << ", lattice.coordinationNumbers[0] = " << lattice.coordinationNumbers[0]  << ", systemSize = " << systemSize << "\n";
   assert(totalPairs == ObservableType(lattice.coordinationNumbers[0] * systemSize));
 
   // Normalization

@@ -44,6 +44,7 @@ private :
   std::vector<double>       composition;
   Matrix<double>            interactions;
   std::vector<unsigned int> numberOfAtomsForEachElement;
+  std::vector<double>       neighborInteractionStrengths;
 
   // Overall configuration
   std::vector<Element> atom;

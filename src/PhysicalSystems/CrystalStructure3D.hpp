@@ -72,7 +72,7 @@ private :
   double assignDzyaloshinskiiMoriyaInteractions(double dz, double dr);
   
   void   addInteractionsToPrimaryNeighborList();
-  void   mapPrimaryToAllNeighborLists();
+  void   mapPrimaryToAllNeighborLists();           // TODO: this should override the same function in CrystalBase class
 
   // Hamiltonian measurements:
   void                                                                       getObservablesFromScratch();

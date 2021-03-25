@@ -712,8 +712,11 @@ void CrystalStructure3D::mapPrimaryToAllNeighborLists()
         real_uc = lattice.nearestNeighborUnitCellList[i][relative_uc];
         atomID = lattice.getAtomIndex(real_uc, atomID_in_uc);
 
-        neighborList[thisAtom].push_back({atomID, k.distance, k.J_ij, k.D_ij});
-        //std::cout << atomID << " " << k.distance << "\n";
+        // Add the atom to neighbor list if within the cutoff
+        if (k.distance <= lattice.interactionCutoffDistance) {
+          neighborList[thisAtom].push_back({atomID, k.distance, k.J_ij, k.D_ij});
+          //std::cout << atomID << " " << k.distance << "\n";
+        }
       }
       assert(lattice.neighborList[thisAtom].size() == neighborList[thisAtom].size());
 

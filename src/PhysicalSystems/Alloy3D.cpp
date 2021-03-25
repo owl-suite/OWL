@@ -23,21 +23,25 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
   atom.resize(systemSize);
 
   neighborInteractionStrengths.resize(lattice.nearestNeighborCutoff, 1.0);
+  nearestNeighborPairTypes.resize(lattice.nearestNeighborCutoff);
 
   if (std::filesystem::exists(inputFile))
     readCompositionInfo(inputFile);
 
   // Initialize observables
-  nearestNeighborPairTypes.resize(numberOfElements, numberOfElements);
+  for (unsigned int i=0; i<lattice.nearestNeighborCutoff; i++)
+    nearestNeighborPairTypes[i].resize(numberOfElements, numberOfElements);
   observableName.push_back("Total energy, E");                     // observables[0] : total energy
 
   char obsName[101];
-  for (unsigned int i=0; i<numberOfElements; i++) {
-    for (unsigned int j=i; j<numberOfElements; j++) {
-      sprintf(obsName, "Prob. pair type %2s-%2s", convertElementToString(elementTypes[i]).c_str(),
-                                                  convertElementToString(elementTypes[j]).c_str());
-      observableName.push_back(obsName);                           // observables[1-] : nearest neighbor pair types
-      //std::cout << i << "  " << j << "  " << obsName << "\n";
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+    for (unsigned int i=0; i<numberOfElements; i++) {
+      for (unsigned int j=i; j<numberOfElements; j++) {
+        sprintf(obsName, "Prob. pair type (%2d-th neighbor) %2s-%2s", k+1, convertElementToString(elementTypes[i]).c_str(),
+                                                                           convertElementToString(elementTypes[j]).c_str());
+        observableName.push_back(obsName);                                  // observables[1-] : nearest neighbor pair types
+        //std::cout << i << "  " << j << "  " << obsName << "\n";
+      }
     }
   }
 
@@ -260,13 +264,15 @@ void Alloy3D::getAdditionalObservables()
   getNearestNeighborPairTypes();
   unsigned int index = 1;
  
-  for (unsigned int i=0; i<numberOfElements; i++) {
-    for (unsigned int j=i; j<numberOfElements; j++) {
-      if (i==j)
-        observables[index] = nearestNeighborPairTypes(i,j);
-      else
-        observables[index] = 2.0 * nearestNeighborPairTypes(i,j);
-      index++;
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+    for (unsigned int i=0; i<numberOfElements; i++) {
+      for (unsigned int j=i; j<numberOfElements; j++) {
+        if (i==j)
+          observables[index] = nearestNeighborPairTypes[k](i,j);
+        else
+          observables[index] = 2.0 * nearestNeighborPairTypes[k](i,j);
+        index++;
+      }
     }
   }
 
@@ -584,35 +590,43 @@ void Alloy3D::getNearestNeighborPairTypes()
 {
 
   unsigned int i, j;
-  nearestNeighborPairTypes = 0;
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++)
+    nearestNeighborPairTypes[k] = 0;
 
   for (unsigned int atomID=0; atomID<systemSize; atomID++) {
     for (auto neighbor : lattice.neighborList[atomID]) {
       i = getElementIndex(atom[atomID]);
       j = getElementIndex(atom[neighbor.atomID]);
-      if (sameMagnitude(neighbor.distance, lattice.neighborDistances[0]))
-      nearestNeighborPairTypes(i,j)++;
+      //if (sameMagnitude(neighbor.distance, lattice.neighborDistances[0]))
+      //  nearestNeighborPairTypes(i,j)++;
+      nearestNeighborPairTypes[neighbor.neighborOrder](i,j)++;
     }
   } 
 
   // Checks: 
   // 1. the nearestNeighborPairTypes matrix should be symmetrical
   // 2. The matrix elements should add up to (coordination number * number of atoms), which includes double counting
-  ObservableType totalPairs {0.0};
-  for (i=0; i<numberOfElements; i++) {
-    for (j=0; j<numberOfElements; j++) {
-      //std::cout << "i : " << i << ", j : " << j << ", nearestNeighborPairTypes(i,j) = " << nearestNeighborPairTypes(i,j) << "\n";
-      assert(nearestNeighborPairTypes(i,j) == nearestNeighborPairTypes(j,i));
-      totalPairs += nearestNeighborPairTypes(i,j);
-    }
-  }
-  //std::cout << "Check: totalPairs = " << totalPairs << ", lattice.coordinationNumbers[0] = " << lattice.coordinationNumbers[0]  << ", systemSize = " << systemSize << "\n";
-  assert(totalPairs == ObservableType(lattice.coordinationNumbers[0] * systemSize));
+  std::vector<ObservableType> totalPairs;
+  totalPairs.resize(lattice.nearestNeighborCutoff, 0.0);
 
-  // Normalization
-  for (i=0; i<numberOfElements; i++) {
-    for (j=0; j<numberOfElements; j++)
-      nearestNeighborPairTypes(i,j) /= totalPairs;
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+    for (i=0; i<numberOfElements; i++) {
+      for (j=0; j<numberOfElements; j++) {
+        //std::cout << "i : " << i << ", j : " << j << ", nearestNeighborPairTypes(i,j) = " << nearestNeighborPairTypes(i,j) << "\n";
+        assert(nearestNeighborPairTypes[k](i,j) == nearestNeighborPairTypes[k](j,i));
+        totalPairs[k] += nearestNeighborPairTypes[k](i,j);
+      }
+    }
+
+    //std::cout << "Check: totalPairs = " << totalPairs << ", lattice.coordinationNumbers[0] = " << lattice.coordinationNumbers[0]  << ", systemSize = " << systemSize << "\n";
+    assert(totalPairs[k] == ObservableType(lattice.coordinationNumbers[k] * systemSize));
+
+    // Normalization
+    for (i=0; i<numberOfElements; i++) {
+      for (j=0; j<numberOfElements; j++)
+        nearestNeighborPairTypes[k](i,j) /= totalPairs[k];
+    }
+
   }
-  
+
 }

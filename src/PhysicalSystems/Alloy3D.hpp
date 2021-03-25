@@ -58,7 +58,7 @@ private :
   bool firstTimeGetMeasures;
 
   // A matrix that stores nearest-neighhbor pairs in a configuration
-  Matrix<ObservableType> nearestNeighborPairTypes;
+  std::vector< Matrix<ObservableType> > nearestNeighborPairTypes;
 
   // Private functions
 

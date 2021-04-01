@@ -459,7 +459,7 @@ std::vector<AtomBase> Lattice::constructNeighborListFromNeighboringUnitCells(uns
         double distance = getRelativePairwiseDistance(atom1, atom2);
 
         if (distance <= interactionCutoffDistance)
-          atomList.push_back({atom2_global, distance});
+          atomList.push_back({atom2_global, distance, 0});
         
       }
     }
@@ -609,13 +609,13 @@ void Lattice::mapPrimaryToAllNeighborLists()
 void Lattice::getCoordinationNumbers()
 {
 
-  unsigned int numberOfNeighborDistances = neighborDistances.size();
+  size_t numberOfNeighborDistances = neighborDistances.size();
   coordinationNumbers.resize(numberOfNeighborDistances, 0);
 
   // Assuming that all atoms in the unit cell have the same number of coordination number.
   // If not, rewrite the following routine to calculate for each atom
   for (auto neighbor : neighborList[0]) {
-    for (unsigned int i=0; i<numberOfNeighborDistances; i++) {
+    for (size_t i=0; i<numberOfNeighborDistances; i++) {
       if (sameMagnitude(neighbor.distance, neighborDistances[i]))
         coordinationNumbers[i]++;
     }

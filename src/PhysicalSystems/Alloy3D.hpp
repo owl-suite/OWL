@@ -58,7 +58,9 @@ private :
   bool firstTimeGetMeasures;
 
   // A matrix that stores nearest-neighhbor pairs in a configuration
+  // One matrix for each nearest neighbor distance smaller than the nearestNeighborCutoff
   std::vector< Matrix<ObservableType> > nearestNeighborPairTypes;
+  ObservableType                        idealEntropy {0.0};
 
   // Private functions
 
@@ -72,9 +74,12 @@ private :
 
   // Hamiltonian measurements:
   void            getObservablesFromScratch();
+  ObservableType  getIdealEntropy();
   ObservableType  getExchangeInteractions();
   ObservableType  getDifferenceInExchangeInteractions();
   void            getNearestNeighborPairTypes();
+  ObservableType  getMutualInformation(unsigned int k = 0);
+  ObservableType  getInformationEntropy();
  
 };
 

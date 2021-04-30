@@ -45,6 +45,12 @@ Alloy3D::Alloy3D(const char* inputFile, int initial) : lattice(inputFile)
     }
   }
 
+  observableName.push_back("Information entropy, S");                    // observables : information entropy of the configuration
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+    sprintf(obsName, "Mutual information (%2d-th neighbor), I(%2d)", k+1, k+1);
+    observableName.push_back(obsName);                                   // observables : mututal information of the configuration
+  }
+
   initializeObservables(observableName.size());
 
   // Initialize configuration from file if applicable
@@ -243,7 +249,11 @@ void Alloy3D::writeConfiguration(int format, const char* filename)
 void Alloy3D::getObservablesFromScratch()
 {
 
+  // Ideal entropy given a composition, defined in Eq.(1), M. Widom, J. Mater. Res. 33, 19 (2018).
+  idealEntropy   = getIdealEntropy();
+
   observables[0] = getExchangeInteractions();
+
   getAdditionalObservables();
   firstTimeGetMeasures = false;
 
@@ -261,9 +271,11 @@ void Alloy3D::getObservables()
 void Alloy3D::getAdditionalObservables()
 {
   
+  // 1. Nearest neighbor pair types
   getNearestNeighborPairTypes();
-  unsigned int index = 1;
- 
+
+  unsigned int index = 1; 
+  // Get the different pair types into separate observables
   for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
     for (unsigned int i=0; i<numberOfElements; i++) {
       for (unsigned int j=i; j<numberOfElements; j++) {
@@ -274,6 +286,16 @@ void Alloy3D::getAdditionalObservables()
         index++;
       }
     }
+  }
+
+  // 2. Information entropy 
+  observables[index] = getInformationEntropy();
+  index++;
+
+  // 3. Mutual information
+  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+    observables[index] = getMutualInformation(k);
+    index++;
   }
 
 }
@@ -498,6 +520,18 @@ unsigned int Alloy3D::getElementIndex(Element elem){
 }
 
 
+ObservableType Alloy3D::getIdealEntropy()
+{
+
+  ObservableType entropy = 0.0;
+  for (unsigned int i=0; i<numberOfElements; i++)
+    entropy += composition[i] * log(composition[i]);
+  
+  return -1.0 * entropy;
+
+}
+
+
 ObservableType Alloy3D::getExchangeInteractions()
 {
 
@@ -621,12 +655,41 @@ void Alloy3D::getNearestNeighborPairTypes()
     //std::cout << "Check: totalPairs = " << totalPairs << ", lattice.coordinationNumbers[0] = " << lattice.coordinationNumbers[0]  << ", systemSize = " << systemSize << "\n";
     assert(totalPairs[k] == ObservableType(lattice.coordinationNumbers[k] * systemSize));
 
-    // Normalization
+    // Normalization (this gets rid of the double counting)
     for (i=0; i<numberOfElements; i++) {
       for (j=0; j<numberOfElements; j++)
         nearestNeighborPairTypes[k](i,j) /= totalPairs[k];
     }
 
   }
+
+}
+
+
+// Mutual information defined in Eq.(22), M. Widom, J. Mater. Res. 33, 19 (2018).
+ObservableType Alloy3D::getMutualInformation(unsigned int k)
+{
+
+  ObservableType mutualInformation {0.0};
+  for (unsigned int i=0; i<numberOfElements; i++) {
+    for (unsigned int j=0; j<numberOfElements; j++)
+      mutualInformation += nearestNeighborPairTypes[k](i,j) * log(nearestNeighborPairTypes[k](i,j) / (composition[i] * composition[j]) );
+  }
+
+  return mutualInformation;
+
+}
+
+
+// Information entropy defined in Eq.(23), M. Widom, J. Mater. Res. 33, 19 (2018).
+ObservableType Alloy3D::getInformationEntropy()
+{
+
+  ObservableType informationEntropy {0.0};
+  informationEntropy = idealEntropy - ObservableType(lattice.coordinationNumbers[0]) / 2.0 * getMutualInformation(0);
+  
+  //std::cout << "YingWai's check3: informationEntropy = " << informationEntropy << "\n";
+  
+  return informationEntropy;
 
 }

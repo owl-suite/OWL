@@ -531,7 +531,7 @@ ObservableType Alloy3D::getIdealEntropy()
     if (!sameMagnitude(composition[i], 0.0))
       entropy += composition[i] * log(composition[i]);
   
-  assert (!isnan(entropy));
+  assert (!std::isnan(entropy));
 
   return -1.0 * entropy;
 
@@ -685,7 +685,7 @@ ObservableType Alloy3D::getMutualInformation(unsigned int k)
   }
 
   //std::cout << "YingWai's check2: MI = " << MI << "\n";
-  assert (!isnan(MI));
+  assert (!std::isnan(MI));
 
   return MI;
 

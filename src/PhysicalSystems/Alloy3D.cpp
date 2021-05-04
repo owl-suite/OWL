@@ -289,11 +289,14 @@ void Alloy3D::getAdditionalObservables()
   }
 
   // 2. Information entropy 
+  mutualInformation  = getMutualInformation(0);
   observables[index] = getInformationEntropy();
   index++;
 
   // 3. Mutual information
-  for (unsigned int k=0; k<lattice.nearestNeighborCutoff; k++) {
+  observables[index] = mutualInformation;
+  index++;
+  for (unsigned int k=1; k<lattice.nearestNeighborCutoff; k++) {
     observables[index] = getMutualInformation(k);
     index++;
   }
@@ -525,8 +528,11 @@ ObservableType Alloy3D::getIdealEntropy()
 
   ObservableType entropy = 0.0;
   for (unsigned int i=0; i<numberOfElements; i++)
-    entropy += composition[i] * log(composition[i]);
+    if (!sameMagnitude(composition[i], 0.0))
+      entropy += composition[i] * log(composition[i]);
   
+  assert (!isnan(entropy));
+
   return -1.0 * entropy;
 
 }
@@ -670,13 +676,18 @@ void Alloy3D::getNearestNeighborPairTypes()
 ObservableType Alloy3D::getMutualInformation(unsigned int k)
 {
 
-  ObservableType mutualInformation {0.0};
+  ObservableType  MI = 0.0;
   for (unsigned int i=0; i<numberOfElements; i++) {
-    for (unsigned int j=0; j<numberOfElements; j++)
-      mutualInformation += nearestNeighborPairTypes[k](i,j) * log(nearestNeighborPairTypes[k](i,j) / (composition[i] * composition[j]) );
+    for (unsigned int j=0; j<numberOfElements; j++) {
+      if (!sameMagnitude(nearestNeighborPairTypes[k](i,j), 0.0))
+        MI += nearestNeighborPairTypes[k](i,j) * log(nearestNeighborPairTypes[k](i,j) / (composition[i] * composition[j]) );
+    }
   }
 
-  return mutualInformation;
+  //std::cout << "YingWai's check2: MI = " << MI << "\n";
+  assert (!isnan(MI));
+
+  return MI;
 
 }
 
@@ -686,9 +697,7 @@ ObservableType Alloy3D::getInformationEntropy()
 {
 
   ObservableType informationEntropy {0.0};
-  informationEntropy = idealEntropy - ObservableType(lattice.coordinationNumbers[0]) / 2.0 * getMutualInformation(0);
-  
-  //std::cout << "YingWai's check3: informationEntropy = " << informationEntropy << "\n";
+  informationEntropy = idealEntropy - ObservableType(lattice.coordinationNumbers[0]) / 2.0 * mutualInformation;
   
   return informationEntropy;
 

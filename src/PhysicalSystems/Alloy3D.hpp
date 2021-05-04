@@ -60,7 +60,8 @@ private :
   // A matrix that stores nearest-neighhbor pairs in a configuration
   // One matrix for each nearest neighbor distance smaller than the nearestNeighborCutoff
   std::vector< Matrix<ObservableType> > nearestNeighborPairTypes;
-  ObservableType                        idealEntropy {0.0};
+  ObservableType                        idealEntropy      {0.0};
+  ObservableType                        mutualInformation {0.0};
 
   // Private functions
 

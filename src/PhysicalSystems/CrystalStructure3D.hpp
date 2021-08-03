@@ -84,13 +84,13 @@ private :
   ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
   ObservableType                                                             getTotalWindingNumber();
-  ObservableType                                                             getZeemanEnergy();
+  ObservableType                                                             getExternalFieldEnergy();
 
   ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
   ObservableType                                                             getDifferenceInWindingNumber();
   ObservableType                                                             calculateLocalWindingNumber(unsigned int atomID);
-  ObservableType                                                             getDifferenceInZeemanEnergy();
+  ObservableType                                                             getDifferenceInExternalFieldEnergy();
 
 };
 

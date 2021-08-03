@@ -110,7 +110,7 @@ void CrystalStructure3D::getObservablesFromScratch()
 
   //observables[0] = getExchangeInteractions();
   //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
-  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions() + getZeemanEnergy();
+  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions() + getExternalFieldEnergy();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
   observables[6] = getTotalWindingNumber();
@@ -125,7 +125,7 @@ void CrystalStructure3D::getObservables()
 
   //observables[0] += getDifferenceInExchangeInteractions();
   //observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
-  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions() + getDifferenceInZeemanEnergy();
+  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions() + getDifferenceInExternalFieldEnergy();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -569,7 +569,7 @@ ObservableType CrystalStructure3D::getTotalWindingNumber()
 }
 
 
-ObservableType CrystalStructure3D::getZeemanEnergy()
+ObservableType CrystalStructure3D::getExternalFieldEnergy()
 {
 
   ObservableType energy {0.0};
@@ -699,7 +699,7 @@ ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atom
 }
 
 
-ObservableType CrystalStructure3D::getDifferenceInZeemanEnergy()
+ObservableType CrystalStructure3D::getDifferenceInExternalFieldEnergy()
 {
   return externalFieldStrength * (spin[currentPosition].z - oldSpin.z);
 }

@@ -531,9 +531,7 @@ ObservableType HeisenbergHexagonal2D::getAnisotropyEnergy()
 
     for (unsigned int i = 0; i < Size; i++)
       for (unsigned int j = 0; j < Size; j++)
-        energy += spin[i][j].x * spin[i][j].x + 
-                  spin[i][j].y * spin[i][j].y +
-                  spin[i][j].z * spin[i][j].z;
+        energy += spin[i][j].z * spin[i][j].z; 
 
   return uniaxialAnisotropy * energy;
 }
@@ -932,9 +930,7 @@ ObservableType HeisenbergHexagonal2D::getDifferenceInAnisotropyEnergy()
 {
   ObservableType energyChange {0.0};
 
-  energyChange = spin[CurX][CurY].x * spin[CurX][CurY].x - CurType.x * CurType.x  +
-                 spin[CurX][CurY].y * spin[CurX][CurY].y - CurType.y * CurType.y +
-                 spin[CurX][CurY].z * spin[CurX][CurY].z - CurType.z * CurType.z;
+  energyChange = spin[CurX][CurY].z * spin[CurX][CurY].z - CurType.z * CurType.z;
   
   return uniaxialAnisotropy * energyChange;
 }

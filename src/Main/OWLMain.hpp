@@ -14,6 +14,7 @@
 #include "PhysicalSystems/Ising2D.hpp"
 #include "PhysicalSystems/CrystalStructure3D.hpp"
 #include "PhysicalSystems/Alloy3D.hpp"
+#include "PhysicalSystems/HeisenbergHexagonal2D.hpp"
 
 #ifdef DRIVER_MODE_QE
 #include "PhysicalSystems/QuantumEspresso/QuantumEspressoSystem.hpp"
@@ -75,6 +76,10 @@ void setSimulation(PhysicalSystem*      &physical_system,
       physical_system = new Alloy3D(simInfo.MCInputFile);
       break;
 
+  case 8 :
+    physical_system = new HeisenbergHexagonal2D();
+    break;
+      
     default :
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";

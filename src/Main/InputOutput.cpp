@@ -169,6 +169,10 @@ void writeSimulationInfo()
       std::cout << "   Physical system          :  3D Alloy system\n";
       break;
 
+  case 8 :
+    std::cout << "   Physical system          :  2D Hexagonal Heisenberg model\n";
+    break; 
+
     default :
       std::cerr << "   Physical system          :  ERROR! Physical system not specified. \n";
       std::cerr << "\nOWL Aborting...\n";

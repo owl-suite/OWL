@@ -151,8 +151,10 @@ void Metropolis::run()
       if (MCStepsPerformed % configurationWriteInterval == 0) {
         sprintf(fileName, "configurations/config%012lu.dat", MCStepsPerformed);
         physical_system -> writeConfiguration(0, fileName);
-        sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);
-        physical_system -> writeConfiguration(1, fileName);
+        //sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);
+        //physical_system -> writeConfiguration(1, fileName);
+        sprintf(fileName, "configurations/all-configs.dat");
+        physical_system -> writeConfiguration(2, fileName);
       }
 
     }

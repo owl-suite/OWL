@@ -1,5 +1,9 @@
 *.swp
+.vscode
+architecture.inc
+quantum_espresso
 external_codes
+experiments
 bin/owl*
 src/Main/*.o
 src/Main/*.a
@@ -20,4 +24,3 @@ src/PhysicalSystems/QuantumEspresso/*.swp
 src/Utilities/*.o
 src/Utilities/*.a
 src/Utilities/*.swp
-architecture.inc

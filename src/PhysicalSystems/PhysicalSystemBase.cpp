@@ -3,7 +3,7 @@
 #include "PhysicalSystemBase.hpp"
 
 // Specialized for spin models for now
-void PhysicalSystem::calculateThermodynamics(ObservableType* averagedObservables, ObservableType* averagedObservablesSquared, double temperature)
+void PhysicalSystem::calculateThermodynamics(std::vector<ObservableType> averagedObservables, std::vector<ObservableType> averagedObservablesSquared, double temperature)
 {
   ObservableType specificHeat           {0.0};
   ObservableType magneticSusceptibility {0.0};

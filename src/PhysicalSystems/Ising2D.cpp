@@ -60,32 +60,56 @@ void Ising2D::writeConfiguration(int format, const char* filename)
 {
 
   FILE* f;
-  if (filename != NULL) f = fopen(filename, "w");
-  else f = stdout;
 
   switch (format) {
 
-  default : {
+    case 2 : {     // Write everything in one file, one line for each configuration
 
-    fprintf(f, "# 2D Ising Model : %u x %u\n\n", Size, Size);
-    fprintf(f, "TotalNumberOfSpins %u)\n", systemSize);
-    fprintf(f, "Observables ");
+      if (filename != NULL) f = fopen(filename, "a");
+      else f = stdout;
 
-    for (unsigned int i = 0; i < numObservables; i++)
-      fprintf(f, " %10.5f", observables[i]);
-    fprintf(f, "\n");
- 
-    fprintf(f, "\nSpinConfiguration\n");
-    for (unsigned int x = 0; x < Size; x++) {
-      for (unsigned int y = 0; y < Size; y++) 
-        switch (spin[x*Size+y]) {
-          case 1  : {fprintf(f, "U"); break;}
-          default : {fprintf(f, "D");}
-        }
+      // Write the configuration
+      for (unsigned int x = 0; x < Size; x++) {
+        for (unsigned int y = 0; y < Size; y++) 
+          switch (spin[x*Size+y]) {
+            case 1  : {fprintf(f, "1 "); break;}
+            default : {fprintf(f, "-1 ");}
+          }
+      }
+      
+      // Write the observables
+      for (unsigned int i = 0; i < numObservables; i++)
+        fprintf(f, " %10.5f", observables[i]);
+
       fprintf(f, "\n");
+
+      break;
     }
 
-  }
+    default : {
+
+      if (filename != NULL) f = fopen(filename, "w");
+      else f = stdout;
+
+      fprintf(f, "# 2D Ising Model : %u x %u\n\n", Size, Size);
+      fprintf(f, "TotalNumberOfSpins %u)\n", systemSize);
+      fprintf(f, "Observables ");
+  
+      for (unsigned int i = 0; i < numObservables; i++)
+        fprintf(f, " %10.5f", observables[i]);
+      fprintf(f, "\n");
+   
+      fprintf(f, "\nSpinConfiguration\n");
+      for (unsigned int x = 0; x < Size; x++) {
+        for (unsigned int y = 0; y < Size; y++) 
+          switch (spin[x*Size+y]) {
+            case 1  : {fprintf(f, "U"); break;}
+            default : {fprintf(f, "D");}
+          }
+        fprintf(f, "\n");
+      }
+
+    }
 
   }
 

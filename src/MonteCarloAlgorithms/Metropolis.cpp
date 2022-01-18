@@ -25,17 +25,9 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 
   // Allocate space to store observables and other statistics
   if (physical_system->numObservables > 0) {
-
-     averagedObservables         = new ObservableType[physical_system->numObservables];
-     averagedObservablesSquared  = new ObservableType[physical_system->numObservables];
-     standardDeviations          = new ObservableType[physical_system->numObservables];
-
-    for (unsigned int i=0; i<physical_system->numObservables; i++) {
-      averagedObservables[i]         = 0.0;
-      averagedObservablesSquared[i]  = 0.0;
-      standardDeviations[i]          = 0.0;
-    }
-
+    averagedObservables.assign(physical_system->numObservables, 0.0);
+    averagedObservablesSquared.assign(physical_system->numObservables, 0.0);
+    standardDeviations.assign(physical_system->numObservables, 0.0);
   }
 
   if (std::filesystem::exists("mc.dat")) 
@@ -62,10 +54,6 @@ Metropolis::Metropolis(PhysicalSystem* ps, const char* inputFile)
 //Destructor
 Metropolis::~Metropolis()
 {
-
-  delete[] averagedObservables;
-  delete[] averagedObservablesSquared;
-  delete[] standardDeviations;
 
   fclose(timeSeriesFile);
 
@@ -163,8 +151,10 @@ void Metropolis::run()
       if (MCStepsPerformed % configurationWriteInterval == 0) {
         sprintf(fileName, "configurations/config%012lu.dat", MCStepsPerformed);
         physical_system -> writeConfiguration(0, fileName);
-        sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);
-        physical_system -> writeConfiguration(1, fileName);
+        //sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);
+        //physical_system -> writeConfiguration(1, fileName);
+        sprintf(fileName, "configurations/all-configs.dat");
+        physical_system -> writeConfiguration(2, fileName);
       }
 
     }

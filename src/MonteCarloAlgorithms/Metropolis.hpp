@@ -2,6 +2,7 @@
 #define METROPOLIS_HPP
 
 #include <fstream>
+#include <vector>
 #include "MCAlgorithms.hpp"
 
 
@@ -18,9 +19,9 @@ private :
 
   PhysicalSystem* physical_system;
 
-  ObservableType* averagedObservables;
-  ObservableType* averagedObservablesSquared;
-  ObservableType* standardDeviations;
+  std::vector<ObservableType> averagedObservables;
+  std::vector<ObservableType> averagedObservablesSquared;
+  std::vector<ObservableType> standardDeviations;
 
   FILE* timeSeriesFile;
 

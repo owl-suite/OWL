@@ -19,11 +19,14 @@ owl-qe :
 
 clean :
 	rm -rf *.o *.a *.dSYM
-	cd QuantumEspresso && $(MAKE) clean
+	@if test -f $(MASTER_DIR)/quantum_espresso/make.sys ; then	\
+		echo ' Quantum Espresso exists. Cleaning up...' ;	\
+		cd QuantumEspresso && $(MAKE) clean;			\
+	 fi
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE_PATH) -c -o $@ $<
 
 libPhysicalSystems.a : $(PHYS_SYS_OBJS)
 	$(AR) -r $@ $(PHYS_SYS_OBJS)
-	@echo " "
+	@echo ' '

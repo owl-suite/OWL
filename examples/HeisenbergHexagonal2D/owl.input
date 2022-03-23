@@ -31,7 +31,7 @@ PhysicalSystem  8
 # Lattice size for spin models
 SpinModelLatticeSize  4
 
-##### Parameters for hexagonal 2D Heisenberg model
+##### Parameters for hexagonal 2D Heisenberg model #####
 ExchangeInteraction 1.0 -0.5
 UniaxialAnisotropy 0.1
 ExternalField 0.1 0.2 0.3

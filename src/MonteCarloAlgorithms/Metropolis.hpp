@@ -22,6 +22,7 @@ private :
   std::vector<ObservableType> averagedObservables;
   std::vector<ObservableType> averagedObservablesSquared;
   std::vector<ObservableType> standardDeviations;
+  std::vector<ObservableType> standardErrors;
 
   FILE* timeSeriesFile;
 

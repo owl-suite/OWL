@@ -20,7 +20,7 @@ void PhysicalSystem::calculateThermodynamics(std::vector<ObservableType> average
       printf("   Specific heat, Cv          : %12.5f     (per site) \n", specificHeat);
       continue;
     }
-    else if (observableName[i] == "Total magnetization, M") {
+    else if (observableName[i] == "Total absolute magnetization, |M|") {
       index = i;
       magneticSusceptibility = (averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i]) / 
                                (systemSize * temperature);

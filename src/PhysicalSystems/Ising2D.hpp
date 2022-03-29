@@ -32,7 +32,7 @@ private :
 
   // New configuration
   SpinDirection* spin;             // make it a flat array for MPI to operate on
-
+ 
   // Initialization:
   void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void   initializeSpinConfiguration(int initial = 0);

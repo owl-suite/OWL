@@ -154,7 +154,8 @@ void Ising2D::getObservables()
     observables[0] += energyChange;
     observables[1] += spin[CurX*Size+CurY] - CurType;
     observables[2]  = abs(observables[1]);
-    //printf("observables = %10.5f %10.5f \n", observables[0], observables[1]);
+    //printf("observables = %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2]);
+
   }
 
 }

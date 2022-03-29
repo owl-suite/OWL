@@ -7,12 +7,9 @@
 /// Global data types
 //enum type_name {integer = 1, single_precision = 2, double_precision = 3};
 //typedef int ObservableType;
-
 typedef double       ObservableType;
 typedef double       InteractionConstant;
 typedef unsigned int indexType;
-
-
 
 struct SimulationInfo
 {

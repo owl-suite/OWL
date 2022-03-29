@@ -12,6 +12,7 @@
 #include "PhysicalSystems/Heisenberg2D.hpp"
 #include "PhysicalSystems/Heisenberg3D.hpp"
 #include "PhysicalSystems/Ising2D.hpp"
+#include "PhysicalSystems/IsingND.hpp"
 #include "PhysicalSystems/CrystalStructure3D.hpp"
 #include "PhysicalSystems/Alloy3D.hpp"
 #include "PhysicalSystems/HeisenbergHexagonal2D.hpp"
@@ -42,6 +43,7 @@ void setSimulation(PhysicalSystem*      &physical_system,
   //  3: Heisenberg 2D
   //  4: Ising 2D
   //  5: ...
+
   switch (simInfo.system) {
     case 1 :
 #ifdef DRIVER_MODE_QE
@@ -76,10 +78,14 @@ void setSimulation(PhysicalSystem*      &physical_system,
       physical_system = new Alloy3D(simInfo.MCInputFile);
       break;
 
-  case 8 :
-    physical_system = new HeisenbergHexagonal2D();
-    break;
-      
+    case 8 :
+      physical_system = new HeisenbergHexagonal2D();
+      break;
+
+    case 9 :
+      physical_system = new IsingND();
+      break;
+
     default :
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";

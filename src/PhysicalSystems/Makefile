@@ -1,5 +1,6 @@
 PHYS_SYS_OBJS = PhysicalSystemBase.o \
                 Ising2D.o            \
+				IsingND.o            \
 				Heisenberg2D.o       \
 				Heisenberg3D.o       \
 				Elements.o           \

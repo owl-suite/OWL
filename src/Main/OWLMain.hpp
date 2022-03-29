@@ -92,10 +92,13 @@ void setSimulation(PhysicalSystem*      &physical_system,
       physical_system = new IsingND();
       break;
 
+<<<<<<< HEAD
     case 10 :
       physical_system = new Ising2D_NNN();
       break;
 
+=======
+>>>>>>> 9355b75 (Ising nd (#22))
     default :
       std::cerr << "Physical system not specified. \n";
       std::cerr << "Aborting...\n";

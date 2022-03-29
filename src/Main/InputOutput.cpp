@@ -62,6 +62,11 @@ void readMainInputFile(const char* FileName)
             //std::cout << "Simulation Info: lattice size = " << simInfo.spinModelLatticeSize << "\n";
             continue;
           }
+          else if (key == "SpinModelDimension") {
+            lineStream >> simInfo.spinModelDimension;
+            //std::cout << "Simulation Info: lattice size = " << simInfo.spinModelLatticeSize << "\n";
+            continue;
+          }
           else if (key == "QENumberOfAtoms") {
             lineStream >> simInfo.numAtoms;
             //std::cout << "Simulation Info: number of atoms for Quantum Espresso = " << simInfo.numAtoms << "\n";
@@ -171,6 +176,10 @@ void writeSimulationInfo()
 
   case 8 :
     std::cout << "   Physical system          :  2D Hexagonal Heisenberg model\n";
+    break; 
+
+  case 9 :
+    std::cout << "   Physical system          :  ND Ising model\n";
     break; 
 
     default :

@@ -68,6 +68,12 @@ protected:
     systemSize = n;
   }
 
+  void setSystemSize(unsigned int n, unsigned int d) {
+    systemSize = n;
+    for (unsigned int i=0; i<d-1; i++)
+      systemSize *= n;
+  }
+
   void initializeObservables(unsigned int n) {
     numObservables = n;
     if (numObservables > 0) {

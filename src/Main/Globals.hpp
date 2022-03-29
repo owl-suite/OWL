@@ -7,7 +7,8 @@
 /// Global data types
 //enum type_name {integer = 1, single_precision = 2, double_precision = 3};
 //typedef int ObservableType;
-typedef double ObservableType;
+typedef double       ObservableType;
+typedef unsigned int indexType;
 
 struct SimulationInfo
 {
@@ -34,7 +35,8 @@ struct SimulationInfo
   int  QEMCMoveSet           {-1};
 
   // These are physical system specific:
-  unsigned int spinModelLatticeSize  {0};                    // setting default to 1
+  unsigned int spinModelLatticeSize  {1};                    // setting default to 1
+  unsigned int spinModelDimension    {1};
   int          numAtoms              {-1};                   // code should exit if not specified in input file (Jun 24, 17)
 
 };

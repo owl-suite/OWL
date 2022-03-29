@@ -26,9 +26,10 @@ Ising2D::Ising2D(const char* spinConfigFile, int initial)
   else
     initializeSpinConfiguration(initial);
 
-  initializeObservables(2);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Total magnetization, M");                     // observables[1] : total magnetization
+  observableName.push_back("Total absolute magnetization, |M|");          // observables[2] : total absolute magnetization
+  initializeObservables(observableName.size());
 
   getObservablesFromScratch = true;
   getObservables();
@@ -132,11 +133,12 @@ void Ising2D::getObservables()
       if (x != 0) xLeft = x - 1; else xLeft = Size - 1;
       for (unsigned int y = 0; y < Size; y++) {
         if (y != 0) yBelow = y - 1; else yBelow = Size - 1;
-        observables[0] += spin[x*Size+y] * (spin[xLeft*Size+y] + spin[x*Size+yBelow]);
-        observables[1] += spin[x*Size+y];
+        observables[0] += ObservableType(spin[x*Size+y] * (spin[xLeft*Size+y] + spin[x*Size+yBelow]));
+        observables[1] += ObservableType(spin[x*Size+y]);
       }
     }
-    observables[0] = -observables[0];     // ferromagnetic interaction
+    observables[0] = -observables[0];             // -ve sign for ferromagnetic interaction
+    observables[2] = abs(observables[1]);
     getObservablesFromScratch = false;
     //printf("Calculated observables from scratch. \n");
   }
@@ -151,7 +153,7 @@ void Ising2D::getObservables()
 
     observables[0] += energyChange;
     observables[1] += spin[CurX*Size+CurY] - CurType;
-
+    observables[2]  = abs(observables[1]);
     //printf("observables = %10.5f %10.5f \n", observables[0], observables[1]);
   }
 

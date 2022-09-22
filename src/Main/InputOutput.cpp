@@ -191,10 +191,6 @@ void writeSimulationInfo()
       std::cout << "   Physical system          :  2D Ising model with next nearest neighbor interactions\n";
       break; 
 
-  case 9 :
-    std::cout << "   Physical system          :  ND Ising model\n";
-    break; 
-
     default :
       std::cerr << "   Physical system          :  ERROR! Physical system not specified. \n";
       std::cerr << "\nOWL Aborting...\n";

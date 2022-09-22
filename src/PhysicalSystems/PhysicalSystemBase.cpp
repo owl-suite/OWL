@@ -5,9 +5,10 @@
 // Specialized for spin models for now
 void PhysicalSystem::calculateThermodynamics(std::vector<ObservableType> averagedObservables, std::vector<ObservableType> averagedObservablesSquared, double temperature)
 {
-  ObservableType specificHeat           {0.0};
-  ObservableType magneticSusceptibility {0.0};
-  ObservableType BinderCumulant         {0.0};
+  ObservableType specificHeat                     {0.0};
+  ObservableType magneticSusceptibility           {0.0};
+  ObservableType staggerredMagneticSusceptibility {0.0};
+  ObservableType BinderCumulant                   {0.0};
   unsigned int index = std::numeric_limits<unsigned int>::max();;
 
   for (unsigned int i=0; i < numObservables; i++) {
@@ -17,14 +18,21 @@ void PhysicalSystem::calculateThermodynamics(std::vector<ObservableType> average
     if (observableName[i] == "Total energy, E") {
       specificHeat = (averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i]) / 
                      (systemSize * temperature * temperature);
-      printf("   Specific heat, Cv          : %15.5e     (per site) \n", specificHeat);
+      printf("   Specific heat, Cv                         : %12.5f     (per site) \n", specificHeat);
       continue;
     }
     else if (observableName[i] == "Total absolute magnetization, |M|") {
       index = i;
       magneticSusceptibility = (averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i]) / 
                                (systemSize * temperature);
-      printf("   Magnetic susceptibility, \u03C7 : %15.5e     (per site) \n", magneticSusceptibility);
+      printf("   Magnetic susceptibility, \u03C7                : %12.5f     (per site) \n", magneticSusceptibility);
+      continue;
+    }
+    else if (observableName[i] == "Staggered magnetization, M_stag") {
+      index = i;
+      staggerredMagneticSusceptibility = (averagedObservablesSquared[i] - averagedObservables[i] * averagedObservables[i]) / 
+                               (systemSize * temperature);
+      printf("   Staggered magnetic susceptibility, \u03C7_stag : %12.5f     (per site) \n", staggerredMagneticSusceptibility);
       continue;
     }
     else if (observableName[i] == "4th order magnetization, M^4") {

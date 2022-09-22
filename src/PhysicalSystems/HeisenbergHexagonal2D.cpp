@@ -55,44 +55,44 @@ void HeisenbergHexagonal2D::readHamiltonian(const char* mainInputFile)
   uniaxialAnisotropy = 0.0;
   externalField[0] = externalField[1] = externalField[2] = 0.0;
 
-  if (inputFile.is_open())
-    {
-      while (std::getline(inputFile, line))
-	{
-	  if (!line.empty())
-	    {
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+	    if (!line.empty()) {
 	      std::istringstream lineStream(line);
 	      lineStream >> key;
 
-	      if (key.compare(0, 1, "#") != 0)
-		{
-		  if (key == "ExchangeInteraction")
-		    {
-		      while(!lineStream.eof() && numShells < maxShells)
-			{
-			  lineStream >> exchangeParameter[numShells];
-			  numShells++;
-			}
+	      if (key.compare(0, 1, "#") != 0) {
+
+		      if (key == "ExchangeInteraction") {
+		        while(!lineStream.eof() && numShells < maxShells) {
+			        lineStream >> exchangeParameter[numShells];
+			        numShells++;
+			      }
+            continue;
+		      }
+		      else if (key == "UniaxialAnisotropy") {
+		        lineStream >> uniaxialAnisotropy;
+            continue;
+		      }
+		      else if (key == "ExternalField") {
+		        lineStream >> externalField[0] >> externalField[1] >> externalField[2];
+            continue;
+		      }
 		    }
-		  else if (key == "UniaxialAnisotropy")
-		    {
-		      lineStream >> uniaxialAnisotropy;
-		    }
-		  else if (key == "ExternalField")
-		    {
-		      lineStream >> externalField[0] >> externalField[1] >> externalField[2];
-		    }
-		}
 	    }
-	}
-      inputFile.close();
-    }
+	  }
+    
+    inputFile.close();
+  }
 
   printf("Exchange Interactions:\n");
   for(int i=0; i<numShells; i++)
     printf("  Shell %d : J = %f\n", i+1, exchangeParameter[i]);
   printf("Uniaxial Anisotropy : K = %f\n", uniaxialAnisotropy);
   printf("External Field : H = (%f, %f, %f)\n\n", externalField[0], externalField[1], externalField[2]);
+  
 }
 
 HeisenbergHexagonal2D::~HeisenbergHexagonal2D()
@@ -101,7 +101,7 @@ HeisenbergHexagonal2D::~HeisenbergHexagonal2D()
     delete[] spin[i];
   delete[] spin;
 
-  printf("Heisenberg2D finished\n");
+  printf("HeisenbergHexagonal2D finished\n");
 }
 
 
@@ -691,8 +691,6 @@ ObservableType HeisenbergHexagonal2D::getShell_3_DifferenceInExchangeInteraction
   dCur.y = spin[CurX][CurY].y - CurType.y;
   dCur.z = spin[CurX][CurY].z - CurType.z;
   
-  
- 
   if (i > 1) xMinus2 = i - 2;
   else if (Size > 1) xMinus2 = Size + i - 2; else xMinus2 = 0;
   if (i < Size - 2) xPlus2 = i + 2;

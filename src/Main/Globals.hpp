@@ -39,6 +39,7 @@ struct SimulationInfo
   // These are physical system specific:
   unsigned int spinModelLatticeSize  {1};                    // setting default to 1
   unsigned int spinModelDimension    {1};
+  unsigned int spinConfigInitMethod  {0};
   int          numAtoms              {-1};                   // code should exit if not specified in input file (Jun 24, 17)
 
 };

@@ -1,0 +1,75 @@
+##########################################
+##   New / restarted simulation?        ##
+##########################################
+# 0: New simulation
+# 1: Restarted simulation
+RestartFlag  0
+
+
+##########################################
+##   Seed for random number generator   ##
+##########################################
+
+RngSeed  183083
+
+
+##########################################
+##   Physical System                    ##
+##########################################
+# 1:  QuantumExpresso
+# 2:  LSMS
+# 3:  Heisenberg 2D
+# 4:  Ising 2D
+# 5:  Heisenberg 3D
+# 6:  Customized 3D crystal structure
+# 7:  3D alloy system
+# 8:  Heisenberg Hexagonal 2D
+# 9:  Ising ND
+# 10: Ising 2D with next nearest neighbor interactions
+PhysicalSystem  10
+
+
+##### Inputs for PhysicalSystem=3,4,5,8,9,10 (Heisenberg and Ising models) #####
+
+# Lattice size for spin models
+SpinModelLatticeSize  4
+
+# How the initial configuration initialized?
+# 0 : random spins (default)
+# 1 : all spin down
+# 2 : all spin up
+# 3 : checkboard (alternate spin up and down)
+SpinConfigInitMethod  0
+
+# Exchange interaction strengths (J1, J2)
+ExchangeInteraction  -1.0  -1.0
+
+
+##########################################
+##   Monte Carlo algorithm              ##
+##########################################
+# 1. Metropolis Sampling
+# 2. Wang-Landau Sampling
+# 3. Multicanonical Sampling (MUCA)
+# 4. (TODO) Parallel Tempering
+# 5. Replica-Exchange Wang-Landau (REWL)
+# 6. Global update MUCA 
+Algorithm  1
+
+##### Inputs for Metropolis sampling #####
+
+numberOfThermalizationSteps  10000
+numberOfMCSteps              20000
+numberOfMCUpdatesPerStep     16
+temperature                  3.0
+checkPointInterval           900		# in seconds
+
+
+##########################################
+##   Outputs                            ##
+##########################################
+
+##### Configuration output frequency #####
+# -ve or 0 : No
+# +ve      : Yes; number indicates the output frequency in MC steps
+configurationWriteInterval   1000

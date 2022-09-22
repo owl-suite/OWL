@@ -42,9 +42,12 @@ public :
 
   //void readHamiltonianTerms(const char* inputFile);
 
-  Lattice                                         lattice;
+  Lattice  lattice;
 
 private :
+
+  // Model specific information (TODO: add exchange and DM interactions)
+  ObservableType                              externalFieldStrength {0.0};
 
   // Model specific information add onto neighborList
   std::vector< std::vector<NeighboringAtom> > primaryNeighborList;
@@ -64,6 +67,7 @@ private :
   // Private functions
 
   // Initialization:
+  void   readHamiltonianInfo(const std::filesystem::path& hamiltonianInputFile);
   void   readSpinConfigFile(const std::filesystem::path& spinConfigFile);
   void   initializeSpinConfiguration(int initial = 0);
   void   assignRandomSpinDirection(unsigned int currentAtom);
@@ -80,11 +84,13 @@ private :
   ObservableType                                                             getDzyaloshinskiiMoriyaInteractions();
   std::tuple<ObservableType, ObservableType, ObservableType, ObservableType> getMagnetization();
   ObservableType                                                             getTotalWindingNumber();
+  ObservableType                                                             getExternalFieldEnergy();
 
   ObservableType                                                             getDifferenceInExchangeInteractions();
   ObservableType                                                             getDifferenceInDzyaloshinskiiMoriyaInteractions();
   ObservableType                                                             getDifferenceInWindingNumber();
   ObservableType                                                             calculateLocalWindingNumber(unsigned int atomID);
+  ObservableType                                                             getDifferenceInExternalFieldEnergy();
 
 };
 

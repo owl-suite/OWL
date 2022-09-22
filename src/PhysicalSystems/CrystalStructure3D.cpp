@@ -22,6 +22,9 @@ CrystalStructure3D::CrystalStructure3D(const char* inputFile, int initial) : lat
   setSystemSize(lattice.totalNumberOfAtoms);
   spin.resize(systemSize);
   localWindingNumber.resize(systemSize);
+  
+  if (std::filesystem::exists(inputFile))
+    readHamiltonianInfo(inputFile);
 
   // Initialize nearest neighbor lists for each atom in primary unit cell 
   addInteractionsToPrimaryNeighborList();
@@ -106,7 +109,8 @@ void CrystalStructure3D::getObservablesFromScratch()
 {
 
   //observables[0] = getExchangeInteractions();
-  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
+  //observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions();
+  observables[0] = getExchangeInteractions() + getDzyaloshinskiiMoriyaInteractions() + getExternalFieldEnergy();
   std::tie(observables[1], observables[2], observables[3], observables[4]) = getMagnetization();
   observables[5] = pow(observables[4], 4.0);
   observables[6] = getTotalWindingNumber();
@@ -120,7 +124,8 @@ void CrystalStructure3D::getObservables()
 {
 
   //observables[0] += getDifferenceInExchangeInteractions();
-  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
+  //observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions();
+  observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInDzyaloshinskiiMoriyaInteractions() + getDifferenceInExternalFieldEnergy();
   observables[1] += spin[currentPosition].x - oldSpin.x;
   observables[2] += spin[currentPosition].y - oldSpin.y;
   observables[3] += spin[currentPosition].z - oldSpin.z;
@@ -187,6 +192,41 @@ void CrystalStructure3D::buildMPIConfigurationType()
 {
 }
 */
+
+
+void CrystalStructure3D::readHamiltonianInfo(const std::filesystem::path& hamiltonianInputFile)
+{
+  std::cout << "\n   CrystalStructure3D class reading Hamiltonian file: " << hamiltonianInputFile << "\n";
+
+  std::ifstream inputFile(hamiltonianInputFile);
+  std::string line, key;
+
+  if (inputFile.is_open()) {
+
+    while (std::getline(inputFile, line)) {
+
+      if (!line.empty()) {
+          std::istringstream lineStream(line);
+          lineStream >> key;
+
+          if (key.compare(0, 1, "#") != 0) {
+
+            if (key == "ExternalFieldStrength") {
+              lineStream >> externalFieldStrength;
+              std::cout << "   CrystalStructure3D: externalFieldStrength = " << externalFieldStrength << "\n";
+              continue;
+            }
+
+          }
+      }
+    }
+
+    inputFile.close();
+
+  }
+
+
+}
 
 
 void CrystalStructure3D::readSpinConfigFile(const std::filesystem::path& spinConfigFile)
@@ -529,6 +569,22 @@ ObservableType CrystalStructure3D::getTotalWindingNumber()
 }
 
 
+ObservableType CrystalStructure3D::getExternalFieldEnergy()
+{
+
+  ObservableType energy {0.0};
+
+  for (unsigned int atomID=0; atomID<systemSize; atomID++) {
+    energy += spin[atomID].z;
+  }
+
+  energy *= externalFieldStrength;
+
+  return energy;
+
+}
+
+
 ObservableType CrystalStructure3D::getDifferenceInExchangeInteractions()
 {
 
@@ -640,6 +696,12 @@ ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atom
 
   return localWindingNumber[atomID];
 
+}
+
+
+ObservableType CrystalStructure3D::getDifferenceInExternalFieldEnergy()
+{
+  return externalFieldStrength * (spin[currentPosition].z - oldSpin.z);
 }
 
 

@@ -1,1 +1,1 @@
-path_to_architecture_file
+architecture/mac_osx

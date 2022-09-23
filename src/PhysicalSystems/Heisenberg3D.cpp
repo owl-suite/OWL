@@ -114,9 +114,9 @@ void Heisenberg3D::getObservables()
   }
   else {
     observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInExternalFieldEnergy();
-    observables[1] += spin[CurX][CurY][CurZ].x - CurType.x;
-    observables[2] += spin[CurX][CurY][CurZ].y - CurType.y;
-    observables[3] += spin[CurX][CurY][CurZ].z - CurType.z;
+    observables[1] += spin[CurX][CurY][CurZ].x - oldSpin.x;
+    observables[2] += spin[CurX][CurY][CurZ].y - oldSpin.y;
+    observables[3] += spin[CurX][CurY][CurZ].z - oldSpin.z;
 
     ObservableType temp = observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3];
     observables[4] = sqrt(temp);
@@ -202,58 +202,9 @@ ObservableType Heisenberg3D::getExchangeInteractions()
   return energy;
 
 }
->>>>>>> 402bbb2 (Implementation of customized interactions in 3D Heisenberg model. Some renaming.)
-
-  unsigned int xLeft, yBelow, zBackward;
-  unsigned int xRight, yAbove, zForward;
-  ObservableType energy {0.0};
-
-<<<<<<< HEAD
-  for (unsigned int i = 0; i < Size; i++) {
-    if (i != 0)         xLeft  = i - 1; else xLeft  = Size - 1;
-    if (i != (Size-1) ) xRight = i + 1; else xRight = 0;
-
-    for (unsigned int j = 0; j < Size; j++) {
-      if (j != 0)         yBelow = j - 1; else yBelow = Size - 1;
-      if (j != (Size-1) ) yAbove = j + 1; else yAbove = 0;
-
-      for (unsigned int k = 0; k < Size; k++) {
-        if (k != 0)         zBackward = k - 1; else zBackward = Size - 1;
-        if (k != (Size-1) ) zForward  = k + 1; else zForward  = 0;
-
-        // Nearest neighbors, horizontal (x,y-directions)
-        energy += J1 * (spin[i][j][k].x * (spin[xLeft][j][k].x + spin[i][yBelow][k].x) + 
-                        spin[i][j][k].y * (spin[xLeft][j][k].y + spin[i][yBelow][k].y) + 
-                        spin[i][j][k].z * (spin[xLeft][j][k].z + spin[i][yBelow][k].z) );
-
-        // Nearest neighbors, vertical (z-direction)
-        energy += J2 * (spin[i][j][k].x * spin[i][j][zBackward].x + 
-                        spin[i][j][k].y * spin[i][j][zBackward].y +
-                        spin[i][j][k].z * spin[i][j][zBackward].z );
-
-        // Next-nearest neighbors, horizontal (x,y-directions)
-        energy += J3 * (spin[i][j][k].x * (spin[xLeft][yBelow][k].x + spin[xLeft][yAbove][k].x) + 
-                        spin[i][j][k].y * (spin[xLeft][yBelow][k].y + spin[xLeft][yAbove][k].y) +
-                        spin[i][j][k].z * (spin[xLeft][yBelow][k].z + spin[xLeft][yAbove][k].z) );
-
-        // Next-nearest neighbors, vertical (z-direction)
-        energy += J4 * (spin[i][j][k].x * (spin[xRight][j][zBackward].x + spin[xLeft][j][zBackward].x + 
-                                           spin[i][yAbove][zBackward].x + spin[i][yBelow][zBackward].x) + 
-                        spin[i][j][k].y * (spin[xRight][j][zBackward].y + spin[xLeft][j][zBackward].y + 
-                                           spin[i][yAbove][zBackward].y + spin[i][yBelow][zBackward].y) +
-                        spin[i][j][k].z * (spin[xRight][j][zBackward].z + spin[xLeft][j][zBackward].z + 
-                                           spin[i][yAbove][zBackward].z + spin[i][yBelow][zBackward].z) );
-
-      }
-    }  
-  }
-  
-  return energy;
-
-}
 
 
-ObservableType Heisenberg3D::getZeemanEnergy()
+ObservableType Heisenberg3D::getExternalFieldEnergy()
 {
 
   ObservableType energy {0.0};
@@ -380,7 +331,7 @@ ObservableType Heisenberg3D::getDifferenceInExchangeInteractions()
 }
 
 
-ObservableType Heisenberg3D::getDifferenceInZeemanEnergy()
+ObservableType Heisenberg3D::getDifferenceInExternalFieldEnergy()
 {
 
   ObservableType energyChange {0.0};

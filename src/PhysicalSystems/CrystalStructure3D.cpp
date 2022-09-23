@@ -655,7 +655,6 @@ ObservableType CrystalStructure3D::calculateLocalWindingNumber(unsigned int atom
 
   // Calculate partial derivatives of spin[atomID]
   for (auto neighbor : lattice.neighborList[atomID]) {
-  for (auto neighbor : neighborList[atomID]) {
 
     if (neighbor.distance < cutoff) {
       spinDifference.x = spin[atomID].x - spin[neighbor.atomID].x;

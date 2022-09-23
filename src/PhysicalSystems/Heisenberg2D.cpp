@@ -102,9 +102,9 @@ void Heisenberg2D::getObservables()
   }
   else {
     observables[0] += getDifferenceInExchangeInteractions() + getDifferenceInExternalFieldEnergy();
-    observables[1] += spin[CurX][CurY].x - CurType.x;
-    observables[2] += spin[CurX][CurY].y - CurType.y;
-    observables[3] += spin[CurX][CurY].z - CurType.z;
+    observables[1] += spin[CurX][CurY].x - oldSpin.x;
+    observables[2] += spin[CurX][CurY].y - oldSpin.y;
+    observables[3] += spin[CurX][CurY].z - oldSpin.z;
     observables[4] = sqrt(observables[1] * observables[1] + observables[2] * observables[2] + observables[3] * observables[3]);
 
     //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
@@ -136,7 +136,7 @@ ObservableType Heisenberg2D::getExchangeInteractions()
 }
 
 
-ObservableType Heisenberg2D::getZeemanEnergy()
+ObservableType Heisenberg2D::getExternalFieldEnergy()
 {
   return 0.0;
 }
@@ -189,7 +189,7 @@ ObservableType Heisenberg2D::getDifferenceInExchangeInteractions()
 }
 
 
-ObservableType Heisenberg2D::getDifferenceInZeemanEnergy()
+ObservableType Heisenberg2D::getDifferenceInExternalFieldEnergy()
 {
   return 0.0;
 }

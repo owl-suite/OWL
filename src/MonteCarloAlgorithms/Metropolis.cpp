@@ -149,7 +149,7 @@ void Metropolis::run()
         lastBackUpTime = currentTime;
       }
 
-      if (MCStepsPerformed % configurationWriteInterval == 0) {
+      if ((configurationWriteInterval != 0) && (MCStepsPerformed % configurationWriteInterval == 0)) {
         sprintf(fileName, "configurations/config%012lu.dat", MCStepsPerformed);
         physical_system -> writeConfiguration(0, fileName);
         //sprintf(fileName, "configurations/config%012lu.xyz", MCStepsPerformed);

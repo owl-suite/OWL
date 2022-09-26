@@ -32,12 +32,12 @@ Ising2D_NNN::Ising2D_NNN(const char* spinConfigFile)
     readHamiltonian(simInfo.MCInputFile);
 
   // Initialize observables
-  initializeObservables(4);
   observableName.push_back("Total energy, E");                            // observables[0] : total energy
   observableName.push_back("Total magnetization, M");                     // observables[1] : total magnetization
   observableName.push_back("Total absolute magnetization, |M|");          // observables[2] : total absolute magnetization
   observableName.push_back("Staggered magnetization, M_stag");            // observables[3] : staggered magnetization
-  //observableName.push_back("Absolute staggered magnetization, |M_stag|"); // observables[4] : Absolute staggered magnetization (?)
+  observableName.push_back("Absolute staggered magnetization, |M_stag|"); // observables[4] : absolute staggered magnetization
+  initializeObservables(observableName.size());
 
   getObservablesFromScratch = true;
   getObservables();
@@ -149,8 +149,9 @@ void Ising2D_NNN::getObservables()
       }
     }
     observables[2] = abs(observables[1]);
-    //observables[4] = abs(observables[3]);
+    observables[4] = abs(observables[3]);
     getObservablesFromScratch = false;
+    //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
     //printf("Calculated observables from scratch. \n");
   }
   else {
@@ -161,15 +162,15 @@ void Ising2D_NNN::getObservables()
 
     int sumNeighbor = spin[xLeft*Size+CurY] + spin[xRight*Size+CurY] + spin[CurX*Size+yBelow] + spin[CurX*Size+yAbove];
     int sumNextNearestNeighbors = spin[xLeft*Size+yBelow] + spin[xRight*Size+yBelow] + spin[xLeft*Size+yAbove] + spin[xRight*Size+yAbove];
-    ObservableType energyChange = exchangeInteraction[0] * ObservableType(sumNeighbor * CurType * 2) + 
-                                  exchangeInteraction[1] * ObservableType(sumNextNearestNeighbors * CurType * 2);
+    ObservableType energyChange = exchangeInteraction[0] * ObservableType(sumNeighbor * oldSpin * -2) + 
+                                  exchangeInteraction[1] * ObservableType(sumNextNearestNeighbors * oldSpin * -2);
 
     observables[0] += energyChange;
-    observables[1] += spin[CurX*Size+CurY] - CurType;
+    observables[1] += spin[CurX*Size+CurY] - oldSpin;
     observables[2]  = abs(observables[1]);
-    observables[3] += pow(-1.0, double(CurX+CurY)) * ObservableType(spin[CurX*Size+CurY] - CurType);
-    //observables[4] = abs(observables[3]);
-    //printf("observables = %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2]);
+    observables[3] += pow(-1.0, double(CurX+CurY)) * ObservableType(spin[CurX*Size+CurY] - oldSpin);
+    observables[4] = abs(observables[3]);
+    //printf("observables = %10.5f %10.5f %10.5f %10.5f %10.5f\n", observables[0], observables[1], observables[2], observables[3], observables[4]);
   }
 
 }
@@ -185,10 +186,10 @@ void Ising2D_NNN::doMCMove()
   // randomly choose a site
   CurX = unsigned(getIntRandomNumber()) % Size;
   CurY = unsigned(getIntRandomNumber()) % Size;
-  CurType = spin[CurX*Size + CurY];
+  oldSpin = spin[CurX*Size + CurY];
 
   // flip the spin at that site
-  if (CurType == -1)
+  if (oldSpin == -1)
     spin[CurX*Size+CurY] = 1;
   else
     spin[CurX*Size+CurY] = -1;
@@ -201,7 +202,7 @@ void Ising2D_NNN::doMCMove()
 /*
 void Ising2D_NNN::undoMCMove()
 {
-  spin[CurX][CurY] = CurType;
+  spin[CurX][CurY] = oldSpin;
   restoreObservables();
 }
 */
@@ -219,7 +220,7 @@ void Ising2D_NNN::acceptMCMove()
 void Ising2D_NNN::rejectMCMove()
 {
 
-  spin[CurX*Size+CurY] = CurType;
+  spin[CurX*Size+CurY] = oldSpin;
   for (unsigned int i=0; i < numObservables; i++)
     observables[i] = oldObservables[i];
 

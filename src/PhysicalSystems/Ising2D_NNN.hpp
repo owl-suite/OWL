@@ -22,7 +22,7 @@ public :
 
 private :
 
-  unsigned int                numExchangeInteractions {2};
+  unsigned int                numExchangeInteractions {2};         // J1 and J2
   std::vector<ObservableType> exchangeInteraction;
 
   typedef int SpinDirection;
@@ -31,7 +31,7 @@ private :
 
   // Old configuration
   unsigned int CurX, CurY;
-  SpinDirection CurType;
+  SpinDirection oldSpin;
 
   // New configuration
   SpinDirection* spin;             // make it a flat array for MPI to operate on
